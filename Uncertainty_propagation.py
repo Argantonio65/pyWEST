@@ -76,7 +76,6 @@ def Read_SA_outputVariable(Outputfilename, variable, Instances, Outputdir, Initi
             #read id number                
             with open(os.path.join(Outputdir, 'SimulationOutput', instance, simulation, 'ExternalParameters.csv')) as f:
                 content = f.readlines()
-            # you may also want to remove whitespace characters like `\n` at the end of each line
             content = [x.strip() for x in content]
 
             id_simul = [s[s.index(',')+1:] for s in content if 'id_simulation' in s][0]
