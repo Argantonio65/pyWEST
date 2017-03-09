@@ -1,0 +1,39 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 29. juni 2012 16:07:54$
+ *
+ ******************************************************************************/
+
+#ifdef ASM1Temp
+#include "wwtp.VolumeASM1TempConversionModel.body.msl"
+#endif //ASM1Temp
+
+#ifdef ASM2dModTemp
+#include "wwtp.VolumeASM2dModTempConversionModel.body.msl"
+#endif //ASM2dModTemp
+
+#ifdef ASM3Temp
+#include "wwtp.VolumeASM3TempConversionModel.body.msl"
+#endif //ASM3Temp
+
+#ifdef ASM3P_EAWAG
+#include "wwtp.VolumeASM3P_EAWAGConversionModel.body.msl"
+#endif //ASM3P_EAWAG
+
+#ifdef ASM1_AN
+#include "wwtp.VolumeASM1_ANConversionModel.body.msl"
+#endif //ASM1_AN
+
+#ifdef ASMG1
+#include "wwtp.VolumeASMG1ConversionModel.body.msl"
+#endif //ASMG1

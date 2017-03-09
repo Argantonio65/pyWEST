@@ -1,0 +1,103 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 5. september 2011 16:01:10$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_DEFINITIONS2
+#define WWTP_DEFINITIONS2
+
+ // In the Components type declaration, the user indicates
+ // which components will be used in his/her models.
+ // A number of assumptions are made:
+ //  1. In one system, ALL the connections between
+ //     sub-models pass exactly those biological components
+ //     indicated in the Components declaration.
+ //  2. In a physical flow, ALL components are explicitly
+ //     considered: H2O, dissoved gasses, solids in suspension, ...
+ //     The usual assumption that the concentration of H2O is 1
+ //     and all the other concentrations are infinite will be put in 
+ //     further. This, to allow modelling of systems where
+ //     the above assumption is not valid.
+
+ // EVERYTHING is deduced from the Components type declaration !
+ // From this declaration, appropriate models will be expanded
+ // automatically.
+ //
+ // As a convention, the component H2O is always written first
+ // as it is the "main" component in a wWtp.
+ // next in line are solubles. followed by particulates
+
+//===================================================================
+//==========================Begin of components & reactions def.=====
+//===================================================================
+
+TYPE AnaerobicComponents
+  "The biological components considered in the Siegrist anaerobic digestion model"
+  = ENUM {H2O_An, S_H2, S_CH4, S_CO2, S_HCO3, S_H, S_NH4, S_AC, S_PRO,
+          S_AS, S_FA, S_IN, X_S_An, X_AS, X_FA, X_PRO, X_AC, X_H2, X_IN};
+
+ // Here, the user specifies which reactions between biological 
+ // components will be considered
+ // As with Components this is
+ // done as an enumerated type so it becomes possible
+ // to refer to elements in the Stoichiometry and in the
+ // Kinetics matrices by name rather than by number.
+ 
+ TYPE AnaerobicReactions
+  "The anaerobic reactions between biological components considered in the Siegrist anaerobic digestion model"
+  = ENUM {
+          H2Stripping,
+          CH4Stripping,
+          CO2Stripping,
+          BiopolymHydrol,
+          ASFermentation,
+          AnOxOfS_FA,
+          AnOxOfS_PRO,
+          AcToCH4Conv,
+          H2ToCH4Conv,
+          DecayOfX_AS,
+          DecayOfX_FA,
+          DecayOfX_PRO,
+          DecayOfX_AC,
+          DecayOfX_H2,
+          ProtolysisOfHCO3,
+          DeprotolysisOfCO2,
+         };
+
+//================================================================
+//==========================end of defining comp & react==========
+//================================================================
+
+ OBJ NrOfAnaerobicComponents "The number of anaerobic components considered in the anaerobic digestion model"
+  : Integer := Cardinality(AnaerobicComponents);
+
+ OBJ NrOfAnaerobicReactions "The number of anaerobic reactions considered in the anaerobic digestion model"
+  : Integer := Cardinality(AnaerobicReactions);
+
+// vector CLASSES defined for general purposes
+// length == NrOfComponents
+// type of elements declared in the class-naming
+// e.g MassVector == vector containing masses
+
+// vector CLASSES used in the Siegrist model
+ CLASS AnaerobicConcentrationVector = Concentration[NrOfAnaerobicComponents;];
+ CLASS AnaerobicSpecificVolumeVector = SpecificVolume[NrOfAnaerobicComponents;];
+ CLASS AnaerobicMassVector = Mass[NrOfAnaerobicComponents;];
+ CLASS AnaerobicMassFluxVector = MassFlux[NrOfAnaerobicComponents;];
+
+//
+// End of Vector Classes
+//
+
+#endif // WWTP_DEFINITIONS2

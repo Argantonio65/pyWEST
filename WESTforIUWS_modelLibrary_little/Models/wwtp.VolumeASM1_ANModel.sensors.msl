@@ -1,0 +1,55 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$ EURE
+ * $Date: 29. juni 2012 15:54:05$
+ *
+ ******************************************************************************/
+
+// Define the equations for the sensor output for the ASM1_AN models
+
+
+  interface.DO = state.C[S_O];
+  
+  interface.NH4 = state.C[S_NH];
+  
+  interface.NO3 = state.C[S_NO3];
+  
+  interface.NO2 = state.C[S_NO2];
+  
+  interface.TSS = state.X_TSS ; 
+   		
+  interface.OnlineCOD = ( state.C[S_S] + state.C[S_I] + 
+   			state.C[X_H] + state.C[X_NH] + state.C[X_NO] + state.C[X_AN] +state.C[X_S] 
+   	   		+ state.C[X_I] + state.C[X_AN]); 
+   	   		
+  
+  interface.OfflineBOD = parameters.F_BOD_COD * (state.C[S_S] + state.C[X_S] 
+				     + (1 - parameters.f_XI) * (state.C[X_H] + state.C[X_NH] + state.C[X_NO]+ state.C[X_AN])) ;
+				     
+				     
+  interface.OnlineTN = (state.C[S_NO2] + state.C[S_NO3] + state.C[S_NH] 
+         + parameters.i_N_BM * (state.C[X_H] + state.C[X_NH] + state.C[X_NO] + state.C[X_AN]) 
+         + parameters.i_N_XI * (state.C[X_I] + state.C[X_I])) ;
+         
+  interface.OfflineTKN = ( state.C[S_NH] 
+    	          + parameters.i_N_BM * (state.C[X_H] + state.C[X_NH] + state.C[X_NO] + state.C[X_AN]) 
+	          + parameters.i_N_XI * (state.C[X_I] + state.C[X_I])) ;
+
+  interface.OUR_ASU = IF (state.V == 0)
+		    		  THEN 0
+		    		  ELSE
+     - (state.ConversionTermPerComponent[S_O] / state.V)
+     	+ parameters.Stoichiometry[Aeration][S_O] * state.Kinetics[Aeration];
+
+  interface.Kla_ASU = state.Kla_Actual;
+
+  interface.V_ASU = state.V;

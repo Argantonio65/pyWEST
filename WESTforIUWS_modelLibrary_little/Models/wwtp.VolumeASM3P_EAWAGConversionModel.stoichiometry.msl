@@ -1,0 +1,167 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 5. september 2011 16:01:14$
+ *
+ ******************************************************************************/
+
+#ifdef ASM3P_EAWAG
+  parameters.Stoichiometry[P01_Hydrolysis][S_I] := parameters.f_S_I;
+  parameters.Stoichiometry[P01_Hydrolysis][S_NH] := ( -1 + parameters.f_S_I) * parameters.i_N_S_S - parameters.i_N_S_I * parameters.f_S_I + parameters.i_N_X_S;
+  parameters.Stoichiometry[P01_Hydrolysis][S_PO] := parameters.i_P_X_S - parameters.i_P_S_S * (1 - parameters.f_S_I) - parameters.i_P_S_I * parameters.f_S_I;
+  parameters.Stoichiometry[P01_Hydrolysis][S_S] := 1 - parameters.f_S_I;
+  parameters.Stoichiometry[P01_Hydrolysis][S_ALK] := (( - 1 + parameters.f_S_I) * parameters.i_N_S_S - parameters.i_N_S_I * parameters.f_S_I + parameters.i_N_X_S) * 0.071 + (parameters.i_P_X_S - parameters.i_P_S_S * (1 - parameters.f_S_I) - parameters.i_P_S_I * parameters.f_S_I) * ( - 1.5 / 31);
+  parameters.Stoichiometry[P01_Hydrolysis][X_S] :=  - 1;
+  parameters.Stoichiometry[P01_Hydrolysis][X_TSS] :=  - parameters.i_TS_X_S;
+  parameters.Stoichiometry[P02_AerStorageOfXSTO][S_NH] := parameters.i_N_S_S;
+  parameters.Stoichiometry[P02_AerStorageOfXSTO][S_O] := parameters.Y_STO_O2 - 1;
+  parameters.Stoichiometry[P02_AerStorageOfXSTO][S_PO] := parameters.i_P_S_S;
+  parameters.Stoichiometry[P02_AerStorageOfXSTO][S_S] :=  - 1;
+  parameters.Stoichiometry[P02_AerStorageOfXSTO][S_ALK] := 0.071 * parameters.i_N_S_S + parameters.i_P_S_S * ( - 0.048);
+  parameters.Stoichiometry[P02_AerStorageOfXSTO][X_STO] := parameters.Y_STO_O2;
+  parameters.Stoichiometry[P02_AerStorageOfXSTO][X_TSS] := parameters.Y_STO_O2 * parameters.i_TS_STO;
+  parameters.Stoichiometry[P03_AnoxStorageOfXSTO][S_N2] :=  - (parameters.Y_STO_NO - 1) / 2.86;
+  parameters.Stoichiometry[P03_AnoxStorageOfXSTO][S_NH] := parameters.i_N_S_S;
+  parameters.Stoichiometry[P03_AnoxStorageOfXSTO][S_NO] := (parameters.Y_STO_NO - 1) / 2.86;
+  parameters.Stoichiometry[P03_AnoxStorageOfXSTO][S_PO] := parameters.i_P_S_S;
+  parameters.Stoichiometry[P03_AnoxStorageOfXSTO][S_S] :=  - 1;
+  parameters.Stoichiometry[P03_AnoxStorageOfXSTO][S_ALK] := 0.071 * parameters.i_N_S_S - 0.071 * (parameters.Y_STO_NO - 1) / 2.86 + parameters.i_P_S_S * ( - 0.048);
+  parameters.Stoichiometry[P03_AnoxStorageOfXSTO][X_STO] := parameters.Y_STO_NO;
+  parameters.Stoichiometry[P03_AnoxStorageOfXSTO][X_TSS] := parameters.Y_STO_NO * parameters.i_TS_STO;
+  parameters.Stoichiometry[P04_AerGrowthOfXH][S_NH] :=  - parameters.i_N_BM;
+  parameters.Stoichiometry[P04_AerGrowthOfXH][S_O] := 1 - (1 / parameters.Y_H_O2);
+  parameters.Stoichiometry[P04_AerGrowthOfXH][S_PO] :=  - parameters.i_P_BM;
+  parameters.Stoichiometry[P04_AerGrowthOfXH][S_ALK] :=  - 0.071 * parameters.i_N_BM + 0.048 * parameters.i_P_BM;
+  parameters.Stoichiometry[P04_AerGrowthOfXH][X_H] := 1;
+  parameters.Stoichiometry[P04_AerGrowthOfXH][X_STO] :=  - 1 / parameters.Y_H_O2;
+  parameters.Stoichiometry[P04_AerGrowthOfXH][X_TSS] := ( - 1 / parameters.Y_H_O2) * parameters.i_TS_STO + parameters.i_TS_BM;
+  parameters.Stoichiometry[P05_AnoxGrowthOfXH][S_N2] :=  - (1 - (1 / parameters.Y_H_NO)) / 2.86;
+  parameters.Stoichiometry[P05_AnoxGrowthOfXH][S_NH] :=  - parameters.i_N_BM;
+  parameters.Stoichiometry[P05_AnoxGrowthOfXH][S_NO] := (1 - (1 / parameters.Y_H_NO)) / 2.86;
+  parameters.Stoichiometry[P05_AnoxGrowthOfXH][S_PO] :=  - parameters.i_P_BM;
+  parameters.Stoichiometry[P05_AnoxGrowthOfXH][S_ALK] :=  - 0.071 * parameters.i_N_BM - 0.071 * ((1 - (1 / parameters.Y_H_NO)) / 2.86) + 0.048 * parameters.i_P_BM;
+  parameters.Stoichiometry[P05_AnoxGrowthOfXH][X_H] := 1;
+  parameters.Stoichiometry[P05_AnoxGrowthOfXH][X_STO] :=  - 1 / parameters.Y_H_NO;
+  parameters.Stoichiometry[P05_AnoxGrowthOfXH][X_TSS] := ( - 1 / parameters.Y_H_NO) * parameters.i_TS_STO + parameters.i_TS_BM;
+  parameters.Stoichiometry[P06_AerEndogRespOfXH][S_NH] :=  - parameters.f_X_I * parameters.i_N_X_I + parameters.i_N_BM;
+  parameters.Stoichiometry[P06_AerEndogRespOfXH][S_O] :=  - (1 - parameters.f_X_I);
+  parameters.Stoichiometry[P06_AerEndogRespOfXH][S_PO] :=  - parameters.f_X_I * parameters.i_P_X_I + parameters.i_P_BM;
+  parameters.Stoichiometry[P06_AerEndogRespOfXH][S_ALK] := 0.071 * ( - parameters.f_X_I * parameters.i_N_X_I + parameters.i_N_BM) - 0.048 * ( - parameters.f_X_I * parameters.i_P_X_I + parameters.i_P_BM);
+  parameters.Stoichiometry[P06_AerEndogRespOfXH][X_I] := parameters.f_X_I;
+  parameters.Stoichiometry[P06_AerEndogRespOfXH][X_H] :=  - 1;
+  parameters.Stoichiometry[P06_AerEndogRespOfXH][X_TSS] :=  - parameters.i_TS_BM + parameters.f_X_I * parameters.i_TS_X_I;
+  parameters.Stoichiometry[P07_AnoxEndogRespOfXH][S_N2] :=  - (parameters.f_X_I - 1) / 2.86;
+  parameters.Stoichiometry[P07_AnoxEndogRespOfXH][S_NH] :=  - parameters.f_X_I * parameters.i_N_X_I + parameters.i_N_BM;
+  parameters.Stoichiometry[P07_AnoxEndogRespOfXH][S_NO] := (parameters.f_X_I - 1) / 2.86;
+  parameters.Stoichiometry[P07_AnoxEndogRespOfXH][S_PO] :=  - parameters.f_X_I * parameters.i_P_X_I + parameters.i_P_BM;
+  parameters.Stoichiometry[P07_AnoxEndogRespOfXH][S_ALK] := 0.071 * ( - parameters.f_X_I * parameters.i_N_X_I + parameters.i_N_BM) - 0.071 * (parameters.f_X_I - 1) / 2.86 - 0.048 * ( - parameters.f_X_I * parameters.i_P_X_I + parameters.i_P_BM);
+  parameters.Stoichiometry[P07_AnoxEndogRespOfXH][X_I] := parameters.f_X_I;
+  parameters.Stoichiometry[P07_AnoxEndogRespOfXH][X_H] :=  - 1;
+  parameters.Stoichiometry[P07_AnoxEndogRespOfXH][X_TSS] :=  - parameters.i_TS_BM + parameters.f_X_I * parameters.i_TS_X_I;
+  parameters.Stoichiometry[P08_AerRespOfXSTO][S_O] :=  - 1;
+  parameters.Stoichiometry[P08_AerRespOfXSTO][X_STO] :=  - 1;
+  parameters.Stoichiometry[P08_AerRespOfXSTO][X_TSS] :=  - parameters.i_TS_STO;
+  parameters.Stoichiometry[P09_AnoxRespOfXSTO][S_N2] := 1 / 2.86;
+  parameters.Stoichiometry[P09_AnoxRespOfXSTO][S_NO] :=  - 1 / 2.86;
+  parameters.Stoichiometry[P09_AnoxRespOfXSTO][S_ALK] := 0.071 / 2.86;
+  parameters.Stoichiometry[P09_AnoxRespOfXSTO][X_STO] :=  - 1;
+  parameters.Stoichiometry[P09_AnoxRespOfXSTO][X_TSS] :=  - parameters.i_TS_STO;
+  parameters.Stoichiometry[P10_Nitrification][S_NH] :=  - 1 / parameters.Y_A - parameters.i_N_BM;
+  parameters.Stoichiometry[P10_Nitrification][S_NO] := 1 / parameters.Y_A;
+  parameters.Stoichiometry[P10_Nitrification][S_O] := ( - 4.57 / parameters.Y_A) + 1;
+  parameters.Stoichiometry[P10_Nitrification][S_PO] :=  - parameters.i_P_BM;
+  parameters.Stoichiometry[P10_Nitrification][S_ALK] := 0.071 * ( - 1 / parameters.Y_A - parameters.i_N_BM) - 0.071 * 1 / parameters.Y_A + 0.048 * parameters.i_P_BM;
+  parameters.Stoichiometry[P10_Nitrification][X_A] := 1;
+  parameters.Stoichiometry[P10_Nitrification][X_TSS] := parameters.i_TS_BM;
+  parameters.Stoichiometry[P11_AerEndogRespOfXA][S_NH] :=  - parameters.f_X_I * parameters.i_N_X_I + parameters.i_N_BM;
+  parameters.Stoichiometry[P11_AerEndogRespOfXA][S_O] :=  - (1 - parameters.f_X_I);
+  parameters.Stoichiometry[P11_AerEndogRespOfXA][S_PO] :=  - parameters.f_X_I * parameters.i_P_X_I + parameters.i_P_BM;
+  parameters.Stoichiometry[P11_AerEndogRespOfXA][S_ALK] := 0.071 * ( - parameters.f_X_I * parameters.i_N_X_I + parameters.i_N_BM) - 0.048 * ( - parameters.f_X_I * parameters.i_P_X_I + parameters.i_P_BM);
+  parameters.Stoichiometry[P11_AerEndogRespOfXA][X_I] := parameters.f_X_I;
+  parameters.Stoichiometry[P11_AerEndogRespOfXA][X_A] :=  - 1;
+  parameters.Stoichiometry[P11_AerEndogRespOfXA][X_TSS] :=  - parameters.i_TS_BM + parameters.f_X_I * parameters.i_TS_X_I;
+  parameters.Stoichiometry[P12_AnoxEndogRespOfXA][S_N2] :=  - (parameters.f_X_I - 1) / 2.86;
+  parameters.Stoichiometry[P12_AnoxEndogRespOfXA][S_NH] :=  - parameters.f_X_I * parameters.i_N_X_I + parameters.i_N_BM;
+  parameters.Stoichiometry[P12_AnoxEndogRespOfXA][S_NO] := (parameters.f_X_I - 1) / 2.86;
+  parameters.Stoichiometry[P12_AnoxEndogRespOfXA][S_PO] :=  - parameters.f_X_I * parameters.i_P_X_I + parameters.i_P_BM;
+  parameters.Stoichiometry[P12_AnoxEndogRespOfXA][S_ALK] := 0.071 * ( - parameters.f_X_I * parameters.i_N_X_I + parameters.i_N_BM) - 0.071 * ((parameters.f_X_I - 1) / 2.86) - 0.048 * ( - parameters.f_X_I * parameters.i_P_X_I + parameters.i_P_BM);
+  parameters.Stoichiometry[P12_AnoxEndogRespOfXA][X_I] := parameters.f_X_I;
+  parameters.Stoichiometry[P12_AnoxEndogRespOfXA][X_A] :=  - 1;
+  parameters.Stoichiometry[P12_AnoxEndogRespOfXA][X_TSS] :=  - parameters.i_TS_BM + parameters.f_X_I * parameters.i_TS_X_I;
+  parameters.Stoichiometry[PP01_StorageOfXPHA][S_NH] := parameters.i_N_S_S;
+  parameters.Stoichiometry[PP01_StorageOfXPHA][S_PO] := parameters.Y_PO + parameters.i_P_S_S;
+  parameters.Stoichiometry[PP01_StorageOfXPHA][S_S] :=  - 1;
+  parameters.Stoichiometry[PP01_StorageOfXPHA][S_ALK] := 0.071 * parameters.i_N_S_S - 0.048 * (parameters.Y_PO + parameters.i_P_S_S) + 0.03 * parameters.Y_PO;
+  parameters.Stoichiometry[PP01_StorageOfXPHA][X_PHA] := 1;
+  parameters.Stoichiometry[PP01_StorageOfXPHA][X_PP] :=  - parameters.Y_PO;
+  parameters.Stoichiometry[PP01_StorageOfXPHA][X_TSS] := parameters.i_TS_STO - 3.23 * parameters.Y_PO;
+  parameters.Stoichiometry[PP02_AerStorageOfXPP][S_O] :=  - parameters.Y_PHA_O2;
+  parameters.Stoichiometry[PP02_AerStorageOfXPP][S_PO] :=  - 1;
+  parameters.Stoichiometry[PP02_AerStorageOfXPP][S_ALK] := 0.016;
+  parameters.Stoichiometry[PP02_AerStorageOfXPP][X_PHA] :=  - parameters.Y_PHA_O2;
+  parameters.Stoichiometry[PP02_AerStorageOfXPP][X_PP] := 1;
+  parameters.Stoichiometry[PP02_AerStorageOfXPP][X_TSS] :=  - parameters.Y_PHA_O2 * parameters.i_TS_STO + 3.23;
+  parameters.Stoichiometry[PP03_AnoxStorageOfXPP][S_N2] := parameters.Y_PHA_NO / 2.86;
+  parameters.Stoichiometry[PP03_AnoxStorageOfXPP][S_NO] :=  - parameters.Y_PHA_NO / 2.86;
+  parameters.Stoichiometry[PP03_AnoxStorageOfXPP][S_PO] :=  - 1;
+  parameters.Stoichiometry[PP03_AnoxStorageOfXPP][S_ALK] :=  - 0.071 * ( - parameters.Y_PHA_NO / 2.86) + 0.048 - 0.03;
+  parameters.Stoichiometry[PP03_AnoxStorageOfXPP][X_PHA] :=  - parameters.Y_PHA_NO;
+  parameters.Stoichiometry[PP03_AnoxStorageOfXPP][X_PP] := 1;
+  parameters.Stoichiometry[PP03_AnoxStorageOfXPP][X_TSS] :=  - parameters.Y_PHA_NO * parameters.i_TS_STO + 3.23;
+  parameters.Stoichiometry[PP04_AerGrowthOfXPAO][S_NH] :=  - parameters.i_N_BM;
+  parameters.Stoichiometry[PP04_AerGrowthOfXPAO][S_O] := 1 - (1 / parameters.Y_PAO_O2);
+  parameters.Stoichiometry[PP04_AerGrowthOfXPAO][S_PO] :=  - parameters.i_P_BM;
+  parameters.Stoichiometry[PP04_AerGrowthOfXPAO][S_ALK] :=  - 0.071 * parameters.i_N_BM + 0.048 * parameters.i_P_BM;
+  parameters.Stoichiometry[PP04_AerGrowthOfXPAO][X_PAO] := 1;
+  parameters.Stoichiometry[PP04_AerGrowthOfXPAO][X_PHA] :=  - 1 / parameters.Y_PAO_O2;
+  parameters.Stoichiometry[PP04_AerGrowthOfXPAO][X_TSS] :=  - (1 / parameters.Y_PAO_O2) * parameters.i_TS_STO + parameters.i_TS_BM;
+  parameters.Stoichiometry[PP05_AnoxGrowthOfXPAO][S_N2] :=  - (1 - (1 / parameters.Y_PAO_NO)) / 2.86;
+  parameters.Stoichiometry[PP05_AnoxGrowthOfXPAO][S_NH] :=  - parameters.i_N_BM;
+  parameters.Stoichiometry[PP05_AnoxGrowthOfXPAO][S_NO] := (1 - (1 / parameters.Y_PAO_NO)) / 2.86;
+  parameters.Stoichiometry[PP05_AnoxGrowthOfXPAO][S_PO] :=  - parameters.i_P_BM;
+  parameters.Stoichiometry[PP05_AnoxGrowthOfXPAO][S_ALK] :=  - 0.071 * parameters.i_N_BM - 0.071 * (1 - (1 / parameters.Y_PAO_NO)) / 2.86 + 0.048 * parameters.i_P_BM;
+  parameters.Stoichiometry[PP05_AnoxGrowthOfXPAO][X_PAO] := 1;
+  parameters.Stoichiometry[PP05_AnoxGrowthOfXPAO][X_PHA] :=  - 1 / parameters.Y_PAO_NO;
+  parameters.Stoichiometry[PP05_AnoxGrowthOfXPAO][X_TSS] :=  - (1 / parameters.Y_PAO_NO) * parameters.i_TS_STO + parameters.i_TS_BM;
+  parameters.Stoichiometry[PP06_AerEndogRespOfXPAO][S_NH] :=  - parameters.f_X_I * parameters.i_N_X_I + parameters.i_N_BM;
+  parameters.Stoichiometry[PP06_AerEndogRespOfXPAO][S_O] :=  - (1 - parameters.f_X_I);
+  parameters.Stoichiometry[PP06_AerEndogRespOfXPAO][S_PO] :=  - parameters.f_X_I * parameters.i_P_X_I + parameters.i_P_BM;
+  parameters.Stoichiometry[PP06_AerEndogRespOfXPAO][S_ALK] := 0.071 * ( - parameters.f_X_I * parameters.i_N_X_I + parameters.i_N_BM) - 0.048 * ( - parameters.f_X_I * parameters.i_P_X_I + parameters.i_P_BM);
+  parameters.Stoichiometry[PP06_AerEndogRespOfXPAO][X_I] := parameters.f_X_I;
+  parameters.Stoichiometry[PP06_AerEndogRespOfXPAO][X_PAO] :=  - 1;
+  parameters.Stoichiometry[PP06_AerEndogRespOfXPAO][X_TSS] :=  - parameters.i_TS_BM + parameters.f_X_I * parameters.i_TS_X_I;
+  parameters.Stoichiometry[PP07_AnoxEndogRespOfXPAO][S_N2] :=  - (parameters.f_X_I - 1) / 2.86;
+  parameters.Stoichiometry[PP07_AnoxEndogRespOfXPAO][S_NH] :=  - parameters.f_X_I * parameters.i_N_X_I + parameters.i_N_BM;
+  parameters.Stoichiometry[PP07_AnoxEndogRespOfXPAO][S_NO] := (parameters.f_X_I - 1) / 2.86;
+  parameters.Stoichiometry[PP07_AnoxEndogRespOfXPAO][S_PO] :=  - parameters.f_X_I * parameters.i_P_X_I + parameters.i_P_BM;
+  parameters.Stoichiometry[PP07_AnoxEndogRespOfXPAO][S_ALK] := 0.071 * ( - parameters.f_X_I * parameters.i_N_X_I + parameters.i_N_BM) - 0.071 * (parameters.f_X_I - 1) / 2.86 - 0.048 * ( - parameters.f_X_I * parameters.i_P_X_I + parameters.i_P_BM);
+  parameters.Stoichiometry[PP07_AnoxEndogRespOfXPAO][X_I] := parameters.f_X_I;
+  parameters.Stoichiometry[PP07_AnoxEndogRespOfXPAO][X_PAO] :=  - 1;
+  parameters.Stoichiometry[PP07_AnoxEndogRespOfXPAO][X_TSS] :=  - parameters.i_TS_BM + parameters.f_X_I * parameters.i_TS_X_I;
+  parameters.Stoichiometry[PP08_AerLysisOfXPP][S_PO] := 1;
+  parameters.Stoichiometry[PP08_AerLysisOfXPP][S_ALK] :=  - 0.016;
+  parameters.Stoichiometry[PP08_AerLysisOfXPP][X_PP] :=  - 1;
+  parameters.Stoichiometry[PP08_AerLysisOfXPP][X_TSS] :=  - 3.23;
+  parameters.Stoichiometry[PP09_AnoxLysisOfXPP][S_PO] := 1;
+  parameters.Stoichiometry[PP09_AnoxLysisOfXPP][S_ALK] :=  - 0.016;
+  parameters.Stoichiometry[PP09_AnoxLysisOfXPP][X_PP] :=  - 1;
+  parameters.Stoichiometry[PP09_AnoxLysisOfXPP][X_TSS] :=  - 3.23;
+  parameters.Stoichiometry[PP10_AerRespOfXPHA][S_O] :=  - 1;
+  parameters.Stoichiometry[PP10_AerRespOfXPHA][X_PHA] :=  - 1;
+  parameters.Stoichiometry[PP10_AerRespOfXPHA][X_TSS] :=  - parameters.i_TS_STO;
+  parameters.Stoichiometry[PP11_AnoxRespOfXPHA][S_N2] := 1 / 2.86;
+  parameters.Stoichiometry[PP11_AnoxRespOfXPHA][S_NO] :=  - 1 / 2.86;
+  parameters.Stoichiometry[PP11_AnoxRespOfXPHA][S_ALK] := 0.071 / 2.86;
+  parameters.Stoichiometry[PP11_AnoxRespOfXPHA][X_PHA] :=  - 1;
+  parameters.Stoichiometry[PP11_AnoxRespOfXPHA][X_TSS] :=  - parameters.i_TS_STO;
+  parameters.Stoichiometry[Aeration][S_O] := 1;
+#endif // ASM3P_EAWAG

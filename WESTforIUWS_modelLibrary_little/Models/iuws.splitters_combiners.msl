@@ -1,0 +1,763 @@
+// -----------------------------------------------------------------------
+//  HEMMIS - Ghent University, BIOMATH
+//  Implementation: Frederik Decouttere, Henk Vanhooren, Youri Amerlinck.
+//  Description: MSL-USER/WWTP/Base/Splitters_combiners
+// -----------------------------------------------------------------------
+ 
+CLASS AbsTwoSplitter_Eindhoven_in
+  (* icon = "two_flow_splitter" *)
+  "absolute two way splitter"
+ 
+ // Dividing a flow in two flows.	
+ 
+  EXTENDS WWTPAtomicModelWithoutVolume WITH
+  {:
+   comments <- "A model for an absolute splitter into two flows";
+   interface <-
+    { 
+     OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+          InWWTPTerminal := {: causality <- "CIN" ; group <- "Influent" :};
+     OBJ Outflow1 (* terminal = "out_1" *) "Outflow1" : 
+          OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent 1" :};
+     OBJ Outflow2 (* terminal = "out_2" *) "Outflow2" : 
+          OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent 2" :};
+	   OBJ Q_Out2 (* terminal = "in_2"; manip = "1" *) "Max Outflow2 rate" : FlowRate := {: causality <- "CIN" ; group <- "Operational" :};
+    };
+   parameters <- 
+    { 
+	   OBJ Q_Out1_max "Outflow1 rate" : FlowRate := {: group <- "Operational" :};
+	   
+    };
+    
+   state <-
+    {
+     OBJ Q_Out1 "Outflow1 rate" : FlowRate := {: group <- "Operational" :};
+     OBJ f_Out1 (* hidden = "1" *) "Fraction of the influent flux going to outflow1" : Fraction ;
+     OBJ Q_Out2_Help (* hidden = "1" *) "Help variable for outflow2 rate" : FlowRate ;
+    };
+ 
+   equations <-
+    {
+     state.Q_Out1 = IF(interface.Q_Out2 > state.Q_In)
+                    THEN 0
+                    ELSE IF ((state.Q_In - state.Q_Out2_Help) > parameters.Q_Out1_max) 
+ 				   		THEN parameters.Q_Out1_max
+ 						ELSE state.Q_In - state.Q_Out2_Help;
+ 
+     state.Q_Out2_Help = IF (interface.Q_Out2 > state.Q_In)
+                       	THEN state.Q_In
+                       	ELSE IF (state.Q_In > (interface.Q_Out2 + parameters.Q_Out1_max))
+ 							 THEN (state.Q_In - parameters.Q_Out1_max)
+ 							 ELSE interface.Q_Out2;
+ 
+     state.f_Out1 = IF (state.Q_In == 0)
+ 			 	   THEN 0
+ 			 	   ELSE state.Q_Out1 / state.Q_In ;
+ 
+     {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+       interface.Outflow2[Comp_Index] =
+       - state.InFluxPerComponent[Comp_Index] * (1 - state.f_Out1) ;};
+ 
+     {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+       interface.Outflow1[Comp_Index] =
+       - state.InFluxPerComponent[Comp_Index] * state.f_Out1 ;};
+ 
+    }; 
+  :};
+
+ CLASS SewRelTwoSplitter
+ (* icon = "two_fraction_splitter" *)
+ "relative splitter"
+
+// Dividing a flow in two fraction, based on the flow fraction parameter.  
+						
+ EXTENDS SewerAtomicModelWithoutVolume WITH
+ {:
+  comments <- "A model for a relative splitter into two flows";
+  interface <-
+   { 
+    OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+         InSewTerminal := {: causality <- "CIN" :};
+    OBJ Outflow1 (* terminal = "out_1" *) "Outflow1" : 
+         OutSewTerminal := {: causality <- "COUT" :};
+    OBJ Outflow2 (* terminal = "out_2" *) "Outflow2"  : 
+         OutSewTerminal := {: causality <- "COUT" :};
+	  OBJ f_Out2 (* manip = "1"; terminal = "in_2" *) "Fraction of the fluxes going to outflow2" : 
+	 			Fraction := {: causality <- "CIN" :};
+   };
+
+  parameters <-
+   { 
+   };
+   
+  equations <-
+   {
+    {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+      interface.Outflow1[s_comp_index] =
+      - state.inFluxPerSewComponent[s_comp_index] * (1-interface.f_Out2);}; 
+
+    {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+      interface.Outflow2[s_comp_index] =
+      - state.inFluxPerSewComponent[s_comp_index] *
+      (interface.f_Out2);};   
+ 
+   }; 
+ 
+ :};
+
+
+ CLASS SewAbsTwoSplitter
+ (* icon = "two_flow_splitter" *)
+ "absolute two way splitter"
+
+// Dividing a flow in two flows.	
+// Attention should be given to the possibility that in case of an 
+// absolute splitter the flows never go negative.	
+// Attention is given in the model
+
+ EXTENDS SewerAtomicModelWithoutVolume WITH
+ {:
+  comments <- "A model for an absolute splitter into two flows";
+  interface <-
+   { 
+    OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+         InSewTerminal := {: causality <- "CIN" :};
+    OBJ Outflow1 (* terminal = "out_1" *) "Outflow1" : 
+         OutSewTerminal := {: causality <- "COUT" :};
+    OBJ Outflow2 (* terminal = "out_2" *) "Outflow2" : 
+         OutSewTerminal := {: causality <- "COUT" :};
+	  OBJ Q_Out2 (* manip = "1"; terminal = "in_2" *) "Outflow 2 rate" : 
+	 			FlowRate := {: causality <- "CIN" :};
+   };
+  parameters <- 
+   { 
+   };
+   
+  state <-
+   {
+    OBJ Q_Out1 "Outflow 1 rate" : FlowRate ;
+    OBJ f_Out1 (* hidden = "1" *) "Fraction of the influent flux going to outflow1" : Fraction ;
+    OBJ Q_Out2_Help (* hidden = "1" *) "Help variable for outflow2 rate" : FlowRate ;
+   };
+
+  equations <-
+   {
+
+    state.Q_Out2_Help = IF(interface.Q_Out2 > state.Q_i)
+                      THEN state.Q_i
+                      ELSE interface.Q_Out2;
+    state.Q_Out1 = IF(interface.Q_Out2 > state.Q_i)
+                 THEN 0
+                 ELSE state.Q_i - state.Q_Out2_Help ;
+				 
+	  state.f_Out1 = IF (state.Q_i == 0)
+			 THEN 0
+			 ELSE state.Q_Out1 / state.Q_i ;
+
+    interface.Outflow1[H2O_sew] = - state.Q_Out1 
+      / 0.000001 ; 
+    interface.Outflow2[H2O] = - state.Q_Out2_Help
+      / 0.000001 ;
+
+    {FOREACH s_comp_index IN {2 .. NrOfSewComponents}:
+      interface.Outflow1[s_comp_index] =
+      - state.inFluxPerSewComponent[s_comp_index] * (state.f_Out1) ;};
+
+    {FOREACH s_comp_index IN {2 .. NrOfSewComponents}:
+      interface.Outflow2[s_comp_index] =
+      - state.inFluxPerSewComponent[s_comp_index] * (1-state.f_Out1) ;};
+
+   }; 
+ :};
+
+ CLASS SewTwoCombiner
+ (* icon = "two_combiner" *)  
+ "two combiner"
+ EXTENDS SewerAtomicModelWithoutVolume WITH
+ {:
+  comments <- "A model for a combiner of two flows";
+  interface <-
+   { 
+    OBJ Inflow1 (* terminal = "in_1" *) "Inflow1" : 
+         InSewTerminal := {: causality <- "CIN" :};
+    OBJ Inflow2 (* terminal = "in_2" *) "Inflow2" : 
+         InSewTerminal := {: causality <- "CIN" :};
+    OBJ Outflow (* terminal = "out_1" *) "Outflow" : 
+         OutSewTerminal := {: causality <- "COUT" :};
+   };
+
+  equations <-
+   {
+    {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+      interface.Outflow[s_comp_index] =
+      - state.inFluxPerSewComponent[s_comp_index];};   
+   }; 
+ :};
+ 
+ 
+  CLASS SewThreeCombiner
+ (* icon = "three_combiner" *)  
+ "three combiner"
+ EXTENDS SewerAtomicModelWithoutVolume WITH
+ {:
+  comments <- "A model for a combiner of three flows";
+  interface <-
+   { 
+    OBJ Inflow1 (* terminal = "in_1" *) "Inflow1" : 
+         InSewTerminal := {: causality <- "CIN" :};
+    OBJ Inflow2 (* terminal = "in_2" *) "Inflow2" : 
+         InSewTerminal := {: causality <- "CIN" :};
+    OBJ Inflow3 (* terminal = "in_3" *) "Inflow3" : 
+         InSewTerminal := {: causality <- "CIN" :};
+    OBJ Outflow (* terminal = "out_1" *) "Outflow" : 
+         OutSewTerminal := {: causality <- "COUT" :};
+   };
+
+  equations <-
+   {
+    {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+      interface.Outflow[s_comp_index] =
+      - state.inFluxPerSewComponent[s_comp_index];};   
+   }; 
+ :};
+ 
+
+
+ CLASS SewRelThreeSplitter
+ (* icon = "three_fraction_splitter" *)
+ "relative three splitter"
+
+// Dividing a flow in three fractions, based on the flow fraction parameter.  
+						
+ EXTENDS SewerAtomicModelWithoutVolume WITH
+ {:
+  comments <- "A model for a relative splitter into three flows";
+  interface <-
+   { 
+    OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+         InSewTerminal := {: causality <- "CIN" :};
+    OBJ Outflow1 (* terminal = "out_1" *) "Outflow1" : 
+         OutSewTerminal := {: causality <- "COUT" :};
+    OBJ Outflow2 (* terminal = "out_2" *) "Outflow2"  : 
+         OutSewTerminal := {: causality <- "COUT" :};
+    OBJ Outflow3 (* terminal = "out_3" *) "Outflow3"  : 
+         OutSewTerminal := {: causality <- "COUT" :};
+	  OBJ f_Out2 (* manip = "1"; terminal = "in_2" *) "Fraction of the fluxes going to outflow2" : 
+	 			Fraction := {: causality <- "CIN" :};
+    OBJ f_Out3 (* manip = "1"; terminal = "in_2" *) "Fraction of the fluxes going to outflow3" : 
+	 			Fraction := {: causality <- "CIN" :};
+   };
+
+  parameters <- 
+   { 
+   };
+   
+  equations <-
+   {
+     {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+      interface.Outflow2[s_comp_index] =
+      - state.inFluxPerSewComponent[s_comp_index] *
+      (interface.f_Out2);};   
+ 
+     {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+      interface.Outflow3[s_comp_index] =
+      - state.inFluxPerSewComponent[s_comp_index] *
+      (interface.f_Out3);};   
+ 
+     {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+      interface.Outflow1[s_comp_index] =
+    - state.inFluxPerSewComponent[s_comp_index] * (1 - (interface.f_Out2 + interface.f_Out3) );};  
+   }; 
+ :};
+ 
+ CLASS SewRel_15_Splitter
+ (* icon = "three_fraction_splitter" *)
+ "relative splitter with 15 outputs"
+
+// Dividing a flow in three fractions, based on the flow fraction parameter.  
+						
+ EXTENDS SewerAtomicModelWithoutVolume WITH
+ {:
+  comments <- "A model for a relative splitter into 15 flows";
+  interface <-
+   { 
+    OBJ Inflow (* terminal = "in_1" *) "Inflow" : InSewTerminal := {: causality <- "CIN" :};
+    OBJ Outflow1 (* terminal = "out_1" *) "Outflow1" : OutSewTerminal := {: causality <- "COUT" :};
+    OBJ Outflow2 (* terminal = "out_1" *) "Outflow2" : OutSewTerminal := {: causality <- "COUT" :};
+    OBJ Outflow3 (* terminal = "out_1" *) "Outflow3" : OutSewTerminal := {: causality <- "COUT" :};
+	  OBJ Outflow4 (* terminal = "out_1" *) "Outflow4" : OutSewTerminal := {: causality <- "COUT" :};
+  	OBJ Outflow5 (* terminal = "out_1" *) "Outflow5" : OutSewTerminal := {: causality <- "COUT" :};
+  	OBJ Outflow6 (* terminal = "out_2" *) "Outflow6" : OutSewTerminal := {: causality <- "COUT" :};
+  	OBJ Outflow7 (* terminal = "out_2" *) "Outflow7" : OutSewTerminal := {: causality <- "COUT" :};
+  	OBJ Outflow8 (* terminal = "out_2" *) "Outflow8" : OutSewTerminal := {: causality <- "COUT" :};
+  	OBJ Outflow9 (* terminal = "out_2" *) "Outflow9" : OutSewTerminal := {: causality <- "COUT" :};
+	  OBJ Outflow10 (* terminal = "out_2" *) "Outflow10" : OutSewTerminal := {: causality <- "COUT" :};
+  	OBJ Outflow11 (* terminal = "out_3" *) "Outflow11" : OutSewTerminal := {: causality <- "COUT" :};
+  	OBJ Outflow12 (* terminal = "out_3" *) "Outflow12" : OutSewTerminal := {: causality <- "COUT" :};
+	  OBJ Outflow13 (* terminal = "out_3" *) "Outflow13" : OutSewTerminal := {: causality <- "COUT" :};
+	  OBJ Outflow14 (* terminal = "out_3" *) "Outflow14" : OutSewTerminal := {: causality <- "COUT" :};
+	  OBJ Outflow15 (* terminal = "out_3" *) "Outflow15" : OutSewTerminal := {: causality <- "COUT" :};
+   };
+
+  parameters <- 
+   { 
+    OBJ f_Out1 "Fraction of the fluxes going to outflow1" : Fraction := {: value <- 0.1 :};
+  	OBJ f_Out2 "Fraction of the fluxes going to outflow2" : Fraction := {: value <- 0.1 :};
+    OBJ f_Out3 "Fraction of the fluxes going to outflow3" : Fraction := {: value <- 0.8 :};
+  	OBJ f_Out4 "Fraction of the fluxes going to outflow4" : Fraction := {: value <- 0.8 :};
+	  OBJ f_Out5 "Fraction of the fluxes going to outflow5" : Fraction := {: value <- 0.8 :};
+	  OBJ f_Out6 "Fraction of the fluxes going to outflow6" : Fraction := {: value <- 0.8 :};
+	  OBJ f_Out7 "Fraction of the fluxes going to outflow7" : Fraction := {: value <- 0.8 :};
+  	OBJ f_Out8 "Fraction of the fluxes going to outflow8" : Fraction := {: value <- 0.8 :};
+	  OBJ f_Out9 "Fraction of the fluxes going to outflow9" : Fraction := {: value <- 0.8 :};
+	  OBJ f_Out10 "Fraction of the fluxes going to outflow10" : Fraction := {: value <- 0.8 :};
+	  OBJ f_Out11 "Fraction of the fluxes going to outflow11" : Fraction := {: value <- 0.8 :};
+	  OBJ f_Out12 "Fraction of the fluxes going to outflow12" : Fraction := {: value <- 0.8 :};
+	  OBJ f_Out13 "Fraction of the fluxes going to outflow13" : Fraction := {: value <- 0.8 :};
+	  OBJ f_Out14 "Fraction of the fluxes going to outflow14" : Fraction := {: value <- 0.8 :};
+	  OBJ f_Out15 "Fraction of the fluxes going to outflow15" : Fraction := {: value <- 0.8 :};
+	  OBJ f_check "Must be <= 1" : Real ;
+   };
+   
+     initial <-
+   {
+    parameters.f_check = parameters.f_Out1 + parameters.f_Out2 + parameters.f_Out3 + parameters.f_Out4 + parameters.f_Out5
+					   + parameters.f_Out6 + parameters.f_Out7 + parameters.f_Out8 + parameters.f_Out9 + parameters.f_Out10
+					   + parameters.f_Out11 + parameters.f_Out12 + parameters.f_Out13 + parameters.f_Out14 + parameters.f_Out15;
+   };
+   
+  equations <-
+   {
+      {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+      interface.Outflow1[s_comp_index] =
+      - state.inFluxPerSewComponent[s_comp_index] *
+      (parameters.f_Out1);};
+   
+      {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+      interface.Outflow2[s_comp_index] =
+      - state.inFluxPerSewComponent[s_comp_index] *
+      (parameters.f_Out2);};   
+ 
+      {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+      interface.Outflow3[s_comp_index] =
+      - state.inFluxPerSewComponent[s_comp_index] *
+      (parameters.f_Out3);};  
+	  
+	  {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+      interface.Outflow4[s_comp_index] =
+      - state.inFluxPerSewComponent[s_comp_index] *
+      (parameters.f_Out4);};
+	  
+	  {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+      interface.Outflow5[s_comp_index] =
+      - state.inFluxPerSewComponent[s_comp_index] *
+      (parameters.f_Out5);};
+	  
+	  {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+      interface.Outflow6[s_comp_index] =
+      - state.inFluxPerSewComponent[s_comp_index] *
+      (parameters.f_Out6);};
+	  
+	  {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+      interface.Outflow7[s_comp_index] =
+      - state.inFluxPerSewComponent[s_comp_index] *
+      (parameters.f_Out7);};
+	  
+	  {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+      interface.Outflow8[s_comp_index] =
+      - state.inFluxPerSewComponent[s_comp_index] *
+      (parameters.f_Out8);};
+	  
+	  {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+      interface.Outflow9[s_comp_index] =
+      - state.inFluxPerSewComponent[s_comp_index] *
+      (parameters.f_Out9);};
+	  
+	  {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+      interface.Outflow10[s_comp_index] =
+      - state.inFluxPerSewComponent[s_comp_index] *
+      (parameters.f_Out10);};
+	  
+	  {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+      interface.Outflow11[s_comp_index] =
+      - state.inFluxPerSewComponent[s_comp_index] *
+      (parameters.f_Out11);};
+	  
+	  {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+      interface.Outflow12[s_comp_index] =
+      - state.inFluxPerSewComponent[s_comp_index] *
+      (parameters.f_Out12);};
+	  
+	  {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+      interface.Outflow13[s_comp_index] =
+      - state.inFluxPerSewComponent[s_comp_index] *
+      (parameters.f_Out13);};
+	  
+	  {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+      interface.Outflow14[s_comp_index] =
+      - state.inFluxPerSewComponent[s_comp_index] *
+      (parameters.f_Out14);};
+	  
+	  {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+      interface.Outflow15[s_comp_index] =
+      - state.inFluxPerSewComponent[s_comp_index] *
+      (parameters.f_Out15);}; 
+   }; 
+ :};
+
+
+ CLASS SewAbsThreeSplitter
+ (* icon = "three_flow_splitter" *)
+ "absolute three way splitter"
+
+// Dividing a flow in three flows.	
+// Attention should be given to the possibility that in case of an 
+// absolute splitter the flows never go negative.	
+
+ EXTENDS SewerAtomicModelWithoutVolume WITH
+ {:
+  comments <- "A model for an absolute splitter into three flows";
+  interface <-
+   { 
+    OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+         InSewTerminal := {: causality <- "CIN" :};
+    OBJ Outflow1 (* terminal = "out_1" *) "Outflow1" : 
+         OutSewTerminal := {: causality <- "COUT" :};
+    OBJ Outflow2 (* terminal = "out_2" *) "Outflow2" : 
+         OutSewTerminal := {: causality <- "COUT" :};
+    OBJ Outflow3 (* terminal = "out_3" *) "Outflow3" : 
+         OutSewTerminal := {: causality <- "COUT" :};
+	  OBJ Q_Out2 (* manip = "1"; terminal = "in_2" *) "Outflow2 rate" : 
+	 			FlowRate := {: causality <- "CIN" :};
+    OBJ Q_Out3 (* manip = "1"; terminal = "in_2" *) "Outflow3 rate" : 
+	 			FlowRate := {: causality <- "CIN" :};
+   };
+
+  parameters <- 
+   { 
+   };
+
+  state <-
+   {
+    OBJ Q_Out1 "Outflow1 rate" : FlowRate ;
+    OBJ f_Out1 (* hidden = "1" *) "Fraction of the influent flux going to outflow1" : Fraction ;
+    OBJ f_Out2 (* hidden = "1" *) "Fraction of the influent flux going to outflow2" : Fraction ;
+    OBJ f_Out3 (* hidden = "1" *) "Fraction of the influent flux going to outflow3" : Fraction ;
+    OBJ Q_Out2_Help (* hidden = "1" *) "Help variable for outflow2 rate" : FlowRate ;
+    OBJ Q_Out3_Help (* hidden = "1" *) "Help variable for outflow3 rate" : FlowRate ;
+   };
+
+  equations <-
+   {
+//creating zero outflow is potentially dangerous because the Q_i in the next block is zero, so when something is divided by Q_i it gives nan !!!
+
+    state.Q_Out1 = state.Q_i - (state.Q_Out2_Help + state.Q_Out3_Help);
+
+    state.Q_Out2_Help = IF( interface.Q_Out2 > state.Q_i)
+                      THEN state.Q_i
+                      ELSE interface.Q_Out2;
+
+    state.Q_Out3_Help = IF( (interface.Q_Out2 + interface.Q_Out3) > state.Q_i)
+                      THEN state.Q_i - state.Q_Out2_Help
+                      ELSE interface.Q_Out3;
+
+    state.f_Out1 = 1 - (state.f_Out2 + state.f_Out3) ;
+    state.f_Out2 = IF (state.Q_i == 0)
+			 THEN 0
+			 ELSE state.Q_Out2_Help /state.Q_i ; 
+    state.f_Out3 = IF (state.Q_i == 0)
+			 THEN 0
+			 ELSE state.Q_Out3_Help / state.Q_i ;
+
+    interface.Outflow1[H2O_sew] = - state.Q_Out1 
+      / 0.000001 ; 
+    interface.Outflow2[H2O_sew] = - state.Q_Out2_Help
+      / 0.000001 ;
+    interface.Outflow3[H2O_sew] = - state.Q_Out3_Help
+      / 0.000001 ; 
+
+    {FOREACH s_comp_index IN {2 .. NrOfSewComponents}:
+      interface.Outflow1[s_comp_index] =
+      - state.inFluxPerSewComponent[s_comp_index] * state.f_Out1 ;};
+
+    {FOREACH s_comp_index IN {2 .. NrOfSewComponents}:
+      interface.Outflow2[s_comp_index] =
+      - state.inFluxPerSewComponent[s_comp_index] * state.f_Out2 ;};
+
+    {FOREACH s_comp_index IN {2 .. NrOfSewComponents}:
+      interface.Outflow3[s_comp_index] =
+      - state.inFluxPerSewComponent[s_comp_index] * state.f_Out3 ;};
+   }; 
+ :};
+
+ CLASS RivRelTwoSplitter
+ (* icon = "two_fraction_splitter" *)
+ "relative splitter"
+
+// Dividing a flow in two fraction, based on the flow fraction parameter.  
+						
+ EXTENDS RivAtomicModelWithoutVolume WITH
+ {:
+  comments <- "A model for a relative splitter into two flows";
+  interface <-
+   { 
+    OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+         InRivTerminal := {: causality <- "CIN" ; group <- "Influent" :};
+    OBJ Outflow1 (* terminal = "out_1" *) "Outflow1" : 
+         OutRivTerminal := {: causality <- "COUT" ; group <- "Effluent 1" :};
+    OBJ Outflow2 (* terminal = "out_2" *) "Outflow2"  : 
+         OutRivTerminal := {: causality <- "COUT" ; group <- "Effluent 2" :};
+   };
+
+  parameters <-
+   { 
+    OBJ f_Out2 "Fraction of the fluxes going to outflow2" : Fraction := {: value <- 0.9; group <- "Operational" :};
+   };
+   
+  equations <-
+   {
+    {FOREACH Comp_Index IN {1 .. RivNrOfComponents}:
+      interface.Outflow1[Comp_Index] =
+      - state.InFluxPerComponent[Comp_Index] * (1-parameters.f_Out2);}; 
+
+    {FOREACH Comp_Index IN {1 .. RivNrOfComponents}:
+      interface.Outflow2[Comp_Index] =
+      - state.InFluxPerComponent[Comp_Index] *
+      (parameters.f_Out2);};   
+ 
+   }; 
+ 
+ :};
+
+
+ CLASS RivAbsTwoSplitter
+ (* icon = "two_flow_splitter" *)
+ "absolute two way splitter"
+
+// Dividing a flow in two flows.	
+// Attention should be given to the possibility that in case of an 
+// absolute splitter the flows never go negative.	
+// Attention is given in the model
+
+ EXTENDS RivAtomicModelWithoutVolume WITH
+ {:
+  comments <- "A model for an absolute splitter into two flows";
+  interface <-
+   { 
+    OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+         InRivTerminal := {: causality <- "CIN" ; group <- "Influent" :};
+	  OBJ Q_Out2 (* manip = "1"; terminal = "in_2" *) "Q_Out2" : 
+         FlowRate := {: causality <- "CIN" ; group <- "Operational" :};
+    OBJ Outflow1 (* terminal = "out_1" *) "Outflow1" : 
+         OutRivTerminal := {: causality <- "COUT" ; group <- "Effluent 1" :};
+    OBJ Outflow2 (* terminal = "out_2" *) "Outflow2" : 
+         OutRivTerminal := {: causality <- "COUT" ; group <- "Effluent 2" :};
+   };
+   
+  state <-
+   {
+    OBJ Q_Out1 "Outflow1 rate" : FlowRate := {: group <- "Operational" :};
+    OBJ f_Out2 (* hidden = "1" *) "Fraction of the influent flux going to outflow2" : Fraction ;
+    OBJ Q_Out2_Help (* hidden = "1" *) "Help variable for outflow2 rate" : FlowRate ;
+   };
+
+  equations <-
+   {
+    state.Q_Out1 = IF(interface.Q_Out2 > state.Q_In)
+                   THEN 0
+                   ELSE state.Q_In - state.Q_Out2_Help ;
+
+    state.Q_Out2_Help = IF(interface.Q_Out2 > state.Q_In)
+                      	THEN state.Q_In
+                      	ELSE interface.Q_Out2;
+
+    state.f_Out2 = IF (state.Q_In == 0)
+			 	   THEN 0
+			 	   ELSE state.Q_Out2_Help / state.Q_In ;
+
+    {FOREACH Comp_Index IN {1 .. RivNrOfComponents}:
+      interface.Outflow1[Comp_Index] =
+      - state.InFluxPerComponent[Comp_Index] * (1 - state.f_Out2) ;};
+
+    {FOREACH Comp_Index IN {1 .. RivNrOfComponents}:
+      interface.Outflow2[Comp_Index] =
+      - state.InFluxPerComponent[Comp_Index] * state.f_Out2 ;};
+
+   }; 
+ :};
+ 
+ 
+ CLASS RivTwoCombiner
+ (* icon = "two_combiner" *)  
+ "two combiner"
+ EXTENDS RivAtomicModelWithoutVolume WITH
+ {:
+  comments <- "A model for a combiner of two flows";
+  interface <-
+   { 
+    OBJ Inflow1 (* terminal = "in_1" *) "Inflow1" : 
+         InRivTerminal := {: causality <- "CIN" ; group <- "Influent 1" :};
+    OBJ Inflow2 (* terminal = "in_2" *) "Inflow2" : 
+         InRivTerminal := {: causality <- "CIN" ; group <- "Influent 2" :};
+    OBJ Outflow (* terminal = "out_1" *) "Outflow" : 
+         OutRivTerminal := {: causality <- "COUT" ; group <- "Effluent" :};
+   };
+
+  equations <-
+   {
+    {FOREACH Comp_Index IN {1 .. RivNrOfComponents}:
+      interface.Outflow[Comp_Index] =
+      - state.InFluxPerComponent[Comp_Index];};   
+   }; 
+ :};
+
+ CLASS RivRelThreeSplitter
+ (* icon = "three_fraction_splitter" *)
+ "relative three splitter"
+
+// Dividing a flow in three fractions, based on the flow fraction parameter.  
+						
+ EXTENDS RivAtomicModelWithoutVolume WITH
+ {:
+  comments <- "A model for a relative splitter into three flows";
+  interface <-
+   { 
+    OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+         InRivTerminal := {: causality <- "CIN" ; group <- "Influent" :};
+    OBJ Outflow1 (* terminal = "out_1" *) "Outflow1" : 
+         OutRivTerminal := {: causality <- "COUT" ; group <- "Effluent 1" :};
+    OBJ Outflow2 (* terminal = "out_2" *) "Outflow2"  : 
+         OutRivTerminal := {: causality <- "COUT" ; group <- "Effluent 2" :};
+    OBJ Outflow3 (* terminal = "out_3" *) "Outflow3"  : 
+         OutRivTerminal := {: causality <- "COUT" ; group <- "Effluent 3" :};
+   };
+
+  parameters <- 
+   { 
+    OBJ f_Out2 "Fraction of the fluxes going to outflow2" : Fraction := {: value <- 0.1 ; group <- "Operational" :};
+    OBJ f_Out3 "Fraction of the fluxes going to outflow3" : Fraction := {: value <- 0.8 ; group <- "Operational" :};
+   };
+   
+  equations <-
+   {
+     {FOREACH Comp_Index IN {1 .. RivNrOfComponents}:
+      interface.Outflow2[Comp_Index] =
+      - state.InFluxPerComponent[Comp_Index] *
+      (parameters.f_Out2);};   
+ 
+     {FOREACH Comp_Index IN {1 .. RivNrOfComponents}:
+      interface.Outflow3[Comp_Index] =
+      - state.InFluxPerComponent[Comp_Index] *
+      (parameters.f_Out3);};   
+ 
+     {FOREACH Comp_Index IN {1 .. RivNrOfComponents}:
+      interface.Outflow1[Comp_Index] =
+    - state.InFluxPerComponent[Comp_Index] * (1 - (parameters.f_Out2 + parameters.f_Out3) );};  
+   }; 
+
+ :};
+
+
+ CLASS RivAbsThreeSplitter
+ (* icon = "three_flow_splitter" *)
+ "absolute three way splitter"
+
+// Dividing a flow in three flows.	
+// Attention should be given to the possibility that in case of an 
+// absolute splitter the flows never go negative.	
+
+ EXTENDS RivAtomicModelWithoutVolume WITH
+ {:
+  comments <- "A model for an absolute splitter into three flows";
+  interface <-
+   { 
+    OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+         InRivTerminal := {: causality <- "CIN" ; group <- "Influent" :};
+    OBJ Outflow1 (* terminal = "out_1" *) "Outflow1" : 
+         OutRivTerminal := {: causality <- "COUT" ; group <- "Effluent 1" :};
+    OBJ Outflow2 (* terminal = "out_2" *) "Outflow2" : 
+         OutRivTerminal := {: causality <- "COUT" ; group <- "Effluent 2" :};
+    OBJ Outflow3 (* terminal = "out_3" *) "Outflow3" : 
+         OutRivTerminal := {: causality <- "COUT" ; group <- "Effluent 3" :};
+   };
+
+  parameters <- 
+   { 
+    OBJ Q_Out2 "Outflow2 rate" : FlowRate := {: value <- 50 ; group <- "Operational" :};
+    OBJ Q_Out3 "Outflow3 rate" : FlowRate := {: value <- 50 ; group <- "Operational" :};
+   };
+
+  state <-
+   {
+    OBJ Q_Out1 "Outflow1 rate" : FlowRate := {: group <- "Operational" :};
+    OBJ f_Out1 (* hidden = "1" *) "Fraction of the influent flux going to outflow1" : Fraction ;
+    OBJ f_Out2 (* hidden = "1" *) "Fraction of the influent flux going to outflow2" : Fraction ;
+    OBJ f_Out3 (* hidden = "1" *) "Fraction of the influent flux going to outflow3" : Fraction ;
+    OBJ Q_Out2_Help (* hidden = "1" *) "Help variable for outflow2 rate" : FlowRate ;
+    OBJ Q_Out3_Help (* hidden = "1" *) "Help variable for outflow3 rate" : FlowRate ;
+   };
+
+  equations <-
+   {
+//creating zero outflow is potentially dangerous because the Q_In in the next block is zero, so when something is divided by Q_In it gives nan !!!
+
+    state.Q_Out1 = state.Q_In - (state.Q_Out2_Help + state.Q_Out3_Help);
+
+    state.Q_Out2_Help = IF( parameters.Q_Out2 > state.Q_In)
+                      	THEN state.Q_In
+                      	ELSE parameters.Q_Out2;
+
+    state.Q_Out3_Help = IF( (parameters.Q_Out2+parameters.Q_Out3) > state.Q_In)
+                      	THEN state.Q_In - state.Q_Out2_Help
+                      	ELSE parameters.Q_Out3;
+
+    state.f_Out1 = IF (state.Q_In == 0)
+			 	   THEN 0
+			 	   ELSE state.Q_Out1 /state.Q_In ;
+    state.f_Out2 = IF (state.Q_In == 0)
+			 	   THEN 0
+			 	   ELSE state.Q_Out2_Help /state.Q_In ; 
+    state.f_Out3 = IF (state.Q_In == 0)
+			 	   THEN 0
+			 	   ELSE state.Q_Out3_Help / state.Q_In ;
+
+    {FOREACH Comp_Index IN {1 .. RivNrOfComponents}:
+      interface.Outflow1[Comp_Index] =
+      - state.InFluxPerComponent[Comp_Index] * state.f_Out1 ;};
+
+    {FOREACH Comp_Index IN {1 .. RivNrOfComponents}:
+      interface.Outflow2[Comp_Index] =
+      - state.InFluxPerComponent[Comp_Index] * state.f_Out2 ;};
+
+    {FOREACH Comp_Index IN {1 .. RivNrOfComponents}:
+      interface.Outflow3[Comp_Index] =
+      - state.InFluxPerComponent[Comp_Index] * state.f_Out3 ;};
+   }; 
+ :};
+ 
+ 
+ CLASS RivThreeCombiner
+ (* icon = "three_combiner" *)  
+ "three combiner"
+ EXTENDS RivAtomicModelWithoutVolume WITH
+ {:
+  comments <- "A model for a combiner of three flows";
+  interface <-
+   { 
+    OBJ Inflow1 (* terminal = "in_1" *) "Inflow1" : 
+         InRivTerminal := {: causality <- "CIN" ; group <- "Influent 1":};
+    OBJ Inflow2 (* terminal = "in_2" *) "Inflow2" : 
+         InRivTerminal := {: causality <- "CIN" ; group <- "Influent 2":};
+    OBJ Inflow3 (* terminal = "in_3" *) "Inflow3" : 
+         InRivTerminal := {: causality <- "CIN" ; group <- "Influent 3":};
+    OBJ Outflow (* terminal = "out_1" *) "Outflow" : 
+         OutRivTerminal := {: causality <- "COUT" ; group <- "Effluent":};
+   };
+
+  equations <-
+   {
+    {FOREACH Comp_Index IN {1 .. RivNrOfComponents}:
+      interface.Outflow[Comp_Index] =
+      - state.InFluxPerComponent[Comp_Index];};   
+   }; 
+ :};

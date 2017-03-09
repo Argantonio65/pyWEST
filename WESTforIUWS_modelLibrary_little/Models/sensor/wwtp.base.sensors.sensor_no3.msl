@@ -1,0 +1,44 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 23. april 2012 08:05:14$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_BASE_SENSORS_SENSORNO3
+#define WWTP_BASE_SENSORS_SENSORNO3
+
+#if (defined ASM1Temp || defined ASM2dModTemp|| defined ASM3Temp || defined ASM3P_EAWAG)
+CLASS Sensor_NO3
+  (* icon = "sensor_no3" ; is_default = "true" *)
+  "Nitrate sensor"
+  EXTENDS Sensor WITH 
+  {:
+    comments <- "A model for a sensor measuring the nitrate concentration";
+
+    interface <-
+    {
+      OBJ y_M (* terminal = "out_2"; is_favorite = "1" *) "Sensor measured output" :
+         Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    };
+    
+    equations <-
+    {
+      {interface.y_M = IF (state.Q_In == 0)
+           THEN 0
+           ELSE interface.Inflow[S_NO] / state.Q_In ; };
+    };
+  :};
+#endif // (defined ASM1Temp || defined ASM2dModTemp || defined ASM3Temp || defined ASM3P_EAWAG)
+
+#endif // WWTP_BASE_SENSORS_SENSORNO3
+

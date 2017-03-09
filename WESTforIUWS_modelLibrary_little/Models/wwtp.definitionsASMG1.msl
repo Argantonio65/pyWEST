@@ -1,0 +1,92 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$ EURE
+ * $Date: 26. juni 2012 14:52:50$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_DEFINITIONSASMG1
+#define WWTP_DEFINITIONSASMG1
+
+
+#ifdef ASMG1
+TYPE Components
+"The biological components considered in the WWTP models"
+	= ENUM {H2O, 
+		S_I, 
+		S_S, 
+		S_O, 
+		S_NO3, 
+		S_NO2, 
+		S_NO, 
+		S_N2O, 
+		S_N2, 
+		S_NH, 
+		S_ND, 
+		S_ALK, 
+		X_I, 
+		X_S, 
+		X_BH, 
+		X_BA1, 
+		X_BA2, 
+		X_P, 
+		X_ND, 
+		};
+#endif
+
+
+#ifdef ASMG1
+TYPE Reactions
+"The reactions between biological components considered in the WWTP models"
+	= ENUM {AerGrowthHetero, 
+		AnGrowthHeteroNO3_NO2, 
+		AnGrowthHeteroNO2_NO, 
+		AnGrowthHeteroNO_N2O, 
+		AnGrowthHeteroN2O_N2, 
+		DecayOfHetero, 
+		AutoGrowthAOB, 
+		AutoGrowthNOB, 
+		DecayOfAOB, 
+		DecayOfNOB, 
+		AmmonOfSolOrgN, 
+		HydrolOfEntrOrg, 
+		HydrolOfEntrOrgN, 
+		Aeration, 
+		StrippingN2, 
+		StrippingNO, 
+		StrippingN2O, 
+		AutoNO2_NO,
+		AutoNO_N2O, };
+#endif
+
+#ifdef ASMG1
+
+ OBJ IndexOfSolvent "Index of the solvent (water) in the component vector" : Integer := 1;
+
+#define SolublesPresent
+ OBJ IndexOfFirstSolubleComponent "Index of the last soluble component in the component vector" : Integer := 2;
+ OBJ IndexOfLastSolubleComponent "Index of the first soluble component in the component vector" : Integer := 12;
+
+#define ParticulatesPresent  
+ OBJ IndexOfFirstParticulateComponent "Index of the first particulate component in the component vector" : Integer := 13;
+ OBJ IndexOfLastParticulateComponent "Index of the last particulate component in the component vector" : Integer := 19;
+
+#define CalculateTSSComponent 
+ OBJ IndexOfFirstTSSComponent "Index of the first TSS component in the component vector" : Integer := 13;
+ OBJ IndexOfLastTSSComponent "Index of the last TSS component in the component vector" : Integer := 18;
+
+
+#define StandardCategoryModels
+
+#endif
+
+#endif

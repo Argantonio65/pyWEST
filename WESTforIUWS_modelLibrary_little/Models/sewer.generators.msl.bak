@@ -1,0 +1,1009 @@
+CLASS SewGenerator
+ (* class = ""; category = "" *)
+ /*
+ Generator for the dry weather flow and pollution 
+ */
+ "A generator model"
+ SPECIALISES PhysicalDAEModelType :=
+ {:
+  interface <-
+  {
+    OBJ Outflow (* terminal = "out_1" *) "Outflow" :
+      OutSewTerminal := {: causality <- "COUT" :};
+  };
+
+  parameters <-
+  {
+   OBJ Mean_S "Vector containing the mean concentration in DWF" :
+       SewConcentrationVector := [{:value <-1000000 :}, 
+	   {:value <- 30 :}, {:value <- 10 :}, {:value <- 100 :}, 
+	   {:value <- 200 :}, {:value <-150 :};];
+ //  OBJ SewSpecificVolume (* hidden = "1" *) : SewSpecificVolumeVector;
+  };
+
+  independent <-
+  {
+   OBJ t "Time": Time ;
+  };
+
+  state <-
+  {
+  OBJ PollutionHelp (* hidden = "1" *) "Help variable for pollution" : 
+  	  FlowRate;
+  OBJ FlowHelp (* hidden = "1" *) "Help variable for flow" : 
+  	  FlowRate;
+  OBJ Q_out (* hidden = "0" *)"" : FlowRate;
+  };
+  
+  initial <-
+  {
+  // parameters.SewSpecificVolume[H2O_sew]= 0.000001;
+  };
+  
+  equations <-
+  {
+   interface.Outflow[H2O_sew] = - state.FlowHelp / 0.000001;
+   				  
+   {FOREACH s_comp_index IN {2 .. NrOfSewComponents}:
+   	interface.Outflow[s_comp_index] = - parameters.Mean_S[s_comp_index] * 
+									state.PollutionHelp;};			
+// IMPORTANT !!! error in pattern multiplication. Average of results lower than average of imposed pattern.
+    state.Q_out = state.FlowHelp; 			 
+  };
+ :};
+ 
+CLASS DryWeatherFlow
+ (* class = "generator"; category = "" *)
+ "A dry weather flow generator for subcatchments in Kosim"
+ EXTENDS SewGenerator WITH
+ {:
+  parameters <-
+  {
+   OBJ TotalArea " Area of the subcatchment m2" : 
+        Area := {: value <- 100000:};
+   OBJ PopulationDensity "Population density" : 
+        PopDensity := {: value <- 1500:};
+   OBJ WastewaterPerIE "Wastewater produced per inhabitant per day" :
+       FlowRate := {: value <- 0.15 :};
+   OBJ Qdwf_max "Maximum dry weather flow": FlowRate;
+   OBJ Qdwf_peak (* hidden = "0" *) "Peak dry weather flow relative to average": Real ; // to be checked, = max(pattern vector)?
+   OBJ Q_ind "Flow from industry, constant": FlowRate;
+   OBJ Infiltration "Water infiltration flow (l/s/ha)" : Real 
+   	   :={:value <- 0.11:};
+   OBJ startday "Week day at the start of the year, Saturday = 1": Integer :={:value <- 1:};
+   OBJ we_factor "Factor for more or less water on week-ends": Real :={:value <- 0.7:};
+   OBJ we_pollution "Factor for more or less pollution on week-ends": Real :={:value <- 0.5:};
+   OBJ tourist_start "Day of the year": Integer :={:value <- 162:};
+   OBJ tourist_end "Day of the year": Integer :={:value <- 300:};
+   OBJ tourist_water "Factor for more or less water used in touristic season":Real :={:value <- 1:};
+   OBJ tourist_pollution "Factor for more or less pollution in touristic season":Real :={:value <- 1.1:};
+   OBJ FlowPatternNumber "Daily dwf pattern depending on population: 1=0-5kPE, 2=5k-10kPE, 3=10k-50kPE" :
+   	   Integer :={:value <- 1:};
+   OBJ PollutionPatternNumber "Daily dw pollution pattern depending on population: 1=0-5kPE, 2=5k-10kPE, 3=10k-50kPE" :
+   	   Integer :={:value <- 1:};
+   OBJ FlowPattern (* hidden = "1" *) "Flow pattern according to the daily mean value" : 
+        HourlyDailyPattern; 
+   OBJ InfiltrationPatternNumber "Seasonal infiltration pattern depending on catchment surface: 1=custom, else=constant" :
+   	   Integer :={:value <- 1:};
+   OBJ InfiltrationPattern (* hidden = "1" *) "Seasonal infiltration pattern" : 
+        MonthlyYearlyPattern; 
+   OBJ InfiltrationCustom (* hidden = "1" *) "custom pattern" : 
+   	    MonthlyYearlyPattern  
+          := [{: value <- 1.21:},{: value <- 1.27 :},{: value <- 1.25 :},
+              {: value <- 1.04 :},{: value <- 0.95 :},{: value <- 0.79 :},
+              {: value <- 0.87 :},{: value <- 0.63 :},{: value <- 0.61 :},
+              {: value <- 0.76 :},{: value <- 0.86 :},{: value <- 1.08 :};];
+   OBJ InfiltrationConstant (* hidden = "1" *) "" : 
+   	    MonthlyYearlyPattern  
+          := [{: value <- 1:},{: value <- 1 :},{: value <- 1 :},
+              {: value <- 1 :},{: value <- 1 :},{: value <- 1:},
+              {: value <- 1 :},{: value <- 1 :},{: value <- 1 :},
+              {: value <- 1:},{: value <- 1 :},{: value <- 1 :};];
+   OBJ ATV0to5thIE (* hidden = "1" *) "0 to 5000 inhabitants" : 
+        HourlyDailyPattern  
+          := [{: value <- 0.1:},{: value <- 0.1 :},{: value <- 0.1 :},
+              {: value <- 0.1 :},{: value <- 0.6 :},{: value <- 1.6 :},
+              {: value <- 1.9 :},{: value <- 1.3 :},{: value <- 1.1 :},
+              {: value <- 0.8 :},{: value <- 1.0 :},{: value <- 1.9 :},
+              {: value <- 3.0 :},{: value <- 2.5 :},{: value <- 1.6 :},
+              {: value <- 0.8 :},{: value <- 0.7 :},{: value <- 1.3 :},
+              {: value <- 1.8 :},{: value <- 1.5 :},{: value <- 0.4 :},
+              {: value <- 0.1 :},{: value <- 0.1 :},{: value <- 0.1:};];
+   OBJ ATV5to10thIE (* hidden = "1" *) "5000-10000 inhabitants" : 
+        HourlyDailyPattern  
+          := [{: value <- 0.1:},{: value <- 0.1 :},{: value <- 0.1 :},
+              {: value <- 0.2 :},{: value <- 0.4 :},{: value <- 1.1 :},
+              {: value <- 1.2 :},{: value <- 1.1 :},{: value <- 0.9 :},
+              {: value <- 0.7 :},{: value <- 1.1 :},{: value <- 1.7 :},
+              {: value <- 2.4 :},{: value <- 2.2 :},{: value <- 1.7 :},
+              {: value <- 1.4 :},{: value <- 1.4 :},{: value <- 1.6 :},
+              {: value <- 1.6 :},{: value <- 1.3 :},{: value <- 0.9 :},
+              {: value <- 0.5 :},{: value <- 0.3 :},{: value <- 0.2:};];
+   OBJ ATV10to50thIE (* hidden = "1" *) "10000-50000 inhabitants" : 
+        HourlyDailyPattern  
+          := [{: value <- 0.2:},{: value <- 0.2 :},{: value <- 0.2 :},
+              {: value <- 0.3 :},{: value <- 0.6 :},{: value <- 0.9 :},
+			  {: value <- 1.1 :},{: value <- 1.3 :},{: value <- 1.3 :},
+              {: value <- 1.4 :},{: value <- 1.6 :},{: value <- 1.8 :},
+              {: value <- 2.0 :},{: value <- 1.8 :},{: value <- 1.4 :},
+              {: value <- 1.2 :},{: value <- 1.1 :},{: value <- 1.1 :},
+              {: value <- 1.1 :},{: value <- 1.2 :},{: value <- 1.0 :},
+              {: value <- 0.7 :},{: value <- 0.3 :},{: value <- 0.2:};];
+   OBJ SIDEN (* hidden = "1" *) "Typical for Bleesbruck WWTP" : 
+        HourlyDailyPattern  
+          := [{: value <- 0.3:},{: value <- 0.3:},{: value <- 0.3 :},{: value <- 0.35 :},
+              {: value <- 0.4 :},{: value <- 0.7 :},{: value <- 1.5 :},
+			  {: value <- 1.7 :},{: value <- 1.3 :},{: value <- 1.1 :},
+              {: value <- 0.8 :},{: value <- 1 :},{: value <- 1.5 :},
+              {: value <- 1.9 :},{: value <- 1.8 :},{: value <- 1.5 :},
+              {: value <- 0.8 :},{: value <- 0.7 :},{: value <- 1.5 :},
+              {: value <- 1.8 :},{: value <- 1.5 :},{: value <- 0.5 :},
+              {: value <- 0.4 :},{: value <- 0.35 :};];
+   OBJ Commercial8_18 (* hidden = "1" *) "Commercial wastewater pattern" : 
+        HourlyDailyPattern  
+          := [{: value <- 0:},{: value <- 0 :},{: value <- 0 :},
+              {: value <- 0 :},{: value <- 0 :},{: value <- 0 :},
+			  {: value <- 0 :},{: value <- 2.4 :},{: value <- 2.4 :},
+              {: value <- 2.4 :},{: value <- 2.4 :},{: value <- 2.4 :},
+              {: value <- 2.4 :},{: value <- 2.4 :},{: value <- 2.4 :},
+              {: value <- 2.4 :},{: value <- 2.4 :},{: value <- 0 :},
+              {: value <- 0 :},{: value <- 0 :},{: value <- 0 :},
+              {: value <- 0 :},{: value <- 0 :},{: value <- 0:};];
+      OBJ CustomFlow (* hidden = "1" *) "Flow pattern defined by user" : 
+        HourlyDailyPattern 
+		:= [{: value <- 1.0:},{: value <- 1.0 :},{: value <- 1.0 :},
+              {: value <- 1.0 :},{: value <- 1.0 :},{: value <- 1.0 :},
+              {: value <- 1.0 :},{: value <- 1.0 :},{: value <- 1.0 :},
+              {: value <- 1.0 :},{: value <- 1.0 :},{: value <- 1.0 :},
+              {: value <- 1.0 :},{: value <- 1.0 :},{: value <- 1.0 :},
+              {: value <- 1.0 :},{: value <- 1.0 :},{: value <- 1.0 :},
+              {: value <- 1.0 :},{: value <- 1.0 :},{: value <- 1.0 :},
+              {: value <- 1.0 :},{: value <- 1.0 :},{: value <- 1.0:};];
+  OBJ PollutionPattern (* hidden = "0" *) "Daily pollution pattern depending on population" : 
+        HourlyDailyPattern; 
+  OBJ Stoff0to5thIE (* hidden = "1" *) "Pollution pattern 0 to 5000 inhabitants" :
+        HourlyDailyPattern
+          := [{: value <- 0.01:},{: value <- 0.01 :},{: value <- 0.01 :},
+              {: value <- 0.02 :},{: value <- 0.12 :},{: value <- 0.45 :},
+              {: value <- 0.68 :},{: value <- 0.69 :},{: value <- 0.79 :},
+              {: value <- 0.83 :},{: value <- 1.31 :},{: value <- 2.77 :},
+              {: value <- 4.2 :},{: value <- 3.7 :},{: value <- 2.4 :},
+              {: value <- 1.17 :},{: value <- 0.75 :},{: value <- 1.19 :},
+              {: value <- 1.5 :},{: value <- 1.11 :},{: value <- 0.26 :},
+              {: value <- 0.06 :},{: value <- 0.01 :},{:value <-0.01:};];; 
+   OBJ Stoff5to10thIE (* hidden = "1" *) "Pollution pattern 5000 to 10000 inhabitants" :
+        HourlyDailyPattern
+          := [{: value <- 0.01:},{: value <- 0.01 :},{: value <- 0.05 :},
+              {: value <- 0.06 :},{: value <- 0.1 :},{: value <- 0.32 :},
+              {: value <- 0.44 :},{: value <- 0.58 :},{: value <- 0.65 :},
+              {: value <- 0.72 :},{: value <- 1.41 :},{: value <- 2.42 :},
+              {: value <- 3.28 :},{: value <- 3.18 :},{: value <- 2.48 :},
+              {: value <- 2.0 :},{: value <- 1.47 :},{: value <- 1.44 :},
+              {: value <- 1.3 :},{: value <- 0.95 :},{: value <- 0.59 :},
+              {: value <- 0.3 :},{: value <- 0.16 :},{:value <- 0.1:};];; 
+   OBJ Stoff10to50thIE (* hidden = "1" *) "Pollution 10000 to 50000 inhabitants" :
+        HourlyDailyPattern
+          := [{: value <- 0.14:},{: value <- 0.12 :},{: value <- 0.11 :},
+              {: value <- 0.11 :},{: value <- 0.17 :},{: value <- 0.3 :},
+              {: value <- 0.43 :},{: value <- 0.72 :},{: value <- 0.96 :},
+              {: value <- 1.46 :},{: value <- 2.08 :},{: value <- 2.6 :},
+              {: value <- 2.77 :},{: value <- 2.65 :},{: value <- 2.09 :},
+              {: value <- 1.76 :},{: value <- 1.2 :},{: value <- 1.03 :},
+              {: value <- 0.94 :},{: value <- 0.91 :},{: value <- 0.69 :},
+              {: value <- 0.44 :},{: value <- 0.19 :},{:value <-0.13:};];; 
+  OBJ CustomPollution (* hidden = "1" *) "Pollution pattern defined by user" : 
+        HourlyDailyPattern 
+		:= [{: value <- 1.0:},{: value <- 1.0 :},{: value <- 1.0 :},
+              {: value <- 1.0 :},{: value <- 1.0 :},{: value <- 1.0 :},
+              {: value <- 1.0 :},{: value <- 1.0 :},{: value <- 1.0 :},
+              {: value <- 1.0 :},{: value <- 1.0 :},{: value <- 1.0 :},
+              {: value <- 1.0 :},{: value <- 1.0 :},{: value <- 1.0 :},
+              {: value <- 1.0 :},{: value <- 1.0 :},{: value <- 1.0 :},
+              {: value <- 1.0 :},{: value <- 1.0 :},{: value <- 1.0 :},
+              {: value <- 1.0 :},{: value <- 1.0 :},{: value <- 1.0:};];
+  OBJ SIDENPollution (* hidden = "1" *) "Pollution pattern defined by user" : 
+        HourlyDailyPattern 
+		:= [{: value <- 0.45:},{: value <- 0.5 :},{: value <- 0.45 :},
+              {: value <- 0.6 :},{: value <- 0.8 :},{: value <- 1.1 :},
+              {: value <- 1.2 :},{: value <- 1.2 :},{: value <- 1.1 :},
+              {: value <- 1.05 :},{: value <- 1.1 :},{: value <- 1.3 :},
+              {: value <- 1.5 :},{: value <- 1.6 :},{: value <- 1.5 :},
+              {: value <- 1.4 :},{: value <- 1.3 :},{: value <- 1.3 :},
+              {: value <- 1.3 :},{: value <- 1.1 :},{: value <- 0.7 :},
+              {: value <- 0.5 :},{: value <- 0.45 :},{: value <- 0.4:};];
+  OBJ PollutionCommercial8_18 (* hidden = "1" *) "Commercial wastewater polution pattern" : 
+        HourlyDailyPattern  
+          := [{: value <- 0:},{: value <- 0 :},{: value <- 0 :},
+              {: value <- 0 :},{: value <- 0 :},{: value <- 0 :},
+			  {: value <- 0 :},{: value <- 2.4 :},{: value <- 2.4 :},
+              {: value <- 2.4 :},{: value <- 2.4 :},{: value <- 2.4 :},
+              {: value <- 2.4 :},{: value <- 2.4 :},{: value <- 2.4 :},
+              {: value <- 2.4 :},{: value <- 2.4 :},{: value <- 0 :},
+              {: value <- 0 :},{: value <-  0:},{: value <- 0 :},
+              {: value <- 0 :},{: value <- 0 :},{: value <- 0:};];
+      OBJ AverageTotal (* hidden = "0" *) "Average volume produced" : FlowRate;
+    };
+
+  initial <-
+  {
+
+parameters.Qdwf_peak = MSLUGetMax(ref(parameters.FlowPattern[1]), NrOfHourlyTimeVectorElements);  
+parameters.Qdwf_max = parameters.Qdwf_peak * parameters.TotalArea * parameters.PopulationDensity * parameters.WastewaterPerIE;
+  
+  {FOREACH Month_Index IN {1 .. 12}:
+  parameters.InfiltrationPattern[Month_Index] = 
+  	IF (parameters.InfiltrationPatternNumber == 1)
+	THEN parameters.InfiltrationCustom[Month_Index]
+	ELSE parameters.InfiltrationConstant[Month_Index];};
+  {FOREACH Time_Index IN {1 .. 24}:
+  parameters.FlowPattern[Time_Index] = 
+  	IF (parameters.FlowPatternNumber == 1)
+	THEN parameters.ATV0to5thIE[Time_Index]
+	ELSE IF (parameters.FlowPatternNumber == 2)
+  		 THEN parameters.ATV5to10thIE[Time_Index]
+  		 ELSE IF (parameters.FlowPatternNumber == 3)
+  		 	  THEN parameters.ATV10to50thIE[Time_Index]
+			  ELSE IF (parameters.FlowPatternNumber == 4)
+  		 	  	   THEN parameters.Commercial8_18[Time_Index]
+			  	   ELSE IF (parameters.FlowPatternNumber == 5)
+  		 	  	   		THEN parameters.SIDEN[Time_Index]
+			  	   		ELSE parameters.CustomFlow[Time_Index];};
+  {FOREACH Time_Index IN {1 .. 24}:
+  parameters.PollutionPattern[Time_Index] = 
+  	IF (parameters.PollutionPatternNumber == 1)
+	THEN parameters.Stoff0to5thIE[Time_Index]
+	ELSE IF (parameters.PollutionPatternNumber == 2)
+  		 THEN parameters.Stoff5to10thIE[Time_Index]
+  		 ELSE IF (parameters.PollutionPatternNumber == 3)
+  		 	  THEN parameters.Stoff10to50thIE[Time_Index]
+  		 	  ELSE IF (parameters.PollutionPatternNumber == 4)
+  		 	  	   THEN parameters.PollutionCommercial8_18[Time_Index]
+  		 	  	   ELSE IF (parameters.PollutionPatternNumber == 5)
+  		 	  	   		THEN parameters.SIDENPollution[Time_Index]
+  		 	  	   		ELSE parameters.CustomPollution[Time_Index];};
+  
+  parameters.AverageTotal = parameters.TotalArea * parameters.PopulationDensity *
+                 	   	   	 parameters.WastewaterPerIE / 1000000; //from 1/km2 to 1/m2
+  };
+  
+  state <- 
+  {
+  OBJ DayOfTheYear (* hidden = "0" *)"" : Real;
+  OBJ Month "" : Integer;
+  OBJ Next_Month (* hidden = "0" *)"" : Integer;
+  OBJ Daytime(* hidden = "0" *) "Calculates hour of the day" : Real;
+  OBJ Help_Time (* hidden = "0" *)"Time of the day expressed in days" : Real;
+  OBJ weight (* hidden = "0" *)"Interpolates between two timestep" : Fraction;
+  OBJ Timestep (* hidden = "0" *)"Hour of the day" : Integer;
+  OBJ Next_Timestep (* hidden = "0" *)"The next hour of the day" : Integer;
+  OBJ Help (* hidden = "0" *)"Water" : Real;
+  OBJ TotalInfiltration "Infiltration" : FlowRate;
+  OBJ MonthWeight(* hidden = "0" *) "Interpolates between two timestep" : Fraction;
+  OBJ weekday "Day of the week, Saturday = 1" : Integer;
+  };
+ 
+   equations <-
+   { 
+   state.DayOfTheYear = ceil(independent.t) - floor(floor(independent.t)/365)*365;
+   state.Month = ceil(state.DayOfTheYear/30.5);
+   state.MonthWeight = fmod(state.DayOfTheYear-1,30)/30;
+   state.Next_Month = IF (state.Month >= 12) // = added by VG090701
+   				  	   	 THEN 1
+   				  		 ELSE state.Month + 1;
+   state.TotalInfiltration = 
+   (parameters.InfiltrationPattern[state.Month]*(1-state.MonthWeight)
+   						  + parameters.InfiltrationPattern[state.Next_Month]
+						  *(state.MonthWeight))*(parameters.Infiltration/10000/1000*86400)
+					  *parameters.TotalArea;
+   						  					   //conversion l/s/ha to m3/d/m2
+   state.Help_Time = independent.t - floor(independent.t);
+   state.Daytime = state.Help_Time*24; 
+   state.weight = fmod(state.Daytime,1);
+   state.Timestep = floor(state.Daytime) + 1;
+   state.Next_Timestep = IF (state.Timestep >= 24)
+   				  	   	 THEN 1
+   				  		 ELSE state.Timestep + 1;
+   state.weekday = fmod(state.DayOfTheYear,7);
+   state.FlowHelp = IF ((state.DayOfTheYear < parameters.tourist_start)||(state.DayOfTheYear > parameters.tourist_end))
+   				  	THEN IF ((state.weekday == parameters.startday) || (state.weekday == parameters.startday+1))
+   				    	 THEN  parameters.we_factor*(parameters.FlowPattern[state.Timestep] * (1-state.weight) 
+   						 + parameters.FlowPattern[state.Next_Timestep] *
+						 state.weight) * parameters.AverageTotal + state.TotalInfiltration + parameters.Q_ind
+						 ELSE (parameters.FlowPattern[state.Timestep] * (1-state.weight) 
+   						 + parameters.FlowPattern[state.Next_Timestep] *
+						 state.weight) * parameters.AverageTotal + state.TotalInfiltration + parameters.Q_ind
+					ELSE IF ((state.weekday == parameters.startday) || (state.weekday == parameters.startday+1))
+   				    	 THEN parameters.tourist_water * parameters.we_factor*(parameters.FlowPattern[state.Timestep] * (1-state.weight) 
+   						 + parameters.FlowPattern[state.Next_Timestep] *
+						 state.weight) * parameters.AverageTotal + state.TotalInfiltration + parameters.Q_ind
+						 ELSE parameters.tourist_water*(parameters.FlowPattern[state.Timestep] * (1-state.weight) 
+   						 + parameters.FlowPattern[state.Next_Timestep] *
+						 state.weight) * parameters.AverageTotal + state.TotalInfiltration + parameters.Q_ind;
+   state.PollutionHelp =  IF ((state.DayOfTheYear < parameters.tourist_start)||(state.DayOfTheYear > parameters.tourist_end))
+   					   	  THEN IF ((state.weekday == parameters.startday) || (state.weekday == parameters.startday+1))
+   				       	  	   THEN parameters.we_pollution*(parameters.PollutionPattern[state.Timestep] * (1 - state.weight)  
+                    	  	   + parameters.PollutionPattern[state.Next_Timestep] *
+                    	  	   state.weight) * (parameters.AverageTotal)
+						  	   ELSE (parameters.PollutionPattern[state.Timestep] * (1 - state.weight)  
+                    	  	   + parameters.PollutionPattern[state.Next_Timestep] *
+                    	  	   state.weight) * (parameters.AverageTotal)
+						  ELSE IF ((state.weekday == parameters.startday) || (state.weekday == parameters.startday+1))
+   				       	  	   THEN parameters.tourist_pollution * parameters.we_pollution*(parameters.PollutionPattern[state.Timestep] * (1 - state.weight)  
+                    	  	   + parameters.PollutionPattern[state.Next_Timestep] *
+                    	  	   state.weight) * (parameters.AverageTotal)
+						  	   ELSE parameters.tourist_pollution * (parameters.PollutionPattern[state.Timestep] * (1 - state.weight)  
+                    	  	   + parameters.PollutionPattern[state.Next_Timestep] *
+                    	  	   state.weight) * (parameters.AverageTotal);
+  };
+:};
+
+
+CLASS InfiltrationFlow
+ (* class = "generator"; category = "" *)
+ "A dry weather flow generator for subcatchments in Kosim"
+ EXTENDS SewGenerator WITH
+ {:
+  parameters <-
+  {
+   OBJ TotalArea " Area of the subcatchment m2" : 
+        Area := {: value <- 100000:};
+   OBJ Infiltration "Water infiltration flow (l/s/ha)" : Real 
+   	   :={:value <- 0.11:};
+   OBJ startday "Week day at the start of the year, Saturday = 2": Integer :={:value <- 2:};
+   OBJ tourist_start "Day of the year": Integer :={:value <- 162:};
+   OBJ tourist_end "Day of the year": Integer :={:value <- 300:};
+   OBJ tourist_water "Factor for more or less water used in touristic season":Real :={:value <- 1:};
+   OBJ tourist_pollution "Factor for more or less pollution in touristic season":Real :={:value <- 1.1:};
+   OBJ InfiltrationPatternNumber "Seasonal infiltration pattern depending on catchment surface" :
+   	   Integer :={:value <- 1:};
+   OBJ InfiltrationPattern (* hidden = "0" *) "Seasonal infiltration pattern" : 
+        MonthlyYearlyPattern; 
+   OBJ InfiltrationBB (* hidden = "1" *) "Bleesbruck" : 
+   	    MonthlyYearlyPattern  
+          := [{: value <- 1.21:},{: value <- 1.27 :},{: value <- 1.25 :},
+              {: value <- 1.04 :},{: value <- 0.95 :},{: value <- 0.79 :},
+              {: value <- 0.87 :},{: value <- 0.63 :},{: value <- 0.61 :},
+              {: value <- 0.76 :},{: value <- 0.86 :},{: value <- 1.08 :};];
+   OBJ InfiltrationConstant (* hidden = "1" *) "" : 
+   	    MonthlyYearlyPattern  
+          := [{: value <- 1:},{: value <- 1 :},{: value <- 1 :},
+              {: value <- 1 :},{: value <- 1 :},{: value <- 1:},
+              {: value <- 1 :},{: value <- 1 :},{: value <- 1 :},
+              {: value <- 1:},{: value <- 1 :},{: value <- 1 :};];  
+    };
+
+  initial <-
+  {
+
+  {FOREACH Month_Index IN {1 .. 12}:
+  parameters.InfiltrationPattern[Month_Index] = 
+  	IF (parameters.InfiltrationPatternNumber == 1)
+	THEN parameters.InfiltrationBB[Month_Index]
+	ELSE parameters.InfiltrationConstant[Month_Index];}; 
+  };
+  
+  state <- 
+  {
+  OBJ DayOfTheYear (* hidden = "0" *)"" : Real;
+  OBJ Month "" : Integer;
+  OBJ Next_Month (* hidden = "0" *)"" : Integer;
+  OBJ TotalInfiltration "Infiltration" : FlowRate;
+  OBJ MonthWeight(* hidden = "0" *) "Interpolates between two timestep" : Fraction;
+  };
+ 
+   equations <-
+   { 
+   state.DayOfTheYear = ceil(independent.t);
+   state.Month = ceil(state.DayOfTheYear/30);
+   state.MonthWeight = fmod(state.DayOfTheYear-1,30)/30;
+   state.Next_Month = IF (state.Month >= 12) // = added by VG090701
+   				  	   	 THEN 1
+   				  		 ELSE state.Month + 1;
+   state.TotalInfiltration = 
+   (parameters.InfiltrationPattern[state.Month]*(1-state.MonthWeight)
+   						  + parameters.InfiltrationPattern[state.Next_Month]
+						  *(state.MonthWeight))*(parameters.Infiltration/10000/1000*86400)
+					  *parameters.TotalArea;
+   						  					   //conversion l/s/ha to m3/d/m2
+   state.FlowHelp = state.TotalInfiltration;
+   state.PollutionHelp = 0;
+   };
+:};
+
+
+/*
+CLASS Evaporation_calculator 
+ (* class = "generator"; category = "" *)
+ "A dry weather evaporation generator for use within Kosim"
+
+ SPECIALISES PhysicalDAEModelType :=
+ {:
+  interface <-
+  {
+  OBJ  Evaporation (* terminal = "out_1" *) "Evaporation outflow" :
+     Real := {:causality <- "COUT":};
+  };
+ 
+  parameters <- 
+  {
+   OBJ TotalEvaporation "Average yearly potential evaporation (mm/d)" :
+        RainfallIntensity := {: value <- 1.8:};   
+  };
+
+  independent <- 
+  {
+   OBJ t : Time;
+  };
+
+  state <- 
+  { 
+   OBJ MeanEvaporation "Mean evaporation per day" : RainfallIntensity; // in mm/d
+  };
+
+  equations <- 
+  {
+   state.MeanEvaporation = parameters.TotalEvaporation;
+   interface.Evaporation = state.MeanEvaporation ;
+   };
+:}; 
+*/
+
+CLASS Evaporation_calculator 
+ (* class = "generator"; category = "" *)
+ "A dry weather evaporation generator for use within Kosim"
+
+ SPECIALISES PhysicalDAEModelType :=
+ {:
+  interface <-
+  {
+  OBJ  Evaporation (* terminal = "out_1" *) "Evaporation outflow" :
+     Real := {:causality <- "COUT":};
+  };
+ 
+  parameters <- 
+  {
+   OBJ EvaporationPattern (* hidden = "1" *) "Pattern of daily evaporation": 
+       HourlyDailyPattern
+          := [{: value <- 0.20:},{: value <- 0.20 :},{: value <- 0.20 :},
+              {: value <- 0.20 :},{: value <- 0.25 :},{: value <- 0.35 :},
+              {: value <- 0.55 :},{: value <- 0.65 :},{: value <- 0.75 :},
+              {: value <- 1.00 :},{: value <- 1.50 :},{: value <- 1.85 :},
+              {: value <- 1.95 :},{: value <- 2.00 :},{: value <- 2.00 :},
+              {: value <- 1.95 :},{: value <- 1.85 :},{: value <- 1.60 :},
+              {: value <- 1.35 :},{: value <- 1.05 :},{: value <- 0.85 :},
+              {: value <- 0.75 :},{: value <- 0.50 :},{: value <-0.35:};];
+   OBJ StartDay "Day of the year when the simulation starts" : Integer := {: value <- 1:};
+   //OBJ StartTime (* hidden = "1" *) "Time (days) at which simulation is started" : Time; 
+   //OBJ StartDate "date of the year when the simulation starts mmddyyyy" : 
+   //     Date := {:value <- "01012004":};
+   OBJ YearlyEvaporation "Average yearly potential evaporation (mm/year)d" :
+        Real := {: value <- 657:};   
+   OBJ Pival (* hidden = "1" *) : Pi;
+  };
+
+  independent <- 
+  {
+   OBJ t : Time;
+  };
+
+  state <- 
+  { 
+   OBJ MeanEvaporation "Mean evaporation per day" : RainfallIntensity; // in mm/d
+   OBJ DayOfTheYear "Day of the year 01 jan = 01" : Integer;
+   OBJ DayOfTheYearHelp (* hidden = "1" *) "Helpvariable" : Integer;
+   OBJ CurrentDate  "Date at the current simulation time" : Date;
+   OBJ Timestep "Hour of the day" : Integer;
+   OBJ Month "Month of the year" : Integer;
+  };
+
+  initial <- 
+  {
+   //parameters.StartTime = independent.t; 
+  };
+
+  equations <- 
+  {
+   state.DayOfTheYearHelp = independent.t + parameters.StartDay;
+   state.DayOfTheYear = (state.DayOfTheYearHelp - fmod(state.DayOfTheYearHelp,1)) 
+   					  - floor((state.DayOfTheYearHelp - fmod(state.DayOfTheYearHelp,1)-1)/365)*365;
+   state.MeanEvaporation = (7.0 / 9.0 * sin(2 * parameters.Pival /365 * 
+                           (state.DayOfTheYear - 91)) + 1) 
+                           * parameters.YearlyEvaporation
+                           / 365;
+   state.Timestep = floor(fmod(independent.t,1)*24)+1;  
+   interface.Evaporation = 
+   						 IF (independent.t > 0) 
+						 THEN state.MeanEvaporation * 
+						 parameters.EvaporationPattern[state.Timestep]
+						 ELSE 0;
+						  };
+:};
+								
+CLASS KosimInputTransformer
+ (* class = "two_combiner"; category = "" *)
+ /*
+ This combiner combines the rain and evaporation data into a vector understood by the 
+ catchment surface runoff transformer. Also, it converts any rain input (e.g. mm/min) 
+ intervals into mm/day (general units of WEST)
+ */
+ SPECIALISES PhysicalDAEModelType :=
+ {:
+  interface <-
+  {
+   OBJ Rain (* terminal = "in_1" *) "Input from the rain influent file" :
+     Real := {:causality <- "CIN":}; 
+   OBJ Evaporation (* terminal = "in_2" *) "Evaporation on current date" :
+     Real := {:causality <- "CIN":};
+   OBJ Out_1 (*terminal = "out_1" *) "Output to the runoff calculators" :
+     KosimDataVector := {:causality <- "COUT":};
+  };
+
+  parameters <- 
+  {
+   OBJ InfluentTimestep "Time Unit of the rain influent file (mins)" : Minutes
+   	   					:= {:value <- 60:};
+   OBJ NrOfMinPerDay (* hidden = "1" *) 
+        "Currently number of minutes per day" : 
+        Real := {:value <- 1440:};
+  };
+
+  independent <- 
+  {
+   OBJ t : Time;
+  };
+ 
+  state <-
+  {
+  };
+
+  equations <-
+  {
+   // convert input file from mm/timestep to mm/d
+   interface.Out_1[Rain] = interface.Rain / parameters.InfluentTimestep 
+   						   * parameters.NrOfMinPerDay;
+   interface.Out_1[Evaporation] = interface.Evaporation; 
+  };
+  :};
+
+CLASS Runoffcalculator
+ (* class = "transformer"; category = "" *)
+ "A run off calculator for basins in KOSIM"
+
+ SPECIALISES PhysicalDAEModelType :=
+ {:
+
+  interface <-
+
+  {
+    OBJ In_1 (* terminal = "in_1" *) "Data for KOSIM bassin" : 
+      KosimDataVector := {: causality <- "CIN" :};
+	OBJ accumul (* terminal = "in_1" *) "Data for pollutants accumulation in kg/ha/d" : 
+      SewTerminalSurfaceFlux := {: causality <- "CIN" :};
+    OBJ Outflow (* terminal = "out_1" *) "Outflow" :
+      OutSewTerminal := {: causality <- "COUT" :};    
+  };
+
+  parameters <-
+
+  {
+   OBJ TotalArea " Area of the subcatchment in m2" : Area := {: value <- 100000:};
+   OBJ PerviousFraction "Percent of the catchment that is pervious" :
+        Fraction := {: value <- 0.8:};
+    /*OBJ SewSpecificVolume (*hidden="1"*) "Specific Volume": SewSpecificVolumeVector
+   := [{: value <- 0.000001:},{: value <- 0:},{: value <- 0:},
+   {: value <- 0:},{: value <- 0:},{: value <- 0:};];*/
+
+   // Impervious areas
+
+   OBJ InitialRunoffImp "The initial runoff coefficient Psi_o, impervious" : 
+        Fraction := {: value <- 0.25:};
+   OBJ MaxRunoffImp "The maximum runoff coefficient Psi_e, impervious" : 
+        Fraction := {: value <- 1.0:};
+   OBJ MaxWettingLosses " Wetting losses in mm" : 
+        Rainfall := {:value <- 0.5:};
+   OBJ MaxDepressionStorageImp 
+        "Maximum Depression storage for impervious areas" : 
+        Rainfall := {:value <- 1.8:};
+   //OBJ cImp (* hidden = "1" *) "help parameter" : Real;
+   OBJ ConcImp 
+       "Pollutant concentrations coming from the impervious areas, only valid if the accumulation/washoff process is deactivated" : 
+        SewConcentrationVector := [{: value <- 1000000 :},
+			{: value <- 0.001 :},{: value <- 0.001 :},{: value <- 0.001 :},
+			{: value <- 0.001 :},{: value <- 0.001 :};];
+ 
+   // Pervious areas
+   
+   OBJ InitialRunoffPer "The initial runoff coefficient Psi_o, pervious" : 
+        Fraction := {: value <- 0.0:};
+   OBJ MaxRunoffPer "The maximum runoff coefficient Psi_e, pervious" : 
+        Fraction := {: value <- 0.3:};
+   OBJ MaxInfiltration "Initial infiltration capacity (mm/d)" : 
+       RainfallIntensity := {:value <- 1440:};  
+   OBJ MinInfiltration "Minimum infiltration capacity (mm/d)" : 
+        RainfallIntensity := {:value <- 69:};
+   OBJ MaxWetIntLosses "Wetting and Interception losses for pervious areas (mm)" : 
+        Rainfall := {:value <- 5:};
+   OBJ ReducingFactor (* hidden = "1" *) "Reduction of the interception max depending on season" : 
+   	    MonthlyYearlyPattern := [{: value <- 0.1 :},{: value <- 0.1 :},{: value <- 0.3 :},
+              {: value <- 0.7 :},{: value <- 1 :},{: value <- 1 :},
+              {: value <- 1 :},{: value <- 1 :},{: value <- 1 :},
+              {: value <- 0.7 :},{: value <- 0.3 :},{: value <- 0.1 :};];
+   OBJ k "Degeneration rate of infiltration capacity during wet phase" :
+       Rate := {:value <- 72:}; 
+   OBJ k_D "Regeneration constant of infiltration capacity during dry phase" : 
+        Rate := {:value <- 0.432:};
+   OBJ MaxDepressionStoragePer "Depression storage for pervious areas (mm)": 
+       Rainfall := {:value <- 3.5:};
+   OBJ DailyEvaporation "Mean evaporation per day in the year (mm)" : 
+   	   RainfallIntensity := {:value <- 1.8:};    // !!! 
+   //OBJ cPer (* hidden = "1" *) "help parameter" : Real;  
+  
+  //Accumulation and washoff
+  
+   OBJ OptionAccuWash "Surface accumulation and washoff, activated if = 1" : 
+   	  Integer := {:value <- 1:}; 
+   OBJ OptionAccuWashIn "Input for surface accumulation and washoff, parameters if = 1, interface if = 0" : 
+   	  Integer := {:value <- 1:}; 
+   OBJ accu "Accumulation rate of KOSIM-WEST components (kg/ha/day)" : 
+   	  Real[NrOfSewComponents;] := [{: value <- 0 :},
+			{: value <- 0 :},{: value <- 0 :},{: value <- 0 :},
+			{: value <- 0 :},{: value <- 0 :};];
+   OBJ Ke "Washoff rate (1/mm)" : 
+   	   Real := {:value <- 0.18:}; 
+	};
+	
+  independent <-
+  {
+   OBJ t : Time;
+  };
+
+  state <- 
+  {
+   OBJ WettingLosses "Current wetting losses on impervious surface" : Rainfall := {:value <- 1:};
+   OBJ WettLossChange (*hidden="1"*) "Rate Wetting Loss Change" : RainfallIntensity;
+   OBJ WettingLossesPer "Current wetting losses on pervious surface" : Rainfall := {:value <- 1:};
+   OBJ WettLossPerChange (*hidden="1"*) "Rate Wetting Loss Change" : RainfallIntensity;
+   OBJ DepressionStorageImp "Current depression storage" : Rainfall;
+   OBJ FillingDepressionImp 
+        "Filling degree of the depression storage impervious (lying between 0 and 1)" : 
+        Fraction := {:value <- 1:};
+   OBJ FillingChangeRateImp (* hidden = "1" *)
+       " Rate of change of depression storage filling degree impervious" :
+        Rate;
+   OBJ NetRainfallImp
+       "Rainfall after substraction of wetting losses on impervious areas" : 
+       RainfallIntensity;
+   OBJ NetRainfallChangeImp "" : Ratio;
+   OBJ NetRainHelp 
+       "Rainfall after substraction of wetting and interception losses on pervious areas" : 
+       RainfallIntensity;  
+   OBJ NetRainfallPer 
+       "Rainfall after infiltration" : 
+       RainfallIntensity;  
+   OBJ RunoffImp : RainfallIntensity;
+   OBJ RunoffPer : RainfallIntensity; 
+   OBJ QImp "Flow coming from the impervious areas" : FlowRate; 
+   OBJ QPer "Flow coming from the pervious areas " : FlowRate; 
+   OBJ FillingDepressionPer 
+        "Filling degree of the depression storage pervious (lying between 0 and 1)" : 
+        Fraction := {:value <- 1:};
+   OBJ FillingChangeRatePer 
+       " Rate of change of depression storage filling degree pervious " :
+        Rate;
+   OBJ InfiltrationCapacity  
+       " Infiltration capacity on pervious areas" :
+       Rate := {:value <- 1:}; 
+   OBJ InfiltrationCapacityChange (* hidden = "1" *)	"":    Real;   
+   OBJ Rainsum "" : Real;
+   OBJ Delta_t "" : Real;
+   OBJ Day (* hidden = "1" *) "" : Time;
+   OBJ Month (* hidden = "1" *) "" : Integer;
+   OBJ Ma "Accumulated matter at the surface" : SewMassVector := [{: value <- 1000000 :},
+			{: value <- 2000 :},{: value <- 500 :},{: value <- 2000 :},
+			{: value <- 10000 :},{: value <- 20000 :};];
+   OBJ MaChange (* hidden = "1" *) "" : Real[NrOfSewComponents;];
+    };
+
+//##############################################################################
+//Begin of change 1
+	
+  initial <-
+  { 
+  /* parameters.cImp = (1-(parameters.InitialRunoffImp/parameters.MaxRunoffImp)) / 
+                   	 parameters.MaxDepressionStorageImp ;
+   parameters.cPer = (1-(parameters.InitialRunoffPer/parameters.MaxRunoffPer)) / 
+                   	 parameters.MaxDepressionStorageImp ;*/
+//End of change 1				 
+//##############################################################################
+   
+   //parameters.SewSpecificVolume[H2O_sew]=0.000001;
+  };
+
+   equations <-
+   {
+   
+// Impervious areas 
+   // calculate the month to be used for wetting and interception in pervious
+   // areas
+   state.Day = floor(independent.t);
+   state.Month = ceil(state.Day/30.5);
+   // wetting losses
+   state.WettLossChange =  
+         IF (interface.In_1[Rain] > 0)
+         THEN
+             IF (state.WettingLosses >= parameters.MaxWettingLosses ) 
+             THEN 0
+             ELSE interface.In_1[Rain]
+         ELSE 
+            IF (state.WettingLosses > 0)
+            THEN - interface.In_1[Evaporation]
+            ELSE 0;
+			
+  DERIV(state.WettingLosses,[independent.t]) = state.WettLossChange;
+  
+  //remaining rain after wetting
+   state.NetRainfallImp = 
+        IF (interface.In_1[Rain] > 0)
+        THEN interface.In_1[Rain] - state.WettLossChange//
+        ELSE 0;
+
+  // Depression filling degree (no units and lying between 0 and 1) 	
+   state.FillingChangeRateImp =
+        IF (state.NetRainfallImp > 0)
+        THEN  state.NetRainfallImp * (1 - state.FillingDepressionImp)
+        ELSE - (interface.In_1[Evaporation] * 
+                state.FillingDepressionImp);      
+   DERIV(state.FillingDepressionImp,[independent.t]) = 
+        state.FillingChangeRateImp;
+
+  //Water runoff after wetting and depressions 
+   state.RunoffImp = 
+   		  IF (state.NetRainfallImp > 0)
+		  THEN 
+		  	   parameters.MaxRunoffImp * (state.NetRainfallImp -  
+	      	   parameters.MaxDepressionStorageImp * state.FillingChangeRateImp)
+          ELSE 0;
+	
+	//runoff volume
+   state.QImp = state.RunoffImp * 
+                parameters.TotalArea * 
+                (1 - parameters.PerviousFraction) / 1000;
+
+    //Accumulation and washoff
+	 { FOREACH s_comp_index IN {IndexOfFirstSolubleSewComponent ..
+      IndexOfLastParticulateSewComponent}: 
+   DERIV (state.Ma[s_comp_index],[independent.t])= state.MaChange[s_comp_index];};
+   
+   
+    { FOREACH s_comp_index IN {IndexOfFirstSolubleSewComponent ..
+      IndexOfLastParticulateSewComponent}:
+   state.MaChange[s_comp_index] = 
+   			/* IF (interface.In_1[Rain] > 0)
+   			 THEN -parameters.Ke * interface.In_1[Rain] * state.Ma[s_comp_index]
+			 ELSE */ 
+			 	  IF (parameters.OptionAccuWashIn == 1)
+				  THEN parameters.accu[s_comp_index] * ( parameters.TotalArea / 10000 ) * 1000 //for g
+			 	  * (1-parameters.PerviousFraction) -parameters.Ke * interface.In_1[Rain] * state.Ma[s_comp_index]
+				  ELSE interface.accumul[s_comp_index] * ( parameters.TotalArea / 10000 ) * 1000 //for g
+			 	  * (1-parameters.PerviousFraction) -parameters.Ke * interface.In_1[Rain] * state.Ma[s_comp_index]; 
+				  //Accumulation and washoff only from impervious surface
+				  };
+ 
+// Pervious areas 
+
+   //Wetting and Interception losses
+  state.WettLossPerChange = 		
+         IF (interface.In_1[Rain] > 0)									  
+         THEN IF (state.WettingLossesPer >= parameters.ReducingFactor[state.Month]* 
+			 							    parameters.MaxWetIntLosses ) 
+              THEN 0
+              ELSE interface.In_1[Rain]
+         ELSE IF (state.WettingLossesPer > 0)
+              THEN - interface.In_1[Evaporation]
+           	  ELSE 0;
+ 
+  //remaining rain after wetting and interception
+  DERIV(state.WettingLossesPer,[independent.t]) = state.WettLossPerChange;
+  state.NetRainHelp = 
+        IF (interface.In_1[Rain] > 0)
+        THEN interface.In_1[Rain] - state.WettLossPerChange
+        ELSE 0;
+		
+  // infiltration into soil
+  
+ /* DERIV(state.InfiltrationCapacity, [independent.t]) = 
+       IF (state.NetRainHelp > state.InfiltrationCapacity)
+       THEN  - parameters.k 
+            * (state.InfiltrationCapacity - parameters.MinInfiltration)
+       ELSE 
+           IF (state.NetRainHelp == 0)
+           THEN  parameters.k_D *  (interface.In_1[Evaporation]/parameters.E_d 
+				  )* (parameters.MaxInfiltration - state.InfiltrationCapacity)
+       	   ELSE (- parameters.k 
+            * (state.InfiltrationRate - parameters.MinInfiltration))*
+			(interface.In_1[Rain]/state.InfiltrationCapacity) + 
+			(parameters.k_D *  (interface.In_1[Evaporation] / parameters.E_d ) *
+			 (parameters.MaxInfiltration - state.InfiltrationCapacity))*
+			 (1-interface.In_1[Rain]/state.InfiltrationCapacity);*/
+	
+	DERIV(state.InfiltrationCapacity, [independent.t]) = state.InfiltrationCapacityChange;
+	
+//##############################################################################
+//begin of change 2
+
+	state.InfiltrationCapacityChange =
+			 (- parameters.k 
+            * (state.InfiltrationCapacity - parameters.MinInfiltration))*
+			FMin(1,state.NetRainHelp/state.InfiltrationCapacity) + 
+			(parameters.k_D *  (interface.In_1[Evaporation] / parameters.DailyEvaporation ) *
+			 (parameters.MaxInfiltration - state.InfiltrationCapacity))*
+			(1- FMin(1,state.NetRainHelp/state.InfiltrationCapacity));
+//end of change 2
+//##############################################################################
+
+   //water left after interception, wetting and infiltration 
+   state.NetRainfallPer = 
+       // IF (state.NetRainHelp > 0) 
+      //  THEN 
+          IF (state.NetRainHelp > state.InfiltrationCapacity)
+          THEN state.NetRainHelp - state.InfiltrationCapacity
+         // ELSE 0
+        ELSE 0;
+		
+  //depression filling
+  state.FillingChangeRatePer = 
+       IF (state.NetRainfallPer > 0)
+       THEN  state.NetRainfallPer * ( 1 - state.FillingDepressionPer)
+       ELSE - ((interface.In_1[Evaporation] 
+	   //+ state.InfiltrationRate
+	   ) 
+	   * state.FillingDepressionPer); 
+  DERIV(state.FillingDepressionPer,[independent.t]) = 
+      state.FillingChangeRatePer;
+  
+  //remaining runoff water
+  state.RunoffPer = 
+       IF (state.NetRainfallPer > 0)
+       THEN parameters.MaxRunoffPer *
+            (state.NetRainfallPer - 
+            parameters.MaxDepressionStoragePer * state.FillingChangeRatePer)
+       ELSE 0;
+	    
+  //outflow volume	   
+   state.QPer = state.RunoffPer * parameters.TotalArea * 
+       parameters.PerviousFraction/1000;   //
+
+//alltogether
+
+   interface.Outflow[H2O_sew] = - (state.QImp + state.QPer)
+       / 0.000001;
+	   
+   //pollutant concentrations (supposing that they only come from impervious surfaces)
+   {FOREACH s_comp_index IN {IndexOfFirstSolubleSewComponent .. // soluble compounds 
+   IndexOfLastSolubleSewComponent}:
+       interface.Outflow[s_comp_index] = 
+         - state.QImp * parameters.ConcImp[s_comp_index];};
+
+  {FOREACH s_comp_index IN {IndexOfFirstParticulateSewComponent ..
+   IndexOfLastParticulateSewComponent}:					   	 
+       interface.Outflow[s_comp_index] =
+	   			IF (parameters.OptionAccuWash == 1)
+				THEN IF (interface.In_1[Rain] > 0) 
+			 	 	 THEN -parameters.Ke * interface.In_1[Rain] * state.Ma[s_comp_index]
+			 		 ELSE 0 
+				ELSE - state.QImp * parameters.ConcImp[s_comp_index];
+				};
+				
+ //  {FOREACH p_comp_index IN {1 .. NrOfParticulateComponents}:
+   //			interface.Outflow[p_comp_index] =
+   		//		 IF (interface.In_1[Rain] > 0) 
+		//	 	 THEN parameters.AccuFraction[p_comp_index] * state.MaChange
+		//	 	 ELSE 0; };
+		
+		
+  };
+:};
+
+CLASS Runoffcalculator_simple
+ (* class = "transformer"; category = "" *)
+ "A run off calculator for basins"
+
+ SPECIALISES PhysicalDAEModelType :=
+ {:
+
+  interface <-
+
+  {
+    OBJ In_1 (* terminal = "in_1" *) "Data for KOSIM bassin" : 
+      KosimDataVector := {: causality <- "CIN" :};
+    OBJ Outflow (* terminal = "out_1" *) "Outflow" :
+      OutSewTerminal := {: causality <- "COUT" :};    
+  };
+
+  parameters <-
+
+  {
+   OBJ TotalArea "Impervious area of the subcatchment in m2" : Area := {: value <- 100000:};
+   OBJ TotalArea_fact "Factor for sensitivity analysis" : Real := {: value <- 1:};
+  /*  OBJ SewSpecificVolume (*hidden="1"*) "Specific Volume": SewSpecificVolumeVector
+   := [{: value <- 0.000001:},{: value <- 0:},{: value <- 0:},
+   {: value <- 0:},{: value <- 0:},{: value <- 0:};];*/
+
+   // Impervious areas
+
+   OBJ MaxRunoffImp "The maximum runoff coefficient Psi_e, impervious" : 
+        Fraction := {: value <- 1.0:};
+   OBJ MaxDepressionStorageImp 
+        "Maximum Depression storage for impervious areas" : 
+        Rainfall := {:value <- 1.8:};
+   OBJ ConcImp 
+       "Pollutant concentrations coming from the impervious areas, only valid if the accumulation/washoff process is deactivated" : 
+        SewConcentrationVector := [{: value <- 1000000 :},
+			{: value <- 0.001 :},{: value <- 0.001 :},{: value <- 0.001 :},
+			{: value <- 0.001 :},{: value <- 0.001 :};];
+	};
+	
+  independent <-
+  {
+   OBJ t : Time;
+  };
+
+  state <- 
+  {
+   OBJ FillingDepressionImp 
+        "Filling degree of the depression storage impervious (lying between 0 and 1)" : 
+        Fraction := {:value <- 1:};
+   OBJ FillingChangeRateImp (* hidden = "1" *)
+       " Rate of change of depression storage filling degree impervious" :
+        Rate;
+   OBJ RunoffImp : RainfallIntensity;
+   OBJ QImp "Flow coming from the impervious areas" : FlowRate; 
+   OBJ Day (* hidden = "1" *) "" : Time;
+   OBJ Month (* hidden = "1" *) "" : Integer;
+    };
+
+   equations <-
+   {
+   
+// Impervious areas 
+   // calculate the month to be used for wetting and interception in pervious
+   // areas
+   state.Day = floor(independent.t);
+   state.Month = ceil(state.Day/30.5);
+
+  // Depression filling degree (no units and lying between 0 and 1) 	
+	  state.FillingChangeRateImp = IF (interface.In_1[Rain] > 0)
+                                 THEN IF (state.FillingDepressionImp < 1)
+                                      THEN interface.In_1[Rain] / parameters.MaxDepressionStorageImp //***
+                                      ELSE 0
+                                 ELSE - interface.In_1[Evaporation] * state.FillingDepressionImp / parameters.MaxDepressionStorageImp;  //*** 
+                                 
+    DERIV(state.FillingDepressionImp,[independent.t]) = state.FillingChangeRateImp;
+
+  //Water runoff after wetting and depressions 
+    state.RunoffImp = IF ((interface.In_1[Rain] > 0) && (state.FillingDepressionImp >= 1))
+		                  THEN parameters.MaxRunoffImp * interface.In_1[Rain]
+                      ELSE 0;
+	
+	//runoff volume
+   state.QImp = IF (state.RunoffImp > 0)
+		  THEN 
+		  	   state.RunoffImp * parameters.TotalArea * parameters.TotalArea_fact / 1000
+          ELSE 0;
+   
+   interface.Outflow[H2O_sew] = - state.QImp / 0.000001;
+	   
+   //pollutant concentrations (supposing that they only come from impervious surfaces)
+   {FOREACH s_comp_index IN {IndexOfFirstSolubleSewComponent .. // soluble compounds 
+   IndexOfLastSolubleSewComponent}:
+       interface.Outflow[s_comp_index] = 
+         - state.QImp * parameters.ConcImp[s_comp_index];};
+
+  {FOREACH s_comp_index IN {IndexOfFirstParticulateSewComponent ..
+   IndexOfLastParticulateSewComponent}:					   	 
+       interface.Outflow[s_comp_index] = - state.QImp * parameters.ConcImp[s_comp_index];
+				};
+		
+  };
+:};
+

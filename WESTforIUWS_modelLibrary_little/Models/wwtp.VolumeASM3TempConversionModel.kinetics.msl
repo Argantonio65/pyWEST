@@ -1,0 +1,43 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 5. september 2011 16:01:15$
+ *
+ ******************************************************************************/
+
+#ifdef ASM3Temp
+    state.S_O_Saturation = 14.65 - 0.41 * state.Temp_Actual + 0.00799 * state.Temp_Actual * state.Temp_Actual - 0.0000778 * state.Temp_Actual * state.Temp_Actual * state.Temp_Actual;
+  state.k_h_Temp = parameters.k_h * pow(parameters.theta_k_h,state.Temp_Actual - parameters.Temp_Ref);
+  state.k_STO_Temp = parameters.k_STO * pow(parameters.theta_k_STO,state.Temp_Actual - parameters.Temp_Ref);
+  state.mu_H_Temp = parameters.mu_H * pow(parameters.theta_mu_H,state.Temp_Actual - parameters.Temp_Ref);
+  state.b_H_O2_Temp = parameters.b_H_O2 * pow(parameters.theta_b_H_O2,state.Temp_Actual - parameters.Temp_Ref);
+  state.b_H_NO_Temp = parameters.b_H_NO * pow(parameters.theta_b_H_NO,state.Temp_Actual - parameters.Temp_Ref);
+  state.b_STO_O2_Temp = parameters.b_STO_O2 * pow(parameters.theta_b_STO_O2,state.Temp_Actual - parameters.Temp_Ref);
+  state.b_STO_NO_Temp = parameters.b_STO_NO * pow(parameters.theta_b_STO_NO,state.Temp_Actual - parameters.Temp_Ref);
+  state.mu_A_Temp = parameters.mu_A * pow(parameters.theta_mu_A,state.Temp_Actual - parameters.Temp_Ref);
+  state.b_A_O2_Temp = parameters.b_A_O2 * pow(parameters.theta_b_A_O2,state.Temp_Actual - parameters.Temp_Ref);
+  state.b_A_NO_Temp = parameters.b_A_NO * pow(parameters.theta_b_A_NO,state.Temp_Actual - parameters.Temp_Ref);
+
+  state.Kinetics[Hydrolysis] = state.k_h_Temp * (state.C[X_S] / state.C[X_H]) / (parameters.K_X + (state.C[X_S] / state.C[X_H])) * state.C[X_H];
+  state.Kinetics[AerStorageOfCOD] = state.k_STO_Temp * (state.C[S_O] / (parameters.K_O + state.C[S_O])) * (state.C[S_S] / (parameters.K_S + state.C[S_S])) * state.C[X_H];
+  state.Kinetics[AnoxStorageOfCOD] = state.k_STO_Temp * parameters.n_NO * (parameters.K_O / (parameters.K_O + state.C[S_O])) * (state.C[S_NO] / (parameters.K_NO + state.C[S_NO])) * (state.C[S_S] / (parameters.K_S + state.C[S_S])) * state.C[X_H];
+  state.Kinetics[AerGrowth] = state.mu_H_Temp * (state.C[S_O] / (parameters.K_O + state.C[S_O])) * (state.C[S_NH] / (parameters.K_NH + state.C[S_NH])) * (state.C[S_ALK] / (parameters.K_HCO + state.C[S_ALK])) * ((state.C[X_STO] / state.C[X_H]) / (parameters.K_STO + (state.C[X_STO] / state.C[X_H]))) * state.C[X_H];
+  state.Kinetics[AnoxGrowth] = state.mu_H_Temp * parameters.n_NO * (parameters.K_O / (parameters.K_O + state.C[S_O])) * (state.C[S_NO] / (parameters.K_NO + state.C[S_NO])) * (state.C[S_NH] / (parameters.K_NH + state.C[S_NH])) * (state.C[S_ALK] / (parameters.K_HCO + state.C[S_ALK])) * ((state.C[X_STO] / state.C[X_H]) / (parameters.K_STO + (state.C[X_STO] / state.C[X_H]))) * state.C[X_H];
+  state.Kinetics[AerEndogRespOfXH] = state.b_H_O2_Temp * (state.C[S_O] / (parameters.K_O + state.C[S_O])) * state.C[X_H];
+  state.Kinetics[AnoxEndogRespOfXH] = state.b_H_NO_Temp * (parameters.K_O / (parameters.K_O + state.C[S_O])) * (state.C[S_NO] / (parameters.K_NO + state.C[S_NO])) * state.C[X_H];
+  state.Kinetics[AerRespOfPHA] = state.b_STO_O2_Temp * (state.C[S_O] / (parameters.K_O + state.C[S_O])) * state.C[X_STO];
+  state.Kinetics[AnoxRespOfPHA] = state.b_STO_NO_Temp * (parameters.K_O / (parameters.K_O + state.C[S_O])) * (state.C[S_NO] / (parameters.K_NO + state.C[S_NO])) * state.C[X_STO];
+  state.Kinetics[Nitrification] = state.mu_A_Temp * (state.C[S_O] / (parameters.K_A_O + state.C[S_O])) * (state.C[S_NH] / (parameters.K_A_NH + state.C[S_NH])) * (state.C[S_ALK] / (parameters.K_A_HCO + state.C[S_ALK])) * state.C[X_A];
+  state.Kinetics[AerEndogRespOfXA] = state.b_A_O2_Temp * (state.C[S_O] / (parameters.K_O + state.C[S_O])) * state.C[X_A];
+  state.Kinetics[AnoxEndogRespOfXA] = state.b_A_NO_Temp * (parameters.K_O / (parameters.K_O + state.C[S_O])) * (state.C[S_NO] / (parameters.K_NO + state.C[S_NO])) * state.C[X_A];
+  state.Kinetics[Aeration] = state.Kla_Actual * (state.S_O_Saturation - state.C[S_O]);
+#endif // ASM3Temp

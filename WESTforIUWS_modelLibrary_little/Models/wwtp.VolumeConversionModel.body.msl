@@ -1,0 +1,44 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 5. september 2011 16:01:15$
+ *
+ ******************************************************************************/
+
+// body for variable & fixed VolumeConversionModel
+
+   interface <-
+   {
+   };
+
+   parameters <-
+   {
+     OBJ Stoichiometry (* hidden = "1" *) "A matrix structure containing stoichiometry" : PhysicalQuantityType[NrOfReactions;][NrOfComponents,];
+   };
+
+   state <-
+   {
+     OBJ Kinetics (* hidden = "1" *) "A vector containing kinetics for all reactions" : PhysicalQuantityType[NrOfReactions;];
+   OBJ Kla_Actual (* is_favorite = "1" *) "The actual Kla in the system" : OxygenTransferCoefficient := {: group <- "Operational" :};
+   OBJ Temp_Actual (* is_favorite = "1" *) "Actual temperature of the activated sludge" : CelsiusTemperature  := {: group <- "Operational" :}; 
+   };
+
+   equations <-
+   {
+    {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+      state.ConversionTermPerComponent[Comp_Index] =
+       SUMOVER Reaction_Index IN {1 .. NrOfReactions}:
+        (parameters.Stoichiometry[Reaction_Index][Comp_Index]
+        *state.Kinetics[Reaction_Index])
+       *state.V;};
+   };
+

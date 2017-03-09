@@ -1,0 +1,115 @@
+#ifndef IUWS_SEWER_QUANTITY
+#define IUWS_SEWER_QUANTITY
+
+ TYPE HourlyTimeVector = ENUM {H00, H01, H02, H03, H04, H05, H06, H07,
+                               H08, H09, H10, H11, H12, H13, H14, H15, 
+                               H16, H17, H18, H19, H20, H21, H22, H23};
+
+ TYPE WeeklyTimeVector = ENUM {D1, D2, D3, D4, D5, D6, D7};
+ 
+ TYPE YearlyTimeVector = ENUM {M01, M02, M03, M04, M05, M06, M07, M08, M09,
+ 	  				   	 	   M10, M11, M12};                        
+ 
+ TYPE TwoHourlyTimeVector = 
+       ENUM {T00, T02, T04, T06, T08, T10, T12, T14, T16, T18, T20,T22};
+
+ TYPE KosimData = ENUM {Rain, Evaporation};
+
+
+  CLASS Rainfall
+  "A class for rainfall during Kosim simulations (mm)"
+  SPECIALISES PhysicalQuantityType :=
+  {:
+    quantity  <- "Rainfall depth";
+    unit      <- "mm";
+    interval  <- {: lowerBound <- MINUS_INF; upperBound <- PLUS_INF:};
+  :};    
+  
+  CLASS Minutes
+  "A class for time in minutes"
+  SPECIALISES PhysicalQuantityType :=
+  {:
+    quantity  <- "Time";
+    unit      <- "min";
+    interval  <- {: lowerBound <- 0; upperBound <- PLUS_INF:};
+  :};    
+
+  CLASS RainfallIntensity
+  "A class for rainfall intensity during Kosim simulations (mm/d)"
+  SPECIALISES PhysicalQuantityType :=
+  {:
+    quantity  <- "Rainfall Intensity";
+    unit      <- "mm/d";
+    interval  <- {: lowerBound <- MINUS_INF; upperBound <- PLUS_INF:};
+  :};    
+
+CLASS PopDensity 			   	  	 			   			  
+  "A class for the density of inhabitants"
+  SPECIALISES PhysicalQuantityType :=
+  {:
+    quantity  <- "Population Density";
+    unit      <- "IE/km2";
+    interval  <- {: lowerBound <- 0; upperBound <- PLUS_INF:};
+  :};    
+  
+CLASS WaterVolume 			   	  	 			   			  
+  "A class for the volume of water per area per year"
+  SPECIALISES PhysicalQuantityType :=
+  {:
+    quantity  <- "Water Volume";
+    unit      <- "m3/ha/a";
+    interval  <- {: lowerBound <- 0; upperBound <- PLUS_INF:};
+  :};    
+         
+CLASS PollutionMass		   	  	 			   			  
+  "A class for the pollution element mass per area per year"
+  SPECIALISES PhysicalQuantityType :=
+  {:
+    quantity  <- "Pollution Mass";
+    unit      <- "kg/ha/a";
+    interval  <- {: lowerBound <- 0; upperBound <- PLUS_INF:};
+  :};    
+		                 
+ OBJ NrOfTwoHourlyTimeVectorElements : 
+      Integer := Cardinality(TwoHourlyTimeVector);
+
+ CLASS TwoHourlyDailyPattern "Daily pattern" =
+        Real[NrOfTwoHourlyTimeVectorElements;];
+
+
+ OBJ NrOfHourlyTimeVectorElements : 
+      Integer := Cardinality(HourlyTimeVector);
+
+ CLASS HourlyDailyPattern "Daily pattern" = 
+        Real[NrOfHourlyTimeVectorElements;];
+
+ OBJ NrOfMonthlyTimeVectorElements : 
+      Integer := Cardinality(YearlyTimeVector);
+	  
+ CLASS MonthlyYearlyPattern "Monthly pattern" = 
+        Real[NrOfMonthlyTimeVectorElements;];
+
+ // used to sum of hourly vectors
+ OBJ Time_Index : Integer;
+ OBJ Month_Index : Integer;
+ OBJ NrOfKosimDataElements : Integer := Cardinality(KosimData);
+
+ CLASS KosimDataVector "Vector containing Kosim data necessary in all bassins" 
+        = RainfallIntensity[NrOfKosimDataElements;];
+
+  OBJ Pi
+  "Pi" : PhysicalQuantityType :=
+   {:
+    quantity  <- "PI";
+    unit      <- "-";
+    value     <- 3.14159;
+   :};
+
+
+#endif 
+
+
+ 
+
+
+

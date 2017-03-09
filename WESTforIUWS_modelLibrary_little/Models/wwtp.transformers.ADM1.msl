@@ -1,0 +1,796 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 17. april 2012 11:17:55$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_ADM1_TRANSFORMERS
+#define WWTP_ADM1_TRANSFORMERS
+
+#if (defined ASM1Temp)
+
+CLASS ASM1toADM1
+ "ASM1 to IWA ADM1 anaerobic model states flow transformer for use in BSM2"
+
+ SPECIALISES PhysicalDAEModelType :=
+ {:
+
+  comments <- "Transforms a ASM1 influent to a ADM1 anaerobic influent type";
+
+  interface <-
+  {
+  OBJ Inflow (* terminal = "in_1" *) "Inflow in flux" : InWWTPTerminal  := {: causality <- "CIN"; group <- "Influent" :};
+  OBJ Outflow (* terminal = "out_1" *) "Outflow" : InADM1ConcTerminal := {: causality <- "COUT"; group <- "Effluent" :};
+  OBJ pH_adm (* terminal = "in_2"; manip = "1" *) "pH of the digester": Real:={: causality <- "CIN"; value <- 6.8; group <- "Operational" :};
+  OBJ pH_as (* terminal = "in_2"; manip = "1" *) "pH of the activated sludge": Real:={: causality <- "CIN"; value <- 7; group <- "Operational" :};
+  OBJ T_op (* terminal = "in_2"; manip = "1" *) "Operating temperature": CelsiusTemperature := {: causality <- "CIN"; value <- 35; group <- "Operational" :};
+  };
+
+  parameters <-
+  {
+  //FtoC conversion
+ // OBJ WWTPSpecificVolume (* hidden = "1" *) "The specific volumes (= 1/density) of the components" : SpecificVolumeVector;
+  //
+  OBJ naa "Nitrogen content of amino acids (gN/gCOD)" : NitrogenContentOfAminoAcids := {: value <- 0.098; group <- "Stoichiometry" :};  
+  //
+  // ASM1 to Anaerobic Digestion conversion parameters
+  OBJ nbac "nitrogen content of biomass (gN/gCOD)" : Fraction := {: value <- 0.08; group <- "Stoichiometry" :}; 
+  OBJ nxc "nitrogen content of composites (gN/gCOD)" : Fraction := {: value <- 0.0376; group <- "Stoichiometry" :}; 
+  OBJ nxi "nitrogen content of XI and XP (same in AS and AD) (gN/gCOD)" : Fraction := {: value <- 0.06; group <- "Stoichiometry" :}; 
+  OBJ nsi "nitrogen content of SI in ASM (gN/gCOD)" : Fraction := {: value <- 0.00; group <- "Stoichiometry" :};
+  OBJ nsi_adm "nitrogen content of SI in ADM (gN/gCOD)" : Fraction := {: value <- 0.06; group <- "Stoichiometry" :};
+  //
+  OBJ frlixs "lipid fraction of non-nitrogenous Xs" : Fraction := {: value <- 0.7; group <- "Stoichiometry" :};
+  OBJ frxs "anaerobically degradable fraction of biomass" : Fraction := {: value <- 0.68; group <- "Stoichiometry" :};
+  OBJ frlixb "lipid fraction of non-nitrogenous XBA, XBH COD" : Fraction := {: value <- 0.4; group <- "Stoichiometry":};
+  OBJ fdegrade "Fraction of X_BH and X_BA (ASM1) that is biodegradable in anaerobic conditions" : Fraction := {: value <- 0.0; group <- "ASM1 -> ADM1" :};
+  //
+  OBJ T_ref "Reference temperature (ie 25 degC)": CelsiusTemperature := {: value <- 25; group <- "Operational":};
+  OBJ help_TK_ref (* hidden = "1" *) "Reference temperature (K)": Real ;
+//  OBJ T_op "Operating temperature": CelsiusTemperature := {: value <- 35; group <- "Operational" :};
+  OBJ R "Gas law constant" : GasLawConstant := {: value <- 0.08314; group <- "System" :};
+  //
+  OBJ pKa_ac "Acetate acidity constant (temperature correction can be ignored)" : Acidity:= {: value <- 4.76; group <- "System":}; 
+  OBJ pKa_bu "Butyrate acidity constant (temperature correction can be ignored)" : Acidity:= {: value <- 4.82; group <- "System":};
+  OBJ pKa_pro "Propionate acidity constant (temperature correction can be ignored)" : Acidity:= {: value <- 4.88; group <- "System":};
+  OBJ pKa_va "Valerate acidity constant (temperature correction can be ignored)" : Acidity:= {: value <- 4.86; group <- "System":};
+  //
+//  OBJ pH_adm "pH of the digester": Real:={: group <- "Operational" :};
+//  OBJ pH_as "pH of the activated sludge": Real:={: value <- 7; group <- "Operational" :};
+  };
+  
+  initial <-
+  {
+  //parameters.WWTPSpecificVolume[IndexOfSolvent] := 0.000001;
+  parameters.help_TK_ref = parameters.T_ref + 273.15;
+  };
+
+  independent <- 
+  {
+  OBJ t "Time" : Time := {: group <- "Time" :};
+  };
+
+  state <-
+  {
+   OBJ InflowConcentration "Inflow" : InWWTPConcTerminal  := {: group <- "Influent" :};
+   
+   OBJ COD_Demand "the COD required to reduce the incoming electron acceptors i.e. S_O, S_NO in ASM1" : Concentration:= {: group <- "Concentration" :};
+   OBJ temp1 "first COD level to compare the COD required to reduce the incoming electron acceptors i.e. S_O, S_NO in ASM1" : Concentration:= {: group <- "Concentration" :};
+   OBJ temp2 "Second COD level to compare the COD required to reduce the incoming electron acceptors i.e. S_O, S_NO in ASM1" : Concentration:= {: group <- "Concentration" :};
+   OBJ temp3 "Third COD level to compare the COD required to reduce the incoming electron acceptors i.e. S_O, S_NO in ASM1" : Concentration:= {: group <- "Concentration" :};
+   OBJ temp4 "Fourth COD level to compare the COD required to reduce the incoming electron acceptors i.e. S_O, S_NO in ASM1" : Concentration:= {: group <- "Concentration" :};
+
+   OBJ S_S_reduced "reduced from the influent value to compensate for the incoming electron acceptors": Concentration:= {: group <- "Concentration" :};
+   OBJ S_ND_reduced_1 "reduced from the influent value to compensate for the incoming electron acceptors (O2 and NO3)": Concentration:= {: group <- "Concentration" :};
+   OBJ S_ND_reduced_2 "reduced after mapping of Ss to amino acids": Concentration:= {: group <- "Concentration" :};
+   OBJ S_ND_reduced_3 "reduced after mapping of Si": Concentration:= {: group <- "Concentration" :};
+   OBJ X_S_reduced "reduced from the influent value to compensate for the incoming electron acceptors if needed after S_S reduction" : Concentration:= {: group <- "Concentration" :};
+   OBJ X_ND_reduced_1 "reduced from the influent value to compensate for the incoming electron acceptors if needed after S_S reduction" : Concentration:= {: group <- "Concentration" :};
+   OBJ X_ND_reduced_2 "reduced after mapping of remaining COD" : Concentration:= {: group <- "Concentration" :};
+   OBJ X_ND_reduced_3 "reduced after mapping of biomass" : Concentration:= {: group <- "Concentration" :};
+   OBJ X_ND_reduced_4 "reduced after mapping of Si" : Concentration:= {: group <- "Concentration" :};
+   OBJ X_BH_reduced "reduced from the influent value to compensate for the incoming electron acceptors if needed after X_S reduction": Concentration:= {: group <- "Concentration" :};
+   OBJ X_BA_reduced "reduced from the influent value to compensate for the incoming electron acceptors if needed after XBH_S reduction": Concentration:= {: group <- "Concentration" :};
+   OBJ inertS "temporary state for calculation of inert solubles": Concentration:= {: group <- "Concentration" :};
+   OBJ S_NH_changed_1 "changed NH4 concentration when biomass is used to compensate for incoming electron acceptors ": Concentration:= {: group <- "Concentration" :};
+   OBJ S_NH_changed_2 "changed NH4 concentration for compensating denitrification": Concentration:= {: group <- "Concentration" :};
+   OBJ S_NH_changed_3 "changed NH4 concentration after mapping of Si": Concentration:= {: group <- "Concentration" :};
+   OBJ S_NH_den_1 "ammonium correction from SND after denitrification":Concentration:= {: group <- "Concentration" :};
+   OBJ S_NH_den_2 "ammonium correction from XND after denitrification":Concentration:= {: group <- "Concentration" :};
+   
+   OBJ ReqCODs "Required Saa in ADM1 (as if all Saa Nitrogen is corresponding to Snd from ASM1)" : Concentration:= {: group <- "Concentration" :};
+   OBJ biomass "total incoming biomass"  : Concentration:= {: group <- "Concentration" :};
+   OBJ biomass_nobio "biomass not anaerobically degradable"  : Concentration:= {: group <- "Concentration" :};
+   OBJ biomass_bioN "nitrogen part of biological degradable biomass"  : Concentration:= {: group <- "Concentration" :};
+   OBJ prot_XS "Proteins in XS" : Concentration:= {: group <- "Concentration" :};
+   OBJ prot_biom "Proteins in biomass (X_BA + X_BH)" : Concentration:= {: group <- "Concentration" :};
+   OBJ li_XS "Lipids in XS" : Concentration:= {: group <- "Concentration" :};
+   OBJ li_biom "Lipids in biomass (X_BA + X_BH)" : Concentration:= {: group <- "Concentration" :};
+   OBJ ch_XS "Carbohydrates in XS" : Concentration:= {: group <- "Concentration" :};
+   OBJ ch_biom "Carbohydrates in biomass (X_BA + X_BH)" : Concentration:= {: group <- "Concentration" :};
+   OBJ su_from_ss "Sugars created from Ss": Concentration:= {: group <- "Concentration" :};
+   OBJ su_from_si "Sugars created from Si": Concentration:= {: group <- "Concentration" :};
+
+   OBJ Snh_release "SNH released during NO3 removal" : Concentration:= {: group <- "Concentration" :};
+   
+   OBJ COD_in "Incoming COD to the interface": Concentration:= {: group <- "Concentration" :};
+   OBJ COD_out "Outgoing COD from the interface": Concentration:= {: group <- "Concentration" :};
+   OBJ COD_balance "difference between COD in and out": Real:= {: group <- "Concentration" :};
+   OBJ N_in "Incoming N to the interface": Concentration:= {: group <- "Concentration" :};
+   OBJ N_out "Outgoing N from the interface": Concentration:= {: group <- "Concentration" :};
+   OBJ N_balance "difference between N in and out": Real:= {: group <- "Balance" :};
+   OBJ degradability "degradability of the digester influent": Fraction:= {: group <- "Balance" :};
+
+   OBJ alfa_ac "acetate charge": Real:= {: group <- "Balance" :};
+   OBJ alfa_pro "propionate charge": Real:= {: group <- "Balance" :};
+   OBJ alfa_bu "butyrate charge": Real:= {: group <- "Balance" :};
+   OBJ alfa_va "valerate charge": Real:= {: group <- "Balance" :};
+   OBJ alfa_in_adm "inorganic nitrogen charge in digester": Real:= {: group <- "Balance" :}; 
+   OBJ alfa_ic "inorganic carbon charge": Real:= {: group <- "Balance" :};
+   OBJ alfa_nh "ammonium charge": Real:= {: group <- "Balance" :};
+   OBJ alfa_no "nitrate charge": Real:= {: group <- "Balance" :};
+   OBJ alfa_alk "alkalinity charge": Real:= {: group <- "Balance" :};
+   OBJ alfa_in_as "inorganic nitrogen charge in the activated sludge": Real:= {: group <- "Balance" :};
+   OBJ cat_an "cations minus anions": Real:= {: group <- "Balance" :};
+   
+   OBJ pKa_in "Inorganic nitrogen acidity constant" : Real:= {: group <- "System" :};
+   OBJ pKa_ic "Inorganic carbon acidity constant" : Real:= {: group <- "System" :};
+   OBJ pKw "Water acidity constant" : Real:= {: group <- "System" :};
+   
+   OBJ help_TK_op (* hidden = "1" *) "Operational temperature (K)": Real ;
+   };
+
+  equations <-
+  {
+// FtoC conversion
+  {state.InflowConcentration[IndexOfSolvent] = interface.Inflow[IndexOfSolvent] * 0.000001;}; 
+
+     {FOREACH Comp_Index IN {IndexOfFirstSolubleComponent .. NrOfComponents}:
+      state.InflowConcentration[Comp_Index] = IF (state.InflowConcentration[IndexOfSolvent] == 0)
+                      THEN 0
+                      ELSE interface.Inflow[Comp_Index] / state.InflowConcentration[IndexOfSolvent] ;};
+
+// Water flow is equal in both models
+//    interface.Outflow[H2O_An] = interface.Inflow[H2O];
+    interface.Outflow[H2O_An] = state.InflowConcentration[H2O];
+    
+//STEP1: remove O2 and NO3
+//Calculation of ASM1 COD's
+    state.COD_Demand = state.InflowConcentration[S_O]+ 2.86 * state.InflowConcentration[S_NO];
+    
+// due to COD_demand, S_S, X_S, X_BH, X_BA are decreased in that sequence    
+    state.temp1=state.InflowConcentration[S_S];
+    state.temp2=state.InflowConcentration[S_S]+state.InflowConcentration[X_S];
+    state.temp3=state.InflowConcentration[S_S]+state.InflowConcentration[X_S]+state.InflowConcentration[X_BH];
+    state.temp4=state.InflowConcentration[S_S]+state.InflowConcentration[X_S]+state.InflowConcentration[X_BH]+interface.Inflow[X_BA];
+
+    state.S_S_reduced=  
+  IF(state.COD_Demand > state.temp1)
+      THEN 0                                          //all S_S consumed
+      ELSE state.InflowConcentration[S_S] - state.COD_Demand;  //S_S partly consumed
+                      
+    state.X_S_reduced=  
+  IF(state.COD_Demand > state.temp2)
+      THEN 0
+      ELSE 
+       IF (state.COD_Demand > state.temp1)
+          THEN state.InflowConcentration[X_S] - state.COD_Demand + state.InflowConcentration[S_S]
+          ELSE state.InflowConcentration[X_S];
+                      
+    state.X_BH_reduced= 
+  IF(state.COD_Demand > state.temp3)
+      THEN 0
+      ELSE 
+        IF (state.COD_Demand > state.temp2)
+           THEN state.InflowConcentration[X_BH] - state.COD_Demand + state.InflowConcentration[S_S] +state.InflowConcentration[X_S]
+           ELSE state.InflowConcentration[X_BH];
+                      
+    state.X_BA_reduced=
+  IF(state.COD_Demand > state.temp4)
+      THEN 0                             //this means not enough carbon is present in the system! ERROR
+      ELSE 
+       IF (state.COD_Demand > state.temp3)
+            THEN state.InflowConcentration[X_BA] - state.COD_Demand + state.InflowConcentration[S_S] +state.InflowConcentration[X_S]+state.InflowConcentration[X_BH]
+            ELSE state.InflowConcentration[X_BA];                 
+// If biomass is used, its nitrogen fraction should be added to NH4 to avoid a N-leak
+  state.S_NH_changed_1= state.InflowConcentration[S_NH]+parameters.nbac
+  *(state.InflowConcentration[X_BA]-state.X_BA_reduced+state.InflowConcentration[X_BH]-state.X_BH_reduced);                     
+
+//STEP2:Mapping of solubles                
+// Map all S_ND in S_aa. The remaining COD, if any, is mapped to S_su
+    state.S_ND_reduced_1= state.InflowConcentration[S_ND];
+//  IF(state.InflowConcentration[S_S] == 0)
+//     THEN 0
+//     ELSE state.S_S_reduced / state.InflowConcentration[S_S] * state.InflowConcentration[S_ND]; //correct for denitrification
+  state.X_ND_reduced_1=  state.InflowConcentration[X_ND];
+//  IF(state.InflowConcentration[X_S] == 0)
+//     THEN 0
+//     ELSE state.X_S_reduced / state.InflowConcentration[X_S] * state.InflowConcentration[X_ND]; //correct for denitrification
+ 
+//Saa equivalent to Snd
+    state.ReqCODs = state.InflowConcentration[S_ND] / parameters.naa;
+  
+  interface.Outflow[S_aa] = 
+  IF(state.S_S_reduced <= state.ReqCODs)      //too little Ss to map all Snd
+     THEN state.S_S_reduced/1000            //all Ss mapped, but not all Snd
+     ELSE state.ReqCODs/1000;                //all Ss and Snd mapped to Saa
+                
+    state.su_from_ss = 
+  IF(state.S_S_reduced <= state.ReqCODs)
+       THEN 0
+       ELSE (state.S_S_reduced-state.ReqCODs);  //excess Ss is mapped to Ssu
+
+    state.S_ND_reduced_2 = 
+    IF(state.S_S_reduced <= state.ReqCODs)
+     THEN state.S_ND_reduced_1 - state.S_S_reduced*parameters.naa   //Snd only partly removed
+     ELSE 0;  //all Snd removed
+
+// denitrification leads to NH4 formation
+
+    state.S_NH_den_1 = 
+  IF (state.InflowConcentration[S_S] == 0)
+     THEN state.InflowConcentration[S_ND]
+     ELSE (state.InflowConcentration[S_S]- state.S_S_reduced)*state.InflowConcentration[S_ND]/state.InflowConcentration[S_S];
+  
+    state.S_NH_den_2 = 
+  IF (state.InflowConcentration[X_S] == 0)
+     THEN state.InflowConcentration[X_ND]
+     ELSE (state.InflowConcentration[X_S]- state.X_S_reduced)*state.InflowConcentration[X_ND]/state.InflowConcentration[X_S];    
+
+    state.S_NH_changed_2=state.S_NH_changed_1;// + state.S_NH_den_1 + state.S_NH_den_2;
+  
+//STEP3&4: Mapping of remaining COD. Here mapping is not to X_c but to X_ch, X_pr, X_li   
+//Carbohydrates, proteins and lipids present in X_S, X_BA and X_BH are calculated first and then summed
+// Proteins
+    state.prot_XS = 
+  IF(state.X_S_reduced <= state.X_ND_reduced_1 / parameters.naa)  //not all Xnd fits into Prot
+     THEN state.X_S_reduced  //all Xs to Prot
+     ELSE state.X_ND_reduced_1 / parameters.naa;  //not all Xs to Prot, remainder --> Ch and Lip
+    
+  state.X_ND_reduced_2= //remaining Xnd
+  IF(state.X_S_reduced <= state.X_ND_reduced_1 / parameters.naa) //not all Xnd fits into Prot
+     THEN state.X_ND_reduced_1 - state.X_S_reduced*parameters.naa
+     ELSE 0;
+  
+  state.biomass=state.InflowConcentration[X_BA] +state.InflowConcentration[X_BH];
+  state.biomass_nobio=state.biomass*(1-parameters.frxs);
+  state.biomass_bioN=parameters.nbac*state.biomass - state.biomass_nobio*parameters.nxi;
+  state.prot_biom = 
+  IF (state.biomass_bioN / parameters.naa <= (state.biomass - state.biomass_nobio)) 
+     THEN //only part of biomass can be converted due to lack of N
+       IF(state.X_ND_reduced_2 / parameters.naa > (state.biomass - state.biomass_nobio - state.biomass_bioN / parameters.naa)) //use remaining Xnd
+         THEN state.biomass_bioN / parameters.naa + (state.biomass - state.biomass_nobio - state.biomass_bioN / parameters.naa) //all biomass N used + additional Xnd
+       ELSE state.biomass_bioN / parameters.naa + state.X_ND_reduced_2 / parameters.naa //state.biomass_bioN / parameters.N_aa //not enough Xnd left, use everything
+     ELSE state.biomass - state.biomass_nobio;
+   
+
+   state.X_ND_reduced_3=  
+   IF (state.biomass_bioN / parameters.naa <= (state.biomass - state.biomass_nobio)) 
+      THEN 
+     IF (state.X_ND_reduced_2 / parameters.naa > (state.biomass - state.biomass_nobio - state.biomass_bioN / parameters.naa))
+        THEN state.X_ND_reduced_2 - (state.biomass - state.biomass_nobio - state.biomass_bioN / parameters.naa)*parameters.naa
+      ELSE 0
+    ELSE state.X_ND_reduced_2 + state.biomass*parameters.nbac - state.biomass_nobio*parameters.nxi - (state.biomass - state.biomass_nobio)*parameters.naa;
+   
+// Carbohydrates
+    state.ch_XS = IF(state.X_S_reduced <= state.prot_XS)
+                THEN 0
+          ELSE  (state.X_S_reduced - state.prot_XS)*(1 - parameters.frlixs);
+  state.ch_biom = IF(parameters.frxs * state.biomass <= state.prot_biom) //is there any biomass COD unmapped?
+                  THEN 0
+          ELSE (parameters.frxs * state.biomass - state.prot_biom) * (1 - parameters.frlixb);
+
+// Lipids
+    state.li_XS = IF(state.X_S_reduced < state.prot_XS)
+                THEN 0
+          ELSE  (state.X_S_reduced - state.prot_XS)*parameters.frlixs;
+  state.li_biom = IF(parameters.frxs * state.biomass < state.prot_biom) //is there any biomass COD unmapped?
+                  THEN 0
+          ELSE (parameters.frxs * state.biomass - state.prot_biom) * parameters.frlixb;     
+
+//STEP5: Mapping of inerts
+// Particulate
+  interface.Outflow[X_Inert] = 
+  ((1-parameters.fdegrade)*(state.InflowConcentration[X_P] +state.InflowConcentration[X_I]) 
+  + state.biomass_nobio)/1000;
+// Soluble inerts - direct mapping not possible due to difference in N-content of Si in ASM and ADM
+// Lack of N is taken from Snd, Xnd and Snh (in that sequence)
+    state.inertS =
+  IF (state.InflowConcentration[S_I]*parameters.nsi < state.InflowConcentration[S_I]*parameters.nsi_adm)
+   THEN 
+    IF (state.S_ND_reduced_2 < (state.InflowConcentration[S_I]*(1-parameters.nsi/parameters.nsi_adm)*parameters.nsi_adm))
+     THEN
+    IF (state.X_ND_reduced_3 < (state.InflowConcentration[S_I]*(1-parameters.nsi/parameters.nsi_adm)-state.S_ND_reduced_2/parameters.nsi_adm)*parameters.nsi_adm)
+     THEN
+      IF (state.S_NH_changed_2 <(state.InflowConcentration[S_I]*(1-parameters.nsi/parameters.nsi_adm)-state.S_ND_reduced_2/parameters.nsi_adm-state.X_ND_reduced_3/parameters.nsi_adm)*parameters.nsi_adm)
+       THEN state.InflowConcentration[S_I]*parameters.nsi/parameters.nsi_adm + state.S_ND_reduced_2/parameters.nsi_adm + state.X_ND_reduced_3/parameters.nsi_adm + state.S_NH_changed_2/parameters.nsi_adm
+       ELSE state.InflowConcentration[S_I]
+     ELSE state.InflowConcentration[S_I]     
+     ELSE state.InflowConcentration[S_I]  
+   ELSE state.InflowConcentration[S_I];
+  
+  interface.Outflow[S_Inert] = state.inertS/1000;
+//This affects states of Snd,Xnd and Snh
+    state.S_ND_reduced_3=
+  IF (state.InflowConcentration[S_I]*parameters.nsi < state.InflowConcentration[S_I]*parameters.nsi_adm)
+   THEN 
+    IF (state.S_ND_reduced_2 < (state.InflowConcentration[S_I]*(1-parameters.nsi/parameters.nsi_adm)*parameters.nsi_adm))
+     THEN  0  
+     ELSE state.S_ND_reduced_2 - (state.InflowConcentration[S_I]*(1-parameters.nsi/parameters.nsi_adm))*parameters.nsi_adm  
+   ELSE state.S_ND_reduced_2 + state.InflowConcentration[S_I]*(parameters.nsi-parameters.nsi_adm);
+
+    state.X_ND_reduced_4=
+  IF (state.InflowConcentration[S_I]*parameters.nsi < state.InflowConcentration[S_I]*parameters.nsi_adm)
+   THEN 
+    IF (state.S_ND_reduced_2 < (state.InflowConcentration[S_I]*(1-parameters.nsi/parameters.nsi_adm)*parameters.nsi_adm))
+     THEN
+    IF (state.X_ND_reduced_3 < (state.InflowConcentration[S_I]*(1-parameters.nsi/parameters.nsi_adm)-state.S_ND_reduced_2/parameters.nsi_adm)*parameters.nsi_adm)
+     THEN 0
+     ELSE state.X_ND_reduced_3 - (state.InflowConcentration[S_I]*(1-parameters.nsi/parameters.nsi_adm)-state.S_ND_reduced_2/parameters.nsi_adm)*parameters.nsi_adm     
+     ELSE state.X_ND_reduced_3  
+   ELSE state.X_ND_reduced_3;
+
+    state.S_NH_changed_3=
+  IF (state.InflowConcentration[S_I]*parameters.nsi < state.InflowConcentration[S_I]*parameters.nsi_adm)
+   THEN 
+    IF (state.S_ND_reduced_2 < (state.InflowConcentration[S_I]*(1-parameters.nsi/parameters.nsi_adm)*parameters.nsi_adm))
+     THEN
+    IF (state.X_ND_reduced_3 < (state.InflowConcentration[S_I]*(1-parameters.nsi/parameters.nsi_adm)-state.S_ND_reduced_2/parameters.nsi_adm)*parameters.nsi_adm)
+     THEN
+      IF (state.S_NH_changed_2 <(state.InflowConcentration[S_I]*(1-parameters.nsi/parameters.nsi_adm)-state.S_ND_reduced_2/parameters.nsi_adm-state.X_ND_reduced_3/parameters.nsi_adm)*parameters.nsi_adm)
+       THEN 0
+       ELSE state.S_NH_changed_2 - (state.InflowConcentration[S_I]*(1-parameters.nsi/parameters.nsi_adm)-state.S_ND_reduced_2/parameters.nsi_adm-state.X_ND_reduced_3/parameters.nsi_adm)*parameters.nsi_adm
+     ELSE state.S_NH_changed_2     
+     ELSE state.S_NH_changed_2  
+   ELSE state.S_NH_changed_2; 
+
+// In case all nitrogen is depleted, remaining Si is mapped to ch
+  state.su_from_si = 
+  IF (state.InflowConcentration[S_I]*parameters.nsi < state.InflowConcentration[S_I]*parameters.nsi_adm)
+   THEN 
+    IF (state.S_ND_reduced_2 < (state.InflowConcentration[S_I]*(1-parameters.nsi/parameters.nsi_adm)*parameters.nsi_adm))
+     THEN
+    IF (state.X_ND_reduced_3 < (state.InflowConcentration[S_I]*(1-parameters.nsi/parameters.nsi_adm)-state.S_ND_reduced_2/parameters.nsi_adm)*parameters.nsi_adm)
+     THEN
+      IF (state.S_NH_changed_2 <(state.InflowConcentration[S_I]*(1-parameters.nsi/parameters.nsi_adm)-state.S_ND_reduced_2/parameters.nsi_adm-state.X_ND_reduced_3/parameters.nsi_adm)*parameters.nsi_adm)
+       THEN (state.InflowConcentration[S_I]*(1-parameters.nsi/parameters.nsi_adm)-state.S_ND_reduced_2/parameters.nsi_adm-state.X_ND_reduced_3/parameters.nsi_adm-state.S_NH_changed_2/parameters.nsi_adm)
+       ELSE 0
+     ELSE 0    
+     ELSE 0  
+   ELSE 0;
+    
+  interface.Outflow[S_su] = (state.su_from_si + state.su_from_ss)/1000;
+  
+ // Mapped states
+    interface.Outflow[X_ch] = (state.ch_XS + state.ch_biom)/1000;
+    interface.Outflow[X_pr] = (state.prot_XS + state.prot_biom)/1000;
+  interface.Outflow[X_li] = (state.li_XS + state.li_biom)/1000;
+  
+ // Mapping of remaining N
+ //   state.Snh_release =  (state.InflowConcentration[S_S] - state.S_S_reduced) * state.InflowConcentration[S_ND]/state.InflowConcentration[S_S]
+  //           + (state.InflowConcentration[X_S] - state.X_S_reduced) * state.InflowConcentration[X_ND]/state.InflowConcentration[X_S];       
+    interface.Outflow[S_INN]= (state.S_ND_reduced_3+state.X_ND_reduced_4+state.S_NH_changed_3) / 14000 ;
+ 
+//   interface.Outflow[S_IC]=state.InflowConcentration[S_ALK]/1000;
+ 
+// Additional states in ADM1 
+   interface.Outflow[S_ch4] = 0;
+   interface.Outflow[S_h2]=0;
+   interface.Outflow[S_ac]=0;
+   interface.Outflow[S_bu]=0;
+   interface.Outflow[S_fa]=0;
+   interface.Outflow[S_pro]=0;
+   interface.Outflow[X_c]=0;
+   interface.Outflow[S_va]=0;
+   interface.Outflow[X_aa]=0;
+   interface.Outflow[X_c4]=0;
+   interface.Outflow[X_ac]=0;
+   interface.Outflow[X_fa]=0;
+   interface.Outflow[X_h2]=0;
+   interface.Outflow[X_pro]=0;
+   interface.Outflow[X_su]=0;
+   
+// Mass balance check for COD, N and charge
+// Incoming COD
+   state.COD_in = state.InflowConcentration[S_I] + state.InflowConcentration[S_S] + state.InflowConcentration[X_I] + state.InflowConcentration[X_S] +
+          state.InflowConcentration[X_BH] + state.InflowConcentration[X_BA] + state.InflowConcentration[X_P];
+// Outgoing COD
+   state.COD_out = interface.Outflow[S_aa] + interface.Outflow[S_su] + interface.Outflow[S_Inert] + interface.Outflow[X_c]
+           + interface.Outflow[X_ch] + interface.Outflow[X_pr] + interface.Outflow[X_li] + interface.Outflow[X_Inert];  
+
+// COD balance
+   state.COD_balance = state.COD_in - state.COD_Demand - state.COD_out * 1000;
+   
+// Incoming N
+   state.N_in = state.InflowConcentration[S_NO] + state.InflowConcentration[S_NH] + state.InflowConcentration[S_ND] + state.InflowConcentration[X_ND] +
+            parameters.nbac * ( state.InflowConcentration[X_BH] + state.InflowConcentration[X_BA])  +
+        parameters.nsi*state.InflowConcentration[S_I]+ parameters.nxi * (state.InflowConcentration[X_P] + state.InflowConcentration[X_I]);
+// Outgoing N
+   state.N_out = (interface.Outflow[S_aa] + interface.Outflow[X_pr])*parameters.naa + interface.Outflow[S_INN]*14 + 
+           (interface.Outflow[S_Inert] + interface.Outflow[X_Inert]) * parameters.nxi;
+// N balance    
+   state.N_balance = state.N_in - state.InflowConcentration[S_NO] - state.N_out * 1000;
+   
+// Degradability
+   state.degradability = (interface.Outflow[S_aa] + interface.Outflow[S_su] + interface.Outflow[X_ch] + interface.Outflow[X_pr] 
+               + interface.Outflow[X_li])/state.COD_out;
+
+   state.help_TK_op = interface.T_op + 273.15;
+
+// Calculation of T-dependent pK-values
+   state.pKa_in = 9.25-log10(exp(51965*(1/parameters.help_TK_ref - 1/state.help_TK_op)/(100*parameters.R)));
+   state.pKa_ic = 6.35-log10(exp(7646*(1/parameters.help_TK_ref - 1/state.help_TK_op)/(100*parameters.R)));
+   state.pKw = 14-log10(exp(55900*(1/parameters.help_TK_ref - 1/state.help_TK_op)/(100*parameters.R)));
+
+// Calculation of charges (alfa values) based on pH's in AS and digester
+   state.alfa_ac = (-1/(1+pow(10,parameters.pKa_ac-interface.pH_adm)))/64.0;           
+   state.alfa_pro = (-1/(1+pow(10,parameters.pKa_pro-interface.pH_adm)))/112.0;
+   state.alfa_bu = (-1/(1+pow(10,parameters.pKa_bu-interface.pH_adm)))/160.0; 
+   state.alfa_va = (-1/(1+pow(10,parameters.pKa_va-interface.pH_adm)))/208.0;
+   state.alfa_in_adm = pow(10,state.pKa_in-interface.pH_adm)/(1+pow(10,state.pKa_in-interface.pH_adm)); 
+   state.alfa_ic = (-1/(1+pow(10,(state.pKa_ic-interface.pH_adm))));
+   state.alfa_in_as = pow(10,state.pKa_in-interface.pH_as)/(1+pow(10,state.pKa_in-interface.pH_as));
+   state.alfa_nh = 1.0/14000.0;
+   state.alfa_no = -1.0/14000.0;
+   state.alfa_alk = -1.0/1000.0;  
+           
+// calculation of Sic based on charge balance
+   interface.Outflow[S_IC]=(((state.InflowConcentration[S_ALK]*state.alfa_alk+state.InflowConcentration[S_NH]*state.alfa_nh+state.InflowConcentration[S_NO]*state.alfa_no)-
+   (interface.Outflow[S_ac]*state.alfa_ac + interface.Outflow[S_pro]*state.alfa_pro + interface.Outflow[S_bu]*state.alfa_bu + 
+   interface.Outflow[S_va]*state.alfa_va + interface.Outflow[S_INN]*state.alfa_in_adm))/state.alfa_ic); 
+  
+//Calculation of anions and cations based on closed charge balance in ADM1  
+   state.cat_an = interface.Outflow[S_ac]*state.alfa_ac + interface.Outflow[S_pro]*
+          state.alfa_pro + interface.Outflow[S_bu]*state.alfa_bu +
+          interface.Outflow[S_va]*state.alfa_va + interface.Outflow[S_INN]*state.alfa_in_adm +
+          interface.Outflow[S_IC]*state.alfa_ic - pow(10,-interface.pH_adm)+ pow(10,-state.pKw+interface.pH_adm);
+          
+   interface.Outflow[S_an]=IF(state.cat_an < 0)
+                           THEN -state.cat_an
+               ELSE 0;
+   interface.Outflow[S_cat]=IF(state.cat_an < 0)
+                           THEN 0
+               ELSE state.cat_an;          
+                  
+  };
+
+ :};
+
+ CLASS ADM1toASM1
+ "ADM1 to ASM1 anaerobic model states flow transformer"
+ SPECIALISES PhysicalDAEModelType :=
+ {:
+  
+  comments <- "Transforms a ADM1 influent to a ASM1 anaerobic influent type";
+  
+  interface <-
+  {
+  OBJ Inflow (* terminal = "in_1" *) "Inflow" : OutADM1ConcTerminal  := {: causality <- "CIN"; group <- "Influent" :};
+  OBJ Outflow (* terminal = "out_1" *) "Outflow" : OutWWTPTerminal := {: causality <- "COUT"; group <- "Effluent" :};
+//  OBJ Outflow (* terminal = "out_1" *) "Outflow" : OutWWTPConcTerminal := {: causality <- "COUT"; group <- "Effluent" :};
+  OBJ pH_adm (* terminal = "in_2"; manip = "1" *) "pH of the digester": Real:={: causality <- "CIN"; value <- 6.8; group <- "Operational" :};
+  OBJ pH_as (* terminal = "in_2"; manip = "1" *) "pH of the activated sludge": Real:={: causality <- "CIN"; value <- 7; group <- "Operational" :};
+  OBJ T_op (* terminal = "in_2"; manip = "1" *) "Operating temperature": CelsiusTemperature := {: causality <- "CIN"; value <- 35; group <- "Operational" :};
+  };
+
+  parameters <-
+  {
+ // OBJ WWTPSpecificVolume (* hidden = "1" *) "The specific volumes (= 1/density) of the components" : SpecificVolumeVector;
+
+  //These Parameters are also defined in the IWA ADM1 Model, but needed for the conversion too
+  OBJ fdegrade_AS "Fraction of ADM Xi that is biodegradable in aerobic conditions" : Fraction := {: value <- 0.0; group <- "ADM1->ASM1" :};
+  OBJ naa "Nitrogen content of amino acids_gN/gCOD " : NitrogenContentOfAminoAcids := {: value <- 0.098; group <- "Stoichiometry" :};
+  OBJ nbac "nitrogen content of biomass (gN/gCOD)" : Fraction := {: value <- 0.08; group <- "Stoichiometry" :};
+  OBJ nsi "nitrogen content of SI in ASM (gN/gCOD)" : Fraction := {: value <- 0.00; group <- "Stoichiometry" :};
+  OBJ nsi_adm "nitrogen content of SI in ADM (gN/gCOD)" : Fraction := {: value <- 0.06; group <- "Stoichiometry" :};
+  OBJ nxc "nitrogen content of composite material and X_P (gN/gCOD)" : Fraction := {: value <- 0.0376; group <- "Stoichiometry" :};
+  OBJ nxi "nitrogen content of XI and XP (same in AS and AD) (gN/gCOD)" : Fraction := {: value <- 0.06; group <- "Stoichiometry" :}; 
+  //
+  //added parameters to calculat pH and evaluate total alkalinity for ASM1
+  OBJ Ka_ac "acetate acidity constant without temperature correction_M" : Acidity:= {: value <- 1.74e-5; group <- "System":}; 
+  OBJ Ka_bu "butyrate acidity constant without temperature correction_M" : Acidity:= {: value <- 1.5e-5; group <- "System":};
+  OBJ Ka_co2 "CO2 acidity constant with temperature correction_M" : Acidity:= {: value <- 4.94e-7; group <- "System":};
+  OBJ Ka_h2o "water acidity constant with temperature correction" : Acidity:= {: value <- 2.08e-14; group <- "System":};
+  OBJ Ka_nh4 "NH4+ acidity constant with temperature correction" : Acidity:= {: value <- 1.11e-9; group <- "System":};
+  OBJ Ka_pro "propionate acidity constant without temperature correction_M" : Acidity:= {: value <- 1.32e-5; group <- "System":};
+  OBJ Ka_va "valerate acidity constant without temperature correction" : Acidity:= {: value <- 1.38e-5; group <- "System":};
+  //
+  //other 
+  OBJ i_X_e "Mass of nitrogen per mass of COD in products formed and inert particulates(ASM1)" : MassOfNitrogenPerMassOfCODInProdFromBiomass :=
+         {: value <- 0.0580; group <- "Stoichiometry" :};
+  OBJ pKa_ac "Acetate acidity constant (temperature correction can be ignored)" : Real:= {: value <- 4.76; group <- "System":}; 
+  OBJ pKa_bu "Butyrate acidity constant (temperature correction can be ignored)" : Real:= {: value <- 4.82; group <- "System":};
+  OBJ pKa_pro "Propionate acidity constant (temperature correction can be ignored)" : Real:= {: value <- 4.88; group <- "System":};
+  OBJ pKa_va "Valerate acidity constant (temperature correction can be ignored)" : Real:= {: value <- 4.86; group <- "System":};
+  //
+//  OBJ pH_adm "pH of the digester": Real :={: group <- "Operational" :};
+//  OBJ pH_as "pH of the activated sludge": Real:={: value <- 7; group <- "Operational" :};
+  //
+  OBJ T_ref "Reference temperature (ie 25 degC)": CelsiusTemperature:={: value <- 25; group <- "Operational":};
+  OBJ help_TK_ref (* hidden = "1" *) "Reference temperature (K)": Real ;
+//  OBJ T_op "Operating temperature": CelsiusTemperature := {: value <- 35; group <- "Operational" :};
+  OBJ R "Gas law constant" : GasLawConstant := {: value <- 0.08314; group <- "System" :};
+  //
+  OBJ frxs_AS "aerobically degradable fraction of biomass" : Fraction := {: value <- 0.79; group <- "Stoichiometry" :};
+  };
+  
+  initial <-
+  {
+  //parameters.WWTPSpecificVolume[IndexOfSolvent] := 0.000001;
+  parameters.help_TK_ref = parameters.T_ref + 273.15;
+  };
+
+  independent <- 
+  {
+  OBJ t "Time": Time:= {: group <- "Time" :} ;
+  };
+
+  state <-
+  {
+  OBJ OutflowConcentration "Outflow" : OutWWTPConcTerminal := {: group <- "Effluent" :};
+  //
+  OBJ S_h_ion "Hydrogen ion_M" : MolConcentration :={: group <- "Concentration" :};
+  OBJ S_nh4_i"amonium molar concentration" : MolConcentration :={: group <- "Concentration" :};
+  OBJ S_hco3_i"bicarbonate ion molar concentration" : MolConcentration :={: group <- "Concentration" :};
+  //
+  OBJ alfa_ac "acetate charge": Real :={: group <- "Stoichiometry" :};
+  OBJ alfa_pro "propionate charge": Real :={: group <- "Stoichiometry" :};
+  OBJ alfa_bu "butyrate charge": Real :={: group <- "Stoichiometry" :};
+  OBJ alfa_va "valerate charge": Real :={: group <- "Stoichiometry" :};
+  OBJ alfa_in_adm "inorganic nitrogen charge in digester": Real :={: group <- "Stoichiometry" :};
+  OBJ alfa_ic "inorganic carbon charge": Real :={: group <- "Stoichiometry" :};
+  OBJ alfa_nh "ammonium charge": Real :={: group <- "Stoichiometry" :};
+  OBJ alfa_no "nitrate charge": Real:={: group <- "Stoichiometry" :};
+  OBJ alfa_alk "alkalinity charge": Real :={: group <- "Stoichiometry" :};
+  OBJ alfa_in_as "inorganic nitrogen charge in the activated sludge": Real :={: group <- "Stoichiometry" :};
+  OBJ cat_an "cations minus anions": Real :={: group <- "Stoichiometry" :};
+  //
+  OBJ pKa_in "Inorganic nitrogen acidity constant" : Real :={: group <- "System" :};
+  OBJ pKa_ic "Inorganic carbon acidity constant" : Real :={: group <- "System" :};
+  OBJ pKw "Water acidity constant" : Real :={: group <- "System" :};
+  //
+  OBJ COD_in "Incoming COD to the interface": Concentration :={: group <- "Concentration" :};
+  OBJ COD_out "Outgoing COD from the interface": Concentration :={: group <- "Concentration" :};
+  OBJ COD_balance "difference between COD in and out": Real :={: group <- "System" :};
+  OBJ N_in "Incoming N to the interface": Concentration :={: group <- "Concentration" :};
+  OBJ N_out "Outgoing N from the interface": Concentration :={: group <- "Concentration" :};
+  OBJ N_balance "difference between N in and out": Real :={: group <- "System" :};
+  //
+  OBJ biomass "total incoming biomass"  : Concentration :={: group <- "Concentration" :};
+  OBJ biomass_nobio "biomass not anaerobically degradable"  : Concentration :={: group <- "Concentration" :};
+  OBJ biomass_bioN "nitrogen part of biological degradable biomass"  : Concentration :={: group <- "Concentration" :}; 
+  //   
+  OBJ COD_remain "temp state for biomass mapping"  : Concentration :={: group <- "Concentration" :};
+  OBJ COD_remain_reduced "temp state for biomass mapping"  : Concentration :={: group <- "Concentration" :};
+  OBJ X_P_temp "temp state for biomass mapping"  : Concentration :={: group <- "Concentration" :}; 
+  OBJ XS_temp "temp state for biomass mapping"  : Concentration :={: group <- "Concentration" :};
+  OBJ XS_temp2 "temp state for biomass mapping"  : Concentration :={: group <- "Concentration" :};
+  OBJ biomass_nobio_reduced "temp state for biomass mapping"  : Concentration :={: group <- "Concentration" :};   
+  OBJ biomass_bioN_reduced "temp state for biomass mapping"  : Concentration :={: group <- "Concentration" :};
+  OBJ S_INN_reduced "temp state for biomass mapping"  : Concentration :={: group <- "Concentration" :}; 
+  OBJ inertX "temp state for inerts mapping"  : Concentration :={: group <- "Concentration" :};
+  OBJ noninertX "temp state for inerts mapping"  : Concentration :={: group <- "Concentration" :};
+  OBJ inertS "temp state for inerts mapping"  : Concentration :={: group <- "Concentration" :};
+  OBJ S_INN_reduced2 "temp state for biomass mapping"  : Concentration :={: group <- "Concentration" :};
+ 
+    OBJ help_TK_op (* hidden = "1" *) "Operational temperature (K)" : Real ;
+ };
+
+  equations <-
+  {
+// CtoF conversion
+     {interface.Outflow[IndexOfSolvent] = - state.OutflowConcentration[IndexOfSolvent] 
+      / 0.000001 ;}; 
+
+    {FOREACH Comp_Index IN {IndexOfFirstSolubleComponent .. NrOfComponents}:
+     interface.Outflow[Comp_Index] = - state.OutflowConcentration[Comp_Index] * 
+     state.OutflowConcentration[IndexOfSolvent];};
+
+// Anaerobic digester to ASM conversion
+
+    // S_H2 and S_CH4 are neglected (not modelled in ASM1)
+
+    // of course Water flow is equal in both models but for the difference in units and the conversion to flux for ASM1:
+
+    state.OutflowConcentration[H2O] = interface.Inflow[H2O_An];
+
+//STEP1: Biomass mapping: part goes to X_P, part to X_S with respective nitrogen fractions fnxi and fnxc
+
+  state.biomass=     1000*(interface.Inflow[X_su]  
+           + interface.Inflow[X_aa]
+               + interface.Inflow[X_fa]
+               + interface.Inflow[X_c4]
+               + interface.Inflow[X_pro]
+               + interface.Inflow[X_ac]
+           + interface.Inflow[X_h2]);
+  state.biomass_nobio=state.biomass*(1-parameters.frxs_AS); // non-degradable fraction
+  state.biomass_bioN=parameters.nbac*state.biomass - state.biomass_nobio*parameters.nxi; // foresee N for non-degradable fraction
+    state.COD_remain = 0;
+
+  state.X_P_temp = 
+  IF(state.biomass_bioN < 0)  // all biomass-N is used for the non-degradable fraction
+     THEN state.biomass*parameters.nbac/parameters.nxi
+     ELSE state.biomass_nobio;
+    state.biomass_nobio_reduced=
+  IF(state.biomass_bioN < 0)
+     THEN state.X_P_temp
+     ELSE state.biomass_nobio;
+  state.biomass_bioN_reduced=
+  IF(state.biomass_bioN < 0)
+     THEN 0
+     ELSE state.biomass_bioN;
+
+    state.OutflowConcentration[X_P]= state.X_P_temp; 
+    
+    state.XS_temp = 
+  IF((state.biomass_bioN_reduced/parameters.nxc) <= (state.biomass - state.biomass_nobio)) // too little N
+     THEN 
+     IF(interface.Inflow[S_INN]*14000/parameters.nxc > (state.biomass - state.biomass_nobio - state.biomass_bioN_reduced/parameters.nxc)) // use part of N in Sin
+        THEN state.biomass - state.biomass_nobio  
+      ELSE state.biomass_bioN_reduced/parameters.nxc
+     ELSE state.biomass - state.biomass_nobio;  //too much N, all biomass COD used
+     
+  state.S_INN_reduced = interface.Inflow[S_INN] + state.biomass*parameters.nbac/14000.0 -
+              state.X_P_temp*parameters.nxi/14000.0 - (state.XS_temp+state.XS_temp2)*parameters.nxc/14000.0;
+
+     state.OutflowConcentration[X_S] = (interface.Inflow[X_c]
+               + interface.Inflow[X_ch]               
+           + interface.Inflow[X_pr]
+               + interface.Inflow[X_li])*1000 + state.XS_temp;                
+              
+//STEP2: Mapping of particulate inerts. In BSM2 fdegrade_AS is set to 0. In other cases, code should be added
+//       to handle this!
+    
+  state.inertX = (1-parameters.fdegrade_AS)*interface.Inflow[X_Inert]*1000;
+  state.noninertX = parameters.fdegrade_AS*interface.Inflow[X_Inert]*1000;
+    state.OutflowConcentration[X_I] = state.inertX;
+  
+//STEP3: Mapping of soluble inerts. Here, N-content might be different (as is the case in BSM2). N is taken
+//       from Si and then from Sin
+    
+  state.inertS =
+  IF(interface.Inflow[S_Inert]*parameters.nsi_adm < interface.Inflow[S_Inert]*parameters.nsi) // N in Si(AD) not enough
+      THEN 
+    IF(state.S_INN_reduced*14 < interface.Inflow[S_Inert]*parameters.nsi) // N in Sin not enough
+       THEN interface.Inflow[S_Inert]*parameters.nsi_adm/parameters.nsi + state.S_INN_reduced*14/parameters.nsi
+       ELSE interface.Inflow[S_Inert] 
+    ELSE interface.Inflow[S_Inert];
+    
+    state.S_INN_reduced2 = 
+  IF(interface.Inflow[S_Inert]*parameters.nsi_adm < interface.Inflow[S_Inert]*parameters.nsi) // N in Si(AD) not enough
+      THEN 
+    IF(state.S_INN_reduced*14 < interface.Inflow[S_Inert]*parameters.nsi) // N in Sin not enough
+       THEN 0
+       ELSE state.S_INN_reduced - interface.Inflow[S_Inert]*(1-parameters.nsi_adm/parameters.nsi)*parameters.nsi/14.0 
+    ELSE state.S_INN_reduced + interface.Inflow[S_Inert]*(parameters.nsi_adm-parameters.nsi)/14.0;  
+  
+    state.OutflowConcentration[S_I] =  state.inertS*1000;
+    state.OutflowConcentration[S_NH] = state.S_INN_reduced2*14000 ;   
+
+    // S_S in ASM is the sum of S_AC, S_PRO, S_AS and S_FA
+
+    state.OutflowConcentration[S_S] = (interface.Inflow[S_su]
+                       +interface.Inflow[S_aa]
+                             +interface.Inflow[S_fa]
+                             +interface.Inflow[S_va]
+                             +interface.Inflow[S_bu]
+                             +interface.Inflow[S_pro]
+                             +interface.Inflow[S_ac])*1000;                                          
+                             
+   // Amino acids and soluble inerts of ADM1 contain some biodegradable nitrogen
+
+    state.OutflowConcentration[S_ND] = parameters.naa * interface.Inflow[S_aa] *1000;
+
+   state.OutflowConcentration[X_ND] = parameters.nxc*(state.XS_temp)
+               + (parameters.nxc * interface.Inflow[X_c]
+               + parameters.naa * interface.Inflow[X_pr])*1000;
+               
+// estimation of total alkalinity using Newton Raphson
+
+//state.S_h_ion= MSLUNewtonRaphson_pH(parameters.Ka_nh4,parameters.Ka_co2,parameters.Ka_ac,parameters.Ka_bu,parameters.Ka_va,parameters.Ka_pro,parameters.Ka_h2o,
+//        interface.Inflow[S_INN],interface.Inflow[S_IC],interface.Inflow[S_ac]/64,interface.Inflow[S_bu]/160,interface.Inflow[S_va]/208,interface.Inflow[S_pro]/112,interface.Inflow[S_cat],interface.Inflow[S_an],1e-7);
+
+//state.S_nh4_i= MSLU_NH_ion(parameters.Ka_nh4,interface.Inflow[S_INN],state.S_h_ion);
+
+//state.S_hco3_i= MSLU_HCO_ion(parameters.Ka_co2,interface.Inflow[S_IC],state.S_h_ion);
+
+/* Note that VFA's are excluded from the evaluated alkalinity since ASM1 doesn't take the effect (ALK reduction) 
+due to VFA degradation (easily biodegradable !). therefore the Alkalinity can be due to HCO3- and NH4+ that can be called 
+
+INTERMEDIATE alkalinity. However, since in ASM1 alkalinity is considered as bicarbonate only, referance is made to ASM1 stoichiometry calculation.
+
+state.S_ac_i= MSLU_ac_ion (parameters.Ka_ac,interface.Inflow[S_ac]/64,state.S_h_ion);
+
+state.S_pro_i= MSLU_pro_ion (parameters.Ka_pro,interface.Inflow[S_pro]/112,state.S_h_ion);
+
+state.S_bu_i= MSLU_bu_ion (parameters.Ka_bu,interface.Inflow[S_bu]/160,state.S_h_ion);
+
+state.S_va_i= MSLU_va_ion (parameters.Ka_va,interface.Inflow[S_va]/208,state.S_h_ion);
+*/
+                
+//state.OutflowConcentration[S_ALK]= (state.S_nh4_i + state.S_hco3_i) * 1000;
+//state.OutflowConcentration[S_ALK]= (state.S_hco3_i) * 1000;
+
+   state.help_TK_op = interface.T_op + 273.15;
+
+// Calculation of T-dependent pK-values
+   state.pKa_in = 9.25-log10(exp(51965*(1/parameters.help_TK_ref - 1/state.help_TK_op)/(100*parameters.R)));
+   state.pKa_ic = 6.35-log10(exp(7646*(1/parameters.help_TK_ref - 1/state.help_TK_op)/(100*parameters.R)));
+   state.pKw = 14-log10(exp(55900*(1/parameters.help_TK_ref - 1/state.help_TK_op)/(100*parameters.R)));
+
+// Calculation of charges (alfa values) based on pH's in AS and digester
+   state.alfa_ac = (-1/(1+pow(10,parameters.pKa_ac-interface.pH_adm)))/64.0;           
+   state.alfa_pro = (-1/(1+pow(10,parameters.pKa_pro-interface.pH_adm)))/112.0;
+   state.alfa_bu = (-1/(1+pow(10,parameters.pKa_bu-interface.pH_adm)))/160.0; 
+   state.alfa_va = (-1/(1+pow(10,parameters.pKa_va-interface.pH_adm)))/208.0;
+   state.alfa_in_adm = pow(10,state.pKa_in-interface.pH_adm)/(1+pow(10,state.pKa_in-interface.pH_adm)); 
+   state.alfa_ic = (-1/(1+pow(10,(state.pKa_ic-interface.pH_adm))));
+   state.alfa_in_as = pow(10,state.pKa_in-interface.pH_as)/(1+pow(10,state.pKa_in-interface.pH_as));
+   state.alfa_nh = 1.0/14000.0;
+   state.alfa_no = -1.0/14000.0;
+   state.alfa_alk = -1.0/1000.0;
+  state.OutflowConcentration[S_O]= 0; 
+  state.OutflowConcentration[S_NO]= 0;              
+  state.OutflowConcentration[X_BH]= 0;              
+  state.OutflowConcentration[X_BA]= 0;              
+
+    
+  state.OutflowConcentration[S_ALK]= ((interface.Inflow[S_ac]*state.alfa_ac + 
+               interface.Inflow[S_pro]*state.alfa_pro + 
+               interface.Inflow[S_bu]*state.alfa_bu +
+               interface.Inflow[S_va]*state.alfa_va +
+               interface.Inflow[S_INN]*state.alfa_in_adm +
+               interface.Inflow[S_IC]*state.alfa_ic)-
+                           (state.OutflowConcentration[S_NH]*state.alfa_nh +
+               state.OutflowConcentration[S_NO]*state.alfa_no))/state.alfa_alk;
+
+// Mass balance check for COD, N and charge
+// Incoming COD
+   state.COD_out = state.OutflowConcentration[S_I] + state.OutflowConcentration[S_S] + state.OutflowConcentration[X_I] + state.OutflowConcentration[X_S] +
+          state.OutflowConcentration[X_BH] + state.OutflowConcentration[X_BA] + state.OutflowConcentration[X_P];
+// Outgoing COD
+   state.COD_in = interface.Inflow[S_aa] + interface.Inflow[S_su] + interface.Inflow[S_fa] + interface.Inflow[S_va] +
+                  interface.Inflow[S_bu] + interface.Inflow[S_pro] + interface.Inflow[S_ac] + interface.Inflow[S_h2] +
+          interface.Inflow[S_ch4] + interface.Inflow[S_Inert] + interface.Inflow[X_c]
+           + interface.Inflow[X_ch] + interface.Inflow[X_pr] + interface.Inflow[X_li] + interface.Inflow[X_Inert]
+         + state.biomass/1000.0;  
+
+// COD balance
+   state.COD_balance = state.COD_in * 1000 - state.COD_out - (interface.Inflow[S_h2] +
+          interface.Inflow[S_ch4])*1000;//  h2 and ch4 are stripped
+   
+// Incoming N
+   state.N_out = state.OutflowConcentration[S_NO] + 
+                 state.OutflowConcentration[S_NH] + 
+         state.OutflowConcentration[S_ND] + 
+         state.OutflowConcentration[X_ND] +
+            parameters.nbac * ( state.OutflowConcentration[X_BH] + state.OutflowConcentration[X_BA])  +
+        parameters.nsi*state.OutflowConcentration[S_I]+ 
+        parameters.nxi * (state.OutflowConcentration[X_P] + state.OutflowConcentration[X_I]);
+// Outgoing N
+   state.N_in =  state.biomass/1000.0 * parameters.nbac + 
+                 interface.Inflow[X_c]*parameters.nxc +
+                 (interface.Inflow[S_aa] + interface.Inflow[X_pr])*parameters.naa + 
+                 interface.Inflow[S_INN]*14 + 
+         interface.Inflow[S_Inert] * parameters.nsi_adm + 
+         interface.Inflow[X_Inert] * parameters.nxi;
+// N balance    
+   state.N_balance = state.N_in * 1000 - state.N_out;//  - interface.Inflow[S_NO];               
+               
+               
+  };
+
+ :};
+
+#endif // (defined ASM1Temp)
+#endif // WWTP_ADM1_TRANSFORMER

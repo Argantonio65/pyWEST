@@ -1,0 +1,67 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 5. september 2011 16:01:15$
+ *
+ ******************************************************************************/
+
+#ifdef ASM3Temp
+    state.S_O_Saturation = 14.65 - 0.41 * state.Temp_Actual + 0.00799 * state.Temp_Actual * state.Temp_Actual - 0.0000778 * state.Temp_Actual * state.Temp_Actual * state.Temp_Actual;
+  state.k_h_Temp = parameters.k_h * pow(parameters.theta_k_h,state.Temp_Actual - parameters.Temp_Ref);
+  state.k_STO_Temp = parameters.k_STO * pow(parameters.theta_k_STO,state.Temp_Actual - parameters.Temp_Ref);
+  state.mu_H_Temp = parameters.mu_H * pow(parameters.theta_mu_H,state.Temp_Actual - parameters.Temp_Ref);
+  state.b_H_O2_Temp = parameters.b_H_O2 * pow(parameters.theta_b_H_O2,state.Temp_Actual - parameters.Temp_Ref);
+  state.b_H_NO_Temp = parameters.b_H_NO * pow(parameters.theta_b_H_NO,state.Temp_Actual - parameters.Temp_Ref);
+  state.b_STO_O2_Temp = parameters.b_STO_O2 * pow(parameters.theta_b_STO_O2,state.Temp_Actual - parameters.Temp_Ref);
+  state.b_STO_NO_Temp = parameters.b_STO_NO * pow(parameters.theta_b_STO_NO,state.Temp_Actual - parameters.Temp_Ref);
+  state.mu_A_Temp = parameters.mu_A * pow(parameters.theta_mu_A,state.Temp_Actual - parameters.Temp_Ref);
+  state.b_A_O2_Temp = parameters.b_A_O2 * pow(parameters.theta_b_A_O2,state.Temp_Actual - parameters.Temp_Ref);
+  state.b_A_NO_Temp = parameters.b_A_NO * pow(parameters.theta_b_A_NO,state.Temp_Actual - parameters.Temp_Ref);
+
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[Hydrolysis][Layer_Index] = state.k_h_Temp * (state.C_Biofilm[X_S][Layer_Index] / state.C_Biofilm[X_H][Layer_Index]) / (parameters.K_X + (state.C_Biofilm[X_S][Layer_Index] / state.C_Biofilm[X_H][Layer_Index])) * state.C_Biofilm[X_H][Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[AerStorageOfCOD][Layer_Index] = state.k_STO_Temp * (state.C_Biofilm[S_O][Layer_Index] / (parameters.K_O + state.C_Biofilm[S_O][Layer_Index])) * (state.C_Biofilm[S_S][Layer_Index] / (parameters.K_S + state.C_Biofilm[S_S][Layer_Index])) * state.C_Biofilm[X_H][Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[AnoxStorageOfCOD][Layer_Index] = state.k_STO_Temp * parameters.n_NO * (parameters.K_O / (parameters.K_O + state.C_Biofilm[S_O][Layer_Index])) * (state.C_Biofilm[S_NO][Layer_Index] / (parameters.K_NO + state.C_Biofilm[S_NO][Layer_Index])) * (state.C_Biofilm[S_S][Layer_Index] / (parameters.K_S + state.C_Biofilm[S_S][Layer_Index])) * state.C_Biofilm[X_H][Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[AerGrowth][Layer_Index] = state.mu_H_Temp * (state.C_Biofilm[S_O][Layer_Index] / (parameters.K_O + state.C_Biofilm[S_O][Layer_Index])) * (state.C_Biofilm[S_NH][Layer_Index] / (parameters.K_NH + state.C_Biofilm[S_NH][Layer_Index])) * (state.C_Biofilm[S_ALK][Layer_Index] / (parameters.K_HCO + state.C_Biofilm[S_ALK][Layer_Index])) * ((state.C_Biofilm[X_STO][Layer_Index] / state.C_Biofilm[X_H][Layer_Index]) / (parameters.K_STO + (state.C_Biofilm[X_STO][Layer_Index] / state.C_Biofilm[X_H][Layer_Index]))) * state.C_Biofilm[X_H][Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[AnoxGrowth][Layer_Index] = state.mu_H_Temp * parameters.n_NO * (parameters.K_O / (parameters.K_O + state.C_Biofilm[S_O][Layer_Index])) * (state.C_Biofilm[S_NO][Layer_Index] / (parameters.K_NO + state.C_Biofilm[S_NO][Layer_Index])) * (state.C_Biofilm[S_NH][Layer_Index] / (parameters.K_NH + state.C_Biofilm[S_NH][Layer_Index])) * (state.C_Biofilm[S_ALK][Layer_Index] / (parameters.K_HCO + state.C_Biofilm[S_ALK][Layer_Index])) * ((state.C_Biofilm[X_STO][Layer_Index] / state.C_Biofilm[X_H][Layer_Index]) / (parameters.K_STO + (state.C_Biofilm[X_STO][Layer_Index] / state.C_Biofilm[X_H][Layer_Index]))) * state.C_Biofilm[X_H][Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[AerEndogRespOfXH][Layer_Index] = state.b_H_O2_Temp * (state.C_Biofilm[S_O][Layer_Index] / (parameters.K_O + state.C_Biofilm[S_O][Layer_Index])) * state.C_Biofilm[X_H][Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[AnoxEndogRespOfXH][Layer_Index] = state.b_H_NO_Temp * (parameters.K_O / (parameters.K_O + state.C_Biofilm[S_O][Layer_Index])) * (state.C_Biofilm[S_NO][Layer_Index] / (parameters.K_NO + state.C_Biofilm[S_NO][Layer_Index])) * state.C_Biofilm[X_H][Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[AerRespOfPHA][Layer_Index] = state.b_STO_O2_Temp * (state.C_Biofilm[S_O][Layer_Index] / (parameters.K_O + state.C_Biofilm[S_O][Layer_Index])) * state.C_Biofilm[X_STO][Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[AnoxRespOfPHA][Layer_Index] = state.b_STO_NO_Temp * (parameters.K_O / (parameters.K_O + state.C_Biofilm[S_O][Layer_Index])) * (state.C_Biofilm[S_NO][Layer_Index] / (parameters.K_NO + state.C_Biofilm[S_NO][Layer_Index])) * state.C_Biofilm[X_STO][Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[Nitrification][Layer_Index] = state.mu_A_Temp * (state.C_Biofilm[S_O][Layer_Index] / (parameters.K_A_O + state.C_Biofilm[S_O][Layer_Index])) * (state.C_Biofilm[S_NH][Layer_Index] / (parameters.K_A_NH + state.C_Biofilm[S_NH][Layer_Index])) * (state.C_Biofilm[S_ALK][Layer_Index] / (parameters.K_A_HCO + state.C_Biofilm[S_ALK][Layer_Index])) * state.C_Biofilm[X_A][Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[AerEndogRespOfXA][Layer_Index] = state.b_A_O2_Temp * (state.C_Biofilm[S_O][Layer_Index] / (parameters.K_O + state.C_Biofilm[S_O][Layer_Index])) * state.C_Biofilm[X_A][Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[AnoxEndogRespOfXA][Layer_Index] = state.b_A_NO_Temp * (parameters.K_O / (parameters.K_O + state.C_Biofilm[S_O][Layer_Index])) * (state.C_Biofilm[S_NO][Layer_Index] / (parameters.K_NO + state.C_Biofilm[S_NO][Layer_Index])) * state.C_Biofilm[X_A][Layer_Index];
+  };
+  
+#endif // ASM3Temp

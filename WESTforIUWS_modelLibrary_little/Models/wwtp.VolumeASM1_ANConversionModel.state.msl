@@ -1,0 +1,31 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$ EURE
+ * $Date: 29. juni 2012 15:54:05$
+ *
+ ******************************************************************************/
+
+#ifdef ASM1_AN
+	OBJ X_TSS "Total suspended solids" : Concentration := {: group <- "Concentration" :};
+	OBJ Ke_NH4 "Equilibrium constant for ammonia/ammonium equilibrium"	: Real:= {: group <- "Kinetic" :};
+	OBJ Ke_HNO2 "Equilibrium constant for nitrous acid/nitrite equilibrium"	: Real:= {: group <- "Kinetic" :};
+	OBJ k_h_Temp "Temp-dependent growth rate for heterotrophs" : Real:= {: group <- "Kinetic" :};
+	OBJ mu_H_Temp "Temp-dependent Maximum Specific Hydrolysis Rate" : Real:= {: group <- "Kinetic" :};
+	OBJ b_H_Temp "Temp-dependent Decay Coefficient For Heterotrophic Biomass" : Real:= {: group <- "Kinetic" :};
+	OBJ mu_NH_Temp "Temp-dependent Maximum Specific Growth Rate For NH4 Oxidizing Autotrophic Biomass" : Real:= {: group <- "Kinetic" :};
+	OBJ mu_NO_Temp "Temp-dependent Maximum Specific Growth Rate For NO2 Oxidizing Autotrophic Biomass" : Real:= {: group <- "Kinetic" :};
+	OBJ mu_AN_Temp "Temp-dependent Maximum Specific Growth Rate For Anammox Autotrophic Biomass" : Real:= {: group <- "Kinetic" :};
+	OBJ b_NH_Temp "Temp-dependent Decay Coefficient For NH4 Oxidizing Autotrophic Biomass" : Real:= {: group <- "Kinetic" :};
+	OBJ b_AN_Temp "Temp-dependent Decay Coefficient For Anammox Autotrophic Biomass" : Real:= {: group <- "Kinetic" :};
+	OBJ b_NO_Temp "Temp-dependent Decay Coefficient For NO Oxidizing Autotrophic Biomass" : Real:= {: group <- "Kinetic" :};
+	OBJ S_O_Saturation "Temp-dependent Oxygen saturation concentration" : Concentration:= {: group <- "Kinetic" :};
+#endif // ASM1_AN

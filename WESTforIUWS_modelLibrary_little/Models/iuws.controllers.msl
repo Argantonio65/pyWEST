@@ -1,0 +1,2106 @@
+    CLASS min_contr
+   (* icon = "Controller" *)
+   "Minimum of 0/1 for ES to RBT"
+ 
+   SPECIALISES
+   PhysicalDAEModelType :=
+   {:
+     comments <- "A model for a controller";
+     interface <-
+     {
+      OBJ contr_1 (* terminal = "in_1" *) "Control action side 1" : Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+	    OBJ contr_2 (* terminal = "in_1" *) "Control action side 2" : Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+      OBJ u (* terminal = "out_1" *) "Minimum" : Real := {: causality <- "COUT" ; group <- "Control action" :};
+     };
+ 
+     equations <-
+     {
+ 
+     interface.u = IF (interface.contr_1 < interface.contr_2)
+ 				   			 THEN interface.contr_1
+ 				   			 ELSE interface.contr_2;
+     };
+  :};
+
+ CLASS raintank_Eindhoven
+   (* icon = "Controller" *)
+   "Ratio controller"
+ 
+ // The value of the manipulated variabele is a ratio of the measured value
+ 
+   SPECIALISES
+   PhysicalDAEModelType :=
+   {:
+     comments <- "A model for a controller";
+     interface <-
+     {
+       OBJ y_M1 (* terminal = "in_1" *) "Sensor measured output" :
+                Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+	     OBJ y_M2 (* terminal = "in_1" *) "Sensor measured output" :
+                Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+       OBJ u (* terminal = "out_1" *) "Controlled variable" :
+                Real := {: causality <- "COUT" ; group <- "Control action" :};
+     };
+ 
+     parameters <-
+     {
+ 
+ 	  OBJ Q_empty "Outflow when emptying" :
+          FlowRate := {: value <- 9600 ; group <- "Operational" :};
+	   OBJ max_bio "Sends to bio when Q_bio < max_bio" :
+          FlowRate := {: value <- 9600 ; group <- "Operational" :};
+     };
+ 
+     equations <-
+     {
+       interface.u = IF (interface.y_M1 > 0)
+ 				  					THEN 0
+ 				   				 ELSE IF (interface.y_M2 >= (parameters.max_bio - parameters.Q_empty))
+				   		  				 THEN 0
+						     			   ELSE parameters.Q_empty;
+     };
+  :};
+
+CLASS BT_in_Eindhoven
+   (* icon = "Controller" *)
+   "Controller"
+ 
+   SPECIALISES
+   PhysicalDAEModelType :=
+   {:
+     comments <- "A model for a controller";
+     interface <-
+     {
+       OBJ y_M (* terminal = "in_1" *) "Sensor measured output" :
+                Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+       OBJ u (* terminal = "out_1" *) "Controlled variable" :
+                Real := {: causality <- "COUT" ; group <- "Control action" :};
+     };
+ 
+     parameters <-
+     {
+	     OBJ FD_lim "If FD > FD_lim then bypass" :
+          Real := {: value <- 0.99 ; group <- "Operational" :};
+     };
+ 
+     equations <-
+     {
+      interface.u = IF (interface.y_M > parameters.FD_lim)
+ 				   THEN 1
+ 				   ELSE 0;
+     };
+  :};
+
+  CLASS max_contr
+   (* icon = "Controller" *)
+   "Maximum of 0/1 for ES to RBT"
+ 
+   SPECIALISES
+   PhysicalDAEModelType :=
+   {:
+     comments <- "A model for a controller";
+     interface <-
+     {
+      OBJ contr_1 (* terminal = "in_1" *) "Control action side 1" : Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+	    OBJ contr_2 (* terminal = "in_1" *) "Control action side 2" : Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+      OBJ u (* terminal = "out_1" *) "Real" : Real := {: causality <- "COUT" ; group <- "Control action" :};
+     };
+ 
+     equations <-
+     {
+     interface.u = IF (interface.contr_1 > interface.contr_2)
+ 				   THEN interface.contr_1
+ 				   ELSE interface.contr_2;
+     };
+  :};
+
+   CLASS pipe_pump_limiter
+   (* icon = "Controller" *)
+   "Controller to limit the pumping from pipe"
+ 
+   SPECIALISES
+   PhysicalDAEModelType :=
+   {:
+     comments <- "A model for a controller";
+     interface <-
+     {
+      OBJ Q_pump (* terminal = "out_1"; manip = "1" *) "Q pump high" : FlowRate := {: causality <- "COUT" ; group <- "Control action" :};
+	    OBJ FD (* terminal = "in_1"; manip = "1" *) "Filling degree pipe" : Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+     };
+ 
+     parameters <-
+     {
+	    OBJ active "Active = 1, not active = 0" : Real := {: group <- "Control" :};
+	    OBJ FD_th_pipe "Filling degree thredshold at pipe for deactivation" : Real := {: value <- 0.8 ; group <- "Operational" :};
+	    OBJ LimFlow "Limited flow at pipe" : FlowRate := {: value <- 0 ; group <- "Operational" :};
+	    OBJ DefFlow "Default flow at pipe" : FlowRate := {: value <- 0 ; group <- "Operational" :};
+     };
+ 
+     equations <-
+     {
+      interface.Q_pump = IF ((parameters.active == 0) || (interface.FD > parameters.FD_th_pipe))
+ 				   	    			 THEN parameters.DefFlow
+ 				   	    			 ELSE parameters.LimFlow; 
+	};
+  :};
+
+   CLASS pipe_retention
+   (* icon = "Controller" *)
+   "Controller to increase pipe retention to delay WWTP load"
+ 
+   SPECIALISES
+   PhysicalDAEModelType :=
+   {:
+     comments <- "A model for a controller";
+     interface <-
+     {
+      OBJ Q_WWTP (* terminal = "in_1" *) "Flow to WWTP" : FlowRate := {: causality <- "CIN" ; group <- "Measurement data" :};
+	    OBJ FD (* terminal = "in_1" *) "Filling degree pipe" : Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+	    OBJ FD_RBT (* terminal = "in_1" *) "Filling degree at RBT" : Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+      OBJ Q_pipe (* terminal = "out_1" *) "Flow from pipe" : FlowRate := {: causality <- "COUT" ; group <- "Control action" :};
+	    OBJ bp2RBT (* terminal = "out_1" *) "Bypass to RBT, =1 yes, =0 no" : Fraction := {: causality <- "COUT" ; group <- "Control action" :};
+		  OBJ LimFlow (* terminal = "in_2"; manip = "1" *) "Limited flow at pipe" : FlowRate := {: causality <- "CIN" ; group <- "Operational" :};
+		  OBJ DefFlow (* terminal = "in_2"; manip = "1" *) "Limited flow at pipe" : FlowRate := {: causality <- "CIN" ; group <- "Operational" :};
+     };
+ 
+     parameters <-
+     {
+	    OBJ active "Active = 1, not active = 0" : Real := {: group <- "Control" :};
+	    OBJ Q_th_WWTP "Threshold Q at WWTP" : FlowRate := {: value <- 360000 ; group <- "Operational" :};
+	    OBJ FD_th_pipe "Filling degree thredshold at pipe for deactivation" : Real := {: value <- 0.8 ; group <- "Operational" :};
+	    OBJ FD_th_RBT "Filling degree thredshold at RBT for deactivation" : Real := {: value <- 0.8 ; group <- "Operational" :};
+	    //OBJ LimFlow "Limited flow at pipe" : FlowRate := {: value <- 0 ; group <- "Operational" :};
+	    //OBJ DefFlow "Default flow at pipe" : FlowRate := {: value <- 0 ; group <- "Operational" :};
+	    OBJ Q_change_rate_pipe "Rate of change of flow rate for pipe" : FlowRateRate := {: value <- 3732480000 ; group <- "Operational" :};
+	    OBJ Q_change_rate_bp "Rate of change of flow rate for bypass" : Real := {: value <- 3000 ; group <- "Operational" :};
+     };
+	 
+	 independent <- 
+   {
+    OBJ t "Time" : Time := {: group <- "Time" :};
+   };
+	 
+	  state <-
+    {
+     OBJ help_u (* hidden = "0" *) "Previous u help variable" : FlowRate := {: group <- "Operational" :};
+	   OBJ help_u_h (* hidden = "0" *) "Previous u help variable" : FlowRate := {: group <- "Operational" :};
+	   OBJ help_u1 (* hidden = "0" *) "Previous u help variable" : Real := {: group <- "Operational" :};
+	   OBJ help_u1_h (* hidden = "0" *) "Previous u help variable" : Real := {: group <- "Operational" :};
+	   OBJ TS (* hidden = "0" *) "Time step" : Time := {: group <- "Operational" :};
+    };
+	 
+	 initial <-
+   {
+	  //interface.Q_pipe = interface.DefFlow;
+   };
+ 
+   equations <-
+   {
+	 state.TS = independent.t - previous(independent.t);
+	 state.help_u = interface.Q_pipe;
+   state.help_u_h = IF ((parameters.active == 0) || (interface.Q_WWTP < parameters.Q_th_WWTP))
+                    THEN previous(state.help_u) + parameters.Q_change_rate_pipe * state.TS
+                    ELSE IF (interface.FD < parameters.FD_th_pipe)
+					 	  					THEN previous(state.help_u) - parameters.Q_change_rate_pipe * state.TS
+					 	  					ELSE previous(state.help_u) + parameters.Q_change_rate_pipe * state.TS;
+	 interface.Q_pipe = IF (state.help_u_h > interface.DefFlow)
+				  						THEN interface.DefFlow
+				  						ELSE IF (state.help_u_h < interface.LimFlow)
+				  	   						THEN interface.LimFlow
+					   							ELSE state.help_u_h;
+							 
+	 state.help_u1 = interface.bp2RBT;
+	 state.help_u1_h = IF ((parameters.active == 0) || (interface.FD < parameters.FD_th_pipe))
+	 				  				THEN previous(state.help_u1) - parameters.Q_change_rate_bp * state.TS
+										 ELSE IF ((previous(interface.Q_pipe) < interface.Q_pipe) && (interface.FD_RBT < parameters.FD_th_RBT))
+							 					 THEN previous(state.help_u1) + parameters.Q_change_rate_bp * state.TS
+							 					 ELSE IF ((previous(state.help_u1) >= state.help_u1) && (interface.FD_RBT < parameters.FD_th_RBT))
+							 	  						THEN previous(state.help_u1) + parameters.Q_change_rate_bp * state.TS
+								  						 ELSE previous(state.help_u1) - parameters.Q_change_rate_bp * state.TS;
+	interface.bp2RBT = IF (previous(state.help_u1_h) > 1)
+				  					 THEN 1
+				  					 ELSE IF (previous(state.help_u1_h) < 0)
+				  	   					 THEN 0
+					   						 ELSE previous(state.help_u1_h);
+   };
+  :};
+
+   CLASS pump_limiter_offset
+   (* icon = "Controller" *)
+   "Controller to limit pumping, for backwater effect"
+ 
+   SPECIALISES
+   PhysicalDAEModelType :=
+   {:
+     comments <- "A model for a controller";
+     interface <-
+     {
+      OBJ Q_max (* terminal = "out_1"; manip = "1" *) "Max flow" : FlowRate := {: causality <- "COUT" ; group <- "Control action" :};
+	    OBJ FDus (* terminal = "in_1" *) "Filling degree pipe upstream" : Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+	    OBJ FDds (* terminal = "in_1" *) "Filling degree pipe downstream" : Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+     };
+ 
+     parameters <-
+     {
+	    OBJ active "Active = 1, not active = 0" : Real := {: group <- "Control" :};
+	    OBJ FD_th_up "Filling degree thredshold at upstream pipe for activation" : Real := {: value <- 0.4 ; group <- "Operational" :};
+	    OBJ FD_offset "Filling degree offset DS-US" : Real := {: value <- 0.2 ; group <- "Operational" :};
+	    OBJ LimFlow "Limited flow at pipe" : FlowRate := {: value <- 0 ; group <- "Operational" :};
+	    OBJ DefFlow "Default flow at pipe" : FlowRate := {: value <- 0 ; group <- "Operational" :};
+     };
+ 
+     equations <-
+     {
+     interface.Q_max = IF ((parameters.active == 0) || (interface.FDds < parameters.FD_th_up) || ((interface.FDds - interface.FDus) < parameters.FD_offset))
+ 				   	   			THEN parameters.DefFlow
+ 				   	   			ELSE parameters.LimFlow; 
+	};
+  :};
+
+   CLASS opening
+   (* icon = "Controller" *)
+   "Model for valve D in Eindhoven"
+  
+   SPECIALISES
+   PhysicalDAEModelType :=
+   {:
+     comments <- "A model for a controller";
+     interface <-
+     {
+       OBJ FD_ES (* terminal = "in_1" *) "Filling degree at ES" : Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+	     OBJ FD_RZ (* terminal = "in_1" *) "Filling degree at RZ" : Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+       OBJ Q_valve_ES (* terminal = "out_1" *) "Valve flow from ES" : FlowRate := {: causality <- "COUT" ; group <- "Control action" :};
+	     OBJ Q_valve_RZ (* terminal = "out_1" *) "Valve flow from RZ" : FlowRate := {: causality <- "COUT" ; group <- "Control action" :};
+     };
+ 
+     parameters <-
+     {
+ 	   OBJ FD_th_ES "Filling degree thredshold for valve activation in ES" : Real := {: value <- 0.9 ; group <- "Operational" :};
+	    OBJ FD_th_RZ "Filling degree thredshold for valve activation in RZ" : Real := {: value <- 0.9 ; group <- "Operational" :};
+	    OBJ MaxFlow_D "Maximum flow at valve D" : FlowRate := {: value <- 120000 ; group <- "Operational" :};
+     };
+ 
+     state <-
+      {
+	     OBJ FD_ES_help (* hidden = "1" *) : Real;
+	     OBJ FD_RZ_help (* hidden = "1" *) : Real;
+	    };
+ 
+     equations <-
+     {
+      state.FD_ES_help = IF (interface.FD_ES > 1)
+	 				  					  THEN 1
+					   						ELSE interface.FD_ES;
+	 	 state.FD_RZ_help = IF (interface.FD_RZ > 1)
+	 				   					 THEN 1
+					    					 ELSE interface.FD_RZ;
+      interface.Q_valve_ES = IF (state.FD_ES_help < parameters.FD_th_ES)
+ 				   		   			    THEN 0
+ 				   								 ELSE IF (state.FD_RZ_help < parameters.FD_th_RZ)
+				   											 THEN parameters.MaxFlow_D * (state.FD_ES_help - parameters.FD_th_ES) / (1 - parameters.FD_th_ES)
+																	ELSE IF (state.FD_ES_help < state.FD_RZ_help)
+						 		 	  								 THEN 0
+									  									 ELSE parameters.MaxFlow_D * (state.FD_ES_help - state.FD_RZ_help) / (1 - parameters.FD_th_ES);
+	    interface.Q_valve_RZ = IF (state.FD_RZ_help < parameters.FD_th_RZ)
+ 				   		    				 THEN 0
+ 				  									ELSE IF (state.FD_ES_help < parameters.FD_th_ES)
+				   				 							THEN parameters.MaxFlow_D * (state.FD_RZ_help - parameters.FD_th_RZ) / (1 - parameters.FD_th_RZ)
+								 								 ELSE IF (state.FD_RZ_help < state.FD_ES_help)
+						 		 	 					   THEN 0
+									  						  ELSE parameters.MaxFlow_D * (state.FD_RZ_help - state.FD_ES_help) / (1 - parameters.FD_th_RZ);
+     };
+  :};
+
+CLASS valve_C_Eindhoven
+   (* icon = "Controller" *)
+   "Valve C"
+ 
+   SPECIALISES
+   PhysicalDAEModelType :=
+   {:
+     comments <- "A model for a controller";
+     interface <-
+     {
+       OBJ Q_RZ (* terminal = "in_1" *) "Outflow at RZ" : FlowRate := {: causality <- "CIN" ; group <- "Measurement data" :};
+	     OBJ MaxFlow_def (* terminal = "in_2" *) "Default max flow at ES" : FlowRate := {: causality <- "CIN" ; group <- "Control action" :};
+       OBJ u (* terminal = "out_1" *) "Controlled variable" : Real := {: causality <- "COUT" ; group <- "Control action" :};
+     };
+ 
+     parameters <-
+     {
+	    OBJ MaxFlow_C "Maximum flow at valve C" : FlowRate := {: value <- 768000 ; group <- "Operational" :};
+	    //OBJ MaxFlow_def "Default max flow at ES" : FlowRate := {: value <- 360000 ; group <- "Operational" :};
+      OBJ valve "Valve active = 1, not active = 0" : Real := {: group <- "Control" :};
+     };
+ 
+     equations <-
+     {
+      interface.u = IF (parameters.valve == 1)
+ 				  			   THEN parameters.MaxFlow_C - interface.Q_RZ
+ 				  				 ELSE interface.MaxFlow_def;
+     };
+  :};
+
+CLASS RBT_spill_min_norc
+   (* icon = "Controller" *)
+   "Controller to minimize RBT spilling"
+  
+   SPECIALISES
+   PhysicalDAEModelType :=
+   {:
+     comments <- "A model for a controller";
+     interface <-
+     {
+       OBJ FD_RBT (* terminal = "in_1" *) "Filling degree at RBT" : Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+	     OBJ FD_1 (* terminal = "in_1" *) "Filling degree at pipe 1" : Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+       OBJ Q_1 (* terminal = "out_1" *) "Flow at pipe 1" : FlowRate := {: causality <- "COUT" ; group <- "Control action" :};
+	     OBJ FD_2 (* terminal = "in_1" *) "Filling degree at pipe 2" : Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+       OBJ Q_2 (* terminal = "out_1" *) "Flow at pipe 2" : FlowRate := {: causality <- "COUT" ; group <- "Control action" :};
+	     OBJ FD_3 (* terminal = "in_1" *) "Filling degree at pipe 3" : Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+       OBJ Q_3 (* terminal = "out_1" *) "Flow at pipe 3" : FlowRate := {: causality <- "COUT" ; group <- "Control action" :};
+	     OBJ FD_4 (* terminal = "in_1" *) "Filling degree at pipe 4" : Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+       OBJ Q_4 (* terminal = "out_1" *) "Flow at pipe 4" : FlowRate := {: causality <- "COUT" ; group <- "Control action" :};
+			 OBJ DefFlow_2 (* terminal = "in_2"; manip = "1" *) "Default flow at pipe 4" : FlowRate := {: causality <- "CIN" :};
+	     OBJ DefFlow_3 (* terminal = "in_2"; manip = "1" *) "Default flow at pipe 5" : FlowRate := {: causality <- "CIN" :};
+	     OBJ DefFlow_4 (* terminal = "in_2"; manip = "1" *) "Default flow at pipe 5" : FlowRate := {: causality <- "CIN" :};
+     };
+ 
+     parameters <-
+     {
+     OBJ active "yes=1, no=0" : Real := {: value <- 0 ; group <- "Operational" :};
+ 	  OBJ FD_th_RBT "Filling degree thredshold at RBT for activation" : Real := {: value <- 0.9 ; group <- "Operational" :};
+	   OBJ FD_th_pipes "Filling degree thredshold at pipes for deactivation" : Real := {: value <- 0.8 ; group <- "Operational" :};
+	   OBJ LimFlow_1 "Limited flow at pipe 1" : FlowRate := {: value <- 0 ; group <- "Operational" :};
+	   OBJ LimFlow_2 "Limited flow at pipe 2" : FlowRate := {: value <- 0 ; group <- "Operational" :};
+	   OBJ LimFlow_3 "Limited flow at pipe 3" : FlowRate := {: value <- 0 ; group <- "Operational" :};
+	   OBJ LimFlow_4 "Limited flow at pipe 4" : FlowRate := {: value <- 0 ; group <- "Operational" :};
+	   OBJ DefFlow_1 "Default flow at pipe 1" : FlowRate := {: value <- 0 ; group <- "Operational" :};
+     };
+	
+		 independent <- 
+     {
+      OBJ t "Time" : Time := {: group <- "Time" :};
+     };
+
+     state <-
+      {
+	    OBJ help_u1 (* hidden = "1" *) "Previous u help variable" : Real;
+	    OBJ help_u1_h (* hidden = "1" *) "Previous u help variable" : Real;
+	    OBJ help_u2 (* hidden = "1" *) "Previous u help variable" : Real;
+	    OBJ help_u2_h (* hidden = "1" *) "Previous u help variable" : Real;
+	    OBJ help_u3 (* hidden = "1" *) "Previous u help variable" : Real;
+	    OBJ help_u3_h (* hidden = "1" *) "Previous u help variable" : Real;
+	    OBJ help_u4 (* hidden = "1" *) "Previous u help variable" : Real;
+	    OBJ help_u4_h (* hidden = "1" *) "Previous u help variable" : Real;
+	  };
+ 
+     equations <-
+     {
+			interface.Q_1 = IF ((parameters.active == 0) || (interface.FD_1 > parameters.FD_th_pipes))
+		 				   	   	 THEN parameters.DefFlow_1
+ 				   	   			 ELSE IF (interface.FD_RBT > parameters.FD_th_RBT)
+				   		    				  THEN parameters.LimFlow_1
+						    						 ELSE parameters.DefFlow_1;
+
+			interface.Q_2 = IF ((parameters.active == 0) || (interface.FD_2 > parameters.FD_th_pipes))
+		 				   	  	  THEN interface.DefFlow_2
+ 				   	   			 ELSE IF (interface.FD_RBT > parameters.FD_th_RBT)
+				   		    				  THEN parameters.LimFlow_2
+						    						 ELSE interface.DefFlow_2;
+
+			interface.Q_3 = IF ((parameters.active == 0) || (interface.FD_3 > parameters.FD_th_pipes))
+		 				   	   	 THEN interface.DefFlow_3
+ 				   	   			 ELSE IF (interface.FD_RBT > parameters.FD_th_RBT)
+				   		    				  THEN  parameters.LimFlow_3
+						    						 ELSE interface.DefFlow_3;
+
+			interface.Q_4 = IF ((parameters.active == 0) || (interface.FD_4 > parameters.FD_th_pipes))
+		 				   	   	 THEN interface.DefFlow_4
+ 				   	   			 ELSE IF (interface.FD_RBT > parameters.FD_th_RBT)
+				   		    				  THEN parameters.LimFlow_4
+						    						 ELSE interface.DefFlow_4;
+     };
+  :};
+
+CLASS RBT_spill_min
+   (* icon = "Controller" *)
+   "Controller to minimize RBT spilling with rate change"
+  
+   SPECIALISES
+   PhysicalDAEModelType :=
+   {:
+     comments <- "A model for a controller";
+     interface <-
+     {
+       OBJ FD_RBT (* terminal = "in_1" *) "Filling degree at RBT" : Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+	     OBJ FD_1 (* terminal = "in_1" *) "Filling degree at pipe 1" : Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+       OBJ Q_1 (* terminal = "out_1" *) "Flow at pipe 1" : FlowRate := {: causality <- "COUT" ; group <- "Control action" :};
+	     OBJ FD_2 (* terminal = "in_1" *) "Filling degree at pipe 2" : Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+       OBJ Q_2 (* terminal = "out_1" *) "Flow at pipe 2" : FlowRate := {: causality <- "COUT" ; group <- "Control action" :};
+	     OBJ FD_3 (* terminal = "in_1" *) "Filling degree at pipe 3" : Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+       OBJ Q_3 (* terminal = "out_1" *) "Flow at pipe 3" : FlowRate := {: causality <- "COUT" ; group <- "Control action" :};
+	     OBJ FD_4 (* terminal = "in_1" *) "Filling degree at pipe 4" : Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+       OBJ Q_4 (* terminal = "out_1" *) "Flow at pipe 4" : FlowRate := {: causality <- "COUT" ; group <- "Control action" :};
+			 OBJ DefFlow_2 (* terminal = "in_2"; manip = "1" *) "Default flow at pipe 2" : FlowRate := {: causality <- "CIN" :};
+	     OBJ DefFlow_3 (* terminal = "in_2"; manip = "1" *) "Default flow at pipe 3" : FlowRate := {: causality <- "CIN" :};
+	     OBJ LimFlow_2 (* terminal = "in_2"; manip = "1" *) "Limited flow at pipe 2" : FlowRate := {: causality <- "CIN" :};
+	     OBJ LimFlow_3 (* terminal = "in_2"; manip = "1" *) "Limited flow at pipe 3" : FlowRate := {: causality <- "CIN" :};
+	     OBJ DefFlow_4 (* terminal = "in_2"; manip = "1" *) "Default flow at pipe 4" : FlowRate := {: causality <- "CIN" :};
+     };
+ 
+     parameters <-
+     {
+     OBJ active "yes=1, no=0" : Real := {: value <- 0 ; group <- "Operational" :};
+ 	  OBJ FD_th_RBT "Filling degree thredshold at RBT for activation" : Real := {: value <- 0.9 ; group <- "Operational" :};
+	   OBJ FD_th_pipes "Filling degree thredshold at pipes for deactivation" : Real := {: value <- 0.8 ; group <- "Operational" :};
+	   OBJ LimFlow_1 "Limited flow at pipe 1" : FlowRate := {: value <- 0 ; group <- "Operational" :};
+	   //OBJ LimFlow_2 "Limited flow at pipe 2" : FlowRate := {: value <- 0 ; group <- "Operational" :};
+	   //OBJ LimFlow_3 "Limited flow at pipe 3" : FlowRate := {: value <- 0 ; group <- "Operational" :};
+	   OBJ LimFlow_4 "Limited flow at pipe 4" : FlowRate := {: value <- 0 ; group <- "Operational" :};
+	   OBJ DefFlow_1 "Default flow at pipe 1" : FlowRate := {: value <- 0 ; group <- "Operational" :};
+	   OBJ Q_rate_change_pipe "Rate of change of flow rate for pipe" : FlowRateRate := {: value <- 34560000 ; group <- "Operational" :};
+     };
+	
+		 independent <- 
+     {
+      OBJ t "Time" : Time := {: group <- "Time" :};
+     };
+
+     state <-
+      {
+		  OBJ TS (* hidden = "0" *) "Time step" : Time := {: group <- "Operational" :};
+	    OBJ help_u1 (* hidden = "1" *) "Previous u help variable" : Real;
+	    OBJ help_u1_h (* hidden = "1" *) "Previous u help variable" : Real;
+	    OBJ help_u2 (* hidden = "1" *) "Previous u help variable" : Real;
+	    OBJ help_u2_h (* hidden = "1" *) "Previous u help variable" : Real;
+	    OBJ help_u3 (* hidden = "1" *) "Previous u help variable" : Real;
+	    OBJ help_u3_h (* hidden = "1" *) "Previous u help variable" : Real;
+	    OBJ help_u4 (* hidden = "1" *) "Previous u help variable" : Real;
+	    OBJ help_u4_h (* hidden = "1" *) "Previous u help variable" : Real;
+	  };
+ 
+     equations <-
+     {
+			state.TS = independent.t - previous(independent.t);
+			state.help_u1 = interface.Q_1;
+			state.help_u1_h = IF ((parameters.active == 0) || (interface.FD_1 > parameters.FD_th_pipes))
+		 				   	   	 THEN previous(state.help_u1) + parameters.Q_rate_change_pipe * state.TS
+ 				   	   			 ELSE IF (interface.FD_RBT > parameters.FD_th_RBT)
+				   		    				  THEN previous(state.help_u1) - parameters.Q_rate_change_pipe * state.TS
+						    						 ELSE previous(state.help_u1) + parameters.Q_rate_change_pipe * state.TS;
+			interface.Q_1 = IF (state.help_u1_h > parameters.DefFlow_1)
+						    		  THEN parameters.DefFlow_1
+						    			ELSE IF (state.help_u1_h < parameters.LimFlow_1)
+						  	     		  THEN parameters.LimFlow_1
+							     			  ELSE state.help_u1_h; 
+			
+			state.help_u2 = interface.Q_2;
+			state.help_u2_h = IF ((parameters.active == 0) || (interface.FD_2 > parameters.FD_th_pipes))
+		 				   	  	  THEN previous(state.help_u2) + parameters.Q_rate_change_pipe * state.TS
+ 				   	   			 ELSE IF (interface.FD_RBT > parameters.FD_th_RBT)
+				   		    				  THEN previous(state.help_u2) - parameters.Q_rate_change_pipe * state.TS
+						    						 ELSE previous(state.help_u2) + parameters.Q_rate_change_pipe * state.TS;
+			interface.Q_2 = IF (state.help_u2_h > interface.DefFlow_2)
+						   		   THEN interface.DefFlow_2
+						    		  ELSE IF (state.help_u2_h < interface.LimFlow_2)
+						  	     			THEN interface.LimFlow_2
+							     				ELSE state.help_u2_h;		
+						 
+			state.help_u3 = interface.Q_3;
+			state.help_u3_h = IF ((parameters.active == 0) || (interface.FD_3 > parameters.FD_th_pipes))
+		 				   	   	 THEN previous(state.help_u3) + parameters.Q_rate_change_pipe * state.TS
+ 				   	   			 ELSE IF (interface.FD_RBT > parameters.FD_th_RBT)
+				   		    				  THEN previous(state.help_u3) - parameters.Q_rate_change_pipe * state.TS
+						    						 ELSE previous(state.help_u3) + parameters.Q_rate_change_pipe * state.TS;
+			interface.Q_3 = IF (state.help_u3_h > interface.DefFlow_3)
+						    		  THEN interface.DefFlow_3
+						    		  ELSE IF (state.help_u3_h < interface.LimFlow_3)
+						  	     		  THEN interface.LimFlow_3
+							     			  ELSE state.help_u3_h;
+			
+			state.help_u4 = interface.Q_4;
+			state.help_u4_h = IF ((parameters.active == 0) || (interface.FD_4 > parameters.FD_th_pipes))
+		 				   	   	 THEN previous(state.help_u4) + parameters.Q_rate_change_pipe * state.TS
+ 				   	   			 ELSE IF (interface.FD_RBT > parameters.FD_th_RBT)
+				   		    				  THEN previous(state.help_u4) - parameters.Q_rate_change_pipe * state.TS
+						    						 ELSE previous(state.help_u4) + parameters.Q_rate_change_pipe * state.TS;
+			interface.Q_4 = IF (state.help_u4_h > interface.DefFlow_4)
+						   		   THEN interface.DefFlow_4
+						    		  ELSE IF (state.help_u4_h < parameters.LimFlow_4)
+						  	     			THEN parameters.LimFlow_4
+							     			  ELSE state.help_u4_h;	 
+     };
+  :};
+	
+	CLASS RBT_control_new
+   (* icon = "Controller" *)
+   "Controller to minimize RBT spilling"
+  
+   SPECIALISES
+   PhysicalDAEModelType :=
+   {:
+     comments <- "A model for a controller";
+     interface <-
+     {
+       OBJ FD_RBT (* terminal = "in_1" *) "Filling degree at RBT" : Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+	     OBJ FD_ES (* terminal = "in_1" *) "Filling degree at ES" : Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+		   OBJ FD_RZ (* terminal = "in_1" *) "Filling degree at RZ" : Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+			 OBJ Q_NS (* terminal = "in_1" *) "Flow at pipe 3" : FlowRate := {: causality <- "CIN" ; group <- "Measurement data" :};
+			 OBJ Q_ES (* terminal = "in_1" *) "Flow at pipe 3" : FlowRate := {: causality <- "CIN" ; group <- "Measurement data" :};
+			 OBJ Q_RZ (* terminal = "in_1" *) "Flow at pipe 3" : FlowRate := {: causality <- "CIN" ; group <- "Measurement data" :};
+       OBJ Q_inf (* terminal = "in_1" *) "Flow at pipe 4" : FlowRate := {: causality <- "CIN" ; group <- "Measurement data" :};
+		   OBJ Q_RBT (* terminal = "in_1" *) "Flow to RBT" : FlowRate := {: causality <- "CIN" ; group <- "Measurement data" :};
+		
+       OBJ maxQ_ES (* terminal = "out_1" *) "Max flow at ES" : FlowRate := {: causality <- "COUT" ; group <- "Control action" :};
+       OBJ maxQ_RZ (* terminal = "out_1" *) "Max flow at RZ" : FlowRate := {: causality <- "COUT" ; group <- "Control action" :};
+		   OBJ Q_RBTempty (* terminal = "out_1" *) "RBT emptying flow" : FlowRate := {: causality <- "COUT" ; group <- "Control action" :};
+		
+			 OBJ MaxFlow_ES (* terminal = "in_2"; manip = "1" *) "Max flow fron ES" : FlowRate := {: causality <- "CIN" :};
+	     OBJ MaxFlow_RZ (* terminal = "in_2"; manip = "1" *) "Max flow fron RZ" : FlowRate := {: causality <- "CIN" :};
+		   OBJ active (* terminal = "in_2"; manip = "1" *) "yes=1, no=0" : Real := {: causality <- "CIN" :};
+			 OBJ Q_max_bio (* terminal = "in_2"; manip = "1" *) "Sends to bio when Q_inf < Q_max_bio" : FlowRate := {: causality <- "CIN" :};
+     };
+ 
+     parameters <-
+     {
+		 OBJ Q_RBT_empty "RBT outflow when emptying" : FlowRate := {: value <- 24000 ; group <- "Operational" :};
+ 	  OBJ FD_th_RBT "Filling degree thredshold at RBT for activation" : Real := {: value <- 0.9 ; group <- "Operational" :};
+	   OBJ FD_th_ES "Filling degree thredshold at ES" : Real := {: value <- 0.62 ; group <- "Operational" :};
+		 OBJ FD_th_RZ "Filling degree thredshold at RZ" : Real := {: value <- 0.42 ; group <- "Operational" :};
+     };
+	
+		 independent <- 
+     {
+      OBJ t "Time" : Time := {: group <- "Time" :};
+     };
+
+     state <-
+      {
+			OBJ mQ_ES "Max flow from ES, variable" : FlowRate := {: group <- "Operational" :};
+			OBJ mQ_RZ "Max flow from RZ, variable" : FlowRate := {: group <- "Operational" :};
+	  };
+ 
+     equations <-
+     {
+		  interface.Q_RBTempty = IF (interface.Q_RBT > 0)
+ 				  									THEN 0
+ 				   				 				ELSE IF (interface.Q_inf >= (interface.Q_max_bio - parameters.Q_RBT_empty))
+				   		  				 				THEN 0
+						     			   				ELSE parameters.Q_RBT_empty;
+		 
+		  state.mQ_ES = interface.Q_max_bio - interface.Q_RBTempty - interface.Q_NS - interface.Q_RZ;
+			interface.maxQ_ES = IF ((interface.active == 0) || (interface.FD_RBT < parameters.FD_th_RBT) || (interface.FD_ES > parameters.FD_th_ES) 
+																|| ((interface.FD_ES < parameters.FD_th_ES) && (interface.FD_RZ < parameters.FD_th_RZ)))
+		 				   	    		THEN interface.MaxFlow_ES
+ 				   	   		 		ELSE previous(state.mQ_ES);
+		
+			state.mQ_RZ = interface.Q_max_bio - interface.Q_RBTempty - interface.Q_NS - interface.Q_ES;
+			interface.maxQ_RZ = IF ((interface.active == 0) || (interface.FD_RBT < parameters.FD_th_RBT) || (interface.FD_RZ > parameters.FD_th_RZ))
+		 				   	    		THEN interface.MaxFlow_RZ
+ 				   	   		 		ELSE previous(state.mQ_RZ);
+			
+			};
+  :};
+
+   CLASS PST_control
+   (* icon = "Controller" *)
+   "Controller for PSTs"
+ 
+   SPECIALISES
+   PhysicalDAEModelType :=
+   {:
+     comments <- "A model for a controller";
+     interface <-
+     {
+      OBJ Q_WWTP (* terminal = "in_1" *) "Flow to WWTP" : FlowRate := {: causality <- "CIN" ; group <- "Measurement data" :};
+	    OBJ FD_RZ (* terminal = "in_1" *) "Filling degree at RZ" : Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+		  OBJ FD_RWT (* terminal = "in_1" *) "Filling degree at RWT" : Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+      OBJ FD_ES (* terminal = "in_1" *) "Filling degree at ES" : Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+		  OBJ maxQ_NS (* terminal = "out_1" *) "Max flow for NS" : FlowRate := {: causality <- "COUT" ; group <- "Control action" :};
+		 // OBJ maxQ_ES (* terminal = "out_1" *) "Max flow for ES" : FlowRate := {: causality <- "COUT" ; group <- "Control action" :};
+		  OBJ maxQ_RZ (* terminal = "out_1" *) "Max flow for RZ" : FlowRate := {: causality <- "COUT" ; group <- "Control action" :};
+		  OBJ maxQ_ES (* terminal = "out_1" *) "Max flow for ES" : FlowRate := {: causality <- "COUT" ; group <- "Control action" :};
+		  OBJ limQ_ES (* terminal = "out_1" *) "Limited flow for ES" : FlowRate := {: causality <- "COUT" ; group <- "Control action" :};
+		  OBJ limQ_RZ (* terminal = "out_1" *) "Limited flow for RZ" : FlowRate := {: causality <- "COUT" ; group <- "Control action" :};
+		  OBJ maxQ_bio (* terminal = "out_1" *) "Max flow for bio" : FlowRate := {: causality <- "COUT" ; group <- "Control action" :};
+		  OBJ maxQ_PST1 (* terminal = "out_1" *) "Max flow for PST1" : FlowRate := {: causality <- "COUT" ; group <- "Control action" :};
+		 /* OBJ maxQ_PST23 (* terminal = "out_1" *) "Max flow for PST2 and PST3" : FlowRate := {: causality <- "COUT" ; group <- "Control action" :};
+		  OBJ maxQ_RWT (* terminal = "out_1" *) "Max flow for RWT" : FlowRate := {: causality <- "COUT" ; group <- "Control action" :};*/
+		  OBJ PST1_bp (* terminal = "out_1" *) "By-pass of PST1" : Fraction := {: causality <- "COUT" ; group <- "Control action" :};
+     };
+ 
+     parameters <-
+     {
+	    OBJ active "Active = 1, not active = 0" : Real := {: group <- "Control" :};
+		  OBJ bp "all = 1, nothing = 0" : Real := {: value <- 0.95 ; group <- "Operational" :};
+	    OBJ Q_th_WWTP "Threshold Q at WWTP for WW" : FlowRate := {: value <- 210000 ; group <- "Operational" :};
+	    OBJ FD_th_a "Filling degree thredshold at RZ and NS for activation WW3" : Real := {: value <- 0.9 ; group <- "Operational" :};
+	    OBJ FD_th_d "Filling degree thredshold at RZ and NS for deactivation WW3" : Real := {: value <- 0.2 ; group <- "Operational" :};
+	    OBJ maxQ_NS_DW "Limited flow at NS for DW" : FlowRate := {: value <- 72000 ; group <- "Operational NS" :};
+		  OBJ maxQ_NS_WW1 "Limited flow at NS for WW1" : FlowRate := {: value <- 72000 ; group <- "Operational NS" :};
+		  OBJ maxQ_NS_WW2 "Limited flow at NS for WW2" : FlowRate := {: value <- 60000 ; group <- "Operational NS" :};
+		  OBJ maxQ_NS_WW3 "Limited flow at NS for WW3" : FlowRate := {: value <- 72000 ; group <- "Operational NS" :};
+		  OBJ maxQ_NS_NA "Limited flow at NS if not active" : FlowRate := {: value <- 72000 ; group <- "Operational NS" :};
+		  OBJ maxQ_ES_DW "Limited flow at ES for DW" : FlowRate := {: value <- 170000 ; group <- "Operational ES" :};
+		  OBJ limQ_ES_DW "Limited flow at ES for DW" : FlowRate := {: value <- 170000 ; group <- "Operational ES" :};
+		  OBJ maxQ_ES_WW1 "Limited flow at ES for WW1" : FlowRate := {: value <- 170000 ; group <- "Operational ES" :};
+		  OBJ limQ_ES_WW1 "Limited flow at ES for WW1" : FlowRate := {: value <- 170000 ; group <- "Operational ES" :};
+		  OBJ maxQ_ES_WW2 "Limited flow at ES for WW2" : FlowRate := {: value <- 170000 ; group <- "Operational ES" :};
+		  OBJ limQ_ES_WW2 "Limited flow at ES for WW2" : FlowRate := {: value <- 170000 ; group <- "Operational ES" :};
+		  OBJ maxQ_ES_WW3 "Limited flow at ES for WW3" : FlowRate := {: value <- 170000 ; group <- "Operational ES" :};
+		  OBJ limQ_ES_WW3 "Limited flow at ES for WW3" : FlowRate := {: value <- 170000 ; group <- "Operational ES" :};
+		  OBJ maxQ_ES_NA "Limited flow at ES if not active" : FlowRate := {: value <- 170000 ; group <- "Operational ES" :};
+		  OBJ limQ_ES_NA "Limited flow at ES if not active" : FlowRate := {: value <- 170000 ; group <- "Operational ES" :};
+		  OBJ maxQ_RZ_DW "Limited flow at RZ for DW" : FlowRate := {: value <- 408000 ; group <- "Operational RZ" :};
+		  OBJ maxQ_RZ_WW1 "Limited flow at RZ for WW1" : FlowRate := {: value <- 192000 ; group <- "Operational RZ" :};
+		  OBJ maxQ_RZ_WW2 "Limited flow at RZ for WW2" : FlowRate := {: value <- 0 ; group <- "Operational RZ" :};
+		  OBJ maxQ_RZ_WW3 "Limited flow at RZ for WW3" : FlowRate := {: value <- 408000 ; group <- "Operational RZ" :};
+		  OBJ maxQ_RZ_NA "Limited flow at RZ if not active" : FlowRate := {: value <- 408000 ; group <- "Operational RZ" :};
+		  OBJ limQ_RZ_DW "Limited flow at RZ for DW" : FlowRate := {: value <- 408000 ; group <- "Operational RZ" :};
+		  OBJ limQ_RZ_WW1 "Limited flow at RZ for WW1" : FlowRate := {: value <- 192000 ; group <- "Operational RZ" :};
+		  OBJ limQ_RZ_WW2 "Limited flow at RZ for WW2" : FlowRate := {: value <- 0 ; group <- "Operational RZ" :};
+		  OBJ limQ_RZ_WW3 "Limited flow at RZ for WW3" : FlowRate := {: value <- 408000 ; group <- "Operational RZ" :};
+		  OBJ limQ_RZ_NA "Limited flow at RZ if not active" : FlowRate := {: value <- 408000 ; group <- "Operational RZ" :};
+		  OBJ maxQ_bio_DW "Limited flow at bio for DW" : FlowRate := {: value <- 210000 ; group <- "Operational bio" :};
+		  OBJ maxQ_bio_WW1 "Limited flow at bio for WW1" : FlowRate := {: value <- 420000 ; group <- "Operational bio" :};
+		  OBJ maxQ_bio_WW2 "Limited flow at bio for WW2" : FlowRate := {: value <- 420000 ; group <- "Operational bio" :};
+		  OBJ maxQ_bio_WW3 "Limited flow at bio for WW3" : FlowRate := {: value <- 630000 ; group <- "Operational bio" :};
+		  OBJ maxQ_bio_NA "Limited flow at bio if not active" : FlowRate := {: value <- 630000 ; group <- "Operational bio" :};
+		  OBJ maxQ_PST1_DW "Limited flow at PST1 for DW" : FlowRate := {: value <- 210000 ; group <- "Operational PST1" :};
+		  OBJ maxQ_PST1_WW1 "Limited flow at PST1 for WW1" : FlowRate := {: value <- 0 ; group <- "Operational PST1" :};
+		  OBJ maxQ_PST1_WW2 "Limited flow at PST1 for WW2" : FlowRate := {: value <- 0 ; group <- "Operational PST1" :};
+		  OBJ maxQ_PST1_WW3 "Limited flow at PST1 for WW3" : FlowRate := {: value <- 210000 ; group <- "Operational PST1" :};
+		  OBJ maxQ_PST1_NA "Limited flow at PST1 if not active" : FlowRate := {: value <- 210000 ; group <- "Operational PST1" :};
+		/*  OBJ maxQ_PST23_DW "Limited flow at PST23 for DW" : FlowRate := {: value <- 0 ; group <- "Operational PST23" :};
+		  OBJ maxQ_PST23_WW1 "Limited flow at PST23 for WW1" : FlowRate := {: value <- 0 ; group <- "Operational PST23" :};
+		  OBJ maxQ_PST23_WW2 "Limited flow at PST23 for WW2" : FlowRate := {: value <- 0 ; group <- "Operational PST23" :};
+		  OBJ maxQ_PST23_WW3 "Limited flow at PST23 for WW3" : FlowRate := {: value <- 0 ; group <- "Operational PST23" :};
+		  OBJ maxQ_PST23_NA "Limited flow at PST23 if not active" : FlowRate := {: value <- 0 ; group <- "Operational PST23" :};
+		  OBJ maxQ_RWT_DW "Limited flow at RWT for DW" : FlowRate := {: value <- 0 ; group <- "Operational RWT" :};
+		  OBJ maxQ_RWT_WW1 "Limited flow at RWT for WW1" : FlowRate := {: value <- 0 ; group <- "Operational RWT" :};
+		  OBJ maxQ_RWT_WW2 "Limited flow at RWT for WW2" : FlowRate := {: value <- 0 ; group <- "Operational RWT" :};
+		  OBJ maxQ_RWT_WW3 "Limited flow at RWT for WW3" : FlowRate := {: value <- 0 ; group <- "Operational RWT" :};
+		  OBJ maxQ_RWT_NA "Limited flow at RWT if not active" : FlowRate := {: value <- 0 ; group <- "Operational RWT" :};*/
+     };
+	 
+	 independent <- 
+   {
+    OBJ t "Time" : Time := {: group <- "Time" :};
+   };
+	 
+	  state <-
+    {
+     OBJ phase (* hidden = "0" *) "0 = DW, 1 = WW1, 2 = WW2, 3 = WW3, 4 = not active" : Real := {: group <- "Operational" :};
+    };
+	 
+	 initial <-
+   {
+   };
+ 
+   equations <-
+   {
+   state.phase = IF (parameters.active == 0)
+                 THEN 4
+		 						ELSE IF ((interface.Q_WWTP <= parameters.Q_th_WWTP) && (interface.FD_RZ < parameters.FD_th_d) && (interface.FD_ES < parameters.FD_th_d))
+		 								 THEN 0
+		 								 ELSE IF (((previous(state.phase) == 0) || (previous(state.phase) == 1)) && (interface.Q_WWTP > parameters.Q_th_WWTP) && (interface.FD_RWT < 1))
+		 								 		 THEN 1
+		 											ELSE IF (((previous(state.phase) == 1) || (previous(state.phase) == 2)) && (interface.Q_WWTP > parameters.Q_th_WWTP) && (interface.FD_RZ < parameters.FD_th_a))
+		 													 THEN 2
+		 													 ELSE 3;
+	 interface.maxQ_NS = IF (state.phase == 0)
+		 									THEN parameters.maxQ_NS_DW
+		 									ELSE IF(state.phase == 1)
+		 								  	 	THEN parameters.maxQ_NS_WW1
+		 											 ELSE IF(state.phase == 2)
+		 								  	 			 THEN parameters.maxQ_NS_WW2
+		 														ELSE IF(state.phase == 3)
+		 								  	 			 		 THEN parameters.maxQ_NS_WW3
+		 																 ELSE parameters.maxQ_NS_NA;
+	 interface.maxQ_ES = IF (state.phase == 0)
+		 									THEN parameters.maxQ_ES_DW
+		 									ELSE IF(state.phase == 1)
+		 								  	 	THEN parameters.maxQ_ES_WW1
+		 											 ELSE IF(state.phase == 2)
+		 								  	 			 THEN parameters.maxQ_ES_WW2
+		 														ELSE IF((state.phase == 3) && (interface.FD_ES < parameters.FD_th_a))
+		 								  	 			 		 THEN parameters.maxQ_ES_WW3
+		 																 ELSE parameters.maxQ_ES_NA;
+	 interface.limQ_ES = IF (state.phase == 0)
+		 									THEN parameters.limQ_ES_DW
+		 									ELSE IF(state.phase == 1)
+		 								  	 	THEN parameters.limQ_ES_WW1
+		 											 ELSE IF(state.phase == 2)
+		 								  	 			 THEN parameters.limQ_ES_WW2
+		 														ELSE IF((state.phase == 3) && (interface.FD_ES < parameters.FD_th_a))
+		 								  	 			 		 THEN parameters.limQ_ES_WW3
+		 																 ELSE parameters.limQ_ES_NA;
+	 interface.maxQ_RZ = IF (state.phase == 0)
+		 									THEN parameters.maxQ_RZ_DW
+		 									ELSE IF(state.phase == 1)
+		 								  	 	THEN parameters.maxQ_RZ_WW1
+		 											 ELSE IF(state.phase == 2)
+		 								  	 			 THEN parameters.maxQ_RZ_WW2
+		 														ELSE IF(state.phase == 3)
+		 								  	 			 		 THEN parameters.maxQ_RZ_WW3
+		 																 ELSE parameters.maxQ_RZ_NA;
+	 interface.limQ_RZ = IF (state.phase == 0)
+		 									THEN parameters.limQ_RZ_DW
+		 									ELSE IF(state.phase == 1)
+		 								  	 	THEN parameters.limQ_RZ_WW1
+		 											 ELSE IF(state.phase == 2)
+		 								  	 			 THEN parameters.limQ_RZ_WW2
+		 														ELSE IF(state.phase == 3)
+		 								  	 			 		 THEN parameters.limQ_RZ_WW3
+		 																 ELSE parameters.limQ_RZ_NA;
+	 interface.maxQ_bio = IF (state.phase == 0)
+		 									THEN parameters.maxQ_bio_DW
+		 									ELSE IF(state.phase == 1)
+		 								  	 	THEN parameters.maxQ_bio_WW1
+		 											 ELSE IF(state.phase == 2)
+		 								  	 			 THEN parameters.maxQ_bio_WW2
+		 														ELSE IF(state.phase == 3)
+		 								  	 			 		 THEN parameters.maxQ_bio_WW3
+		 																 ELSE parameters.maxQ_bio_NA;
+	 interface.maxQ_PST1 = IF (state.phase == 0)
+		 									THEN parameters.maxQ_PST1_DW
+		 									ELSE IF(state.phase == 1)
+		 								  	 	THEN parameters.maxQ_PST1_WW1
+		 											 ELSE IF(state.phase == 2)
+		 								  	 			 THEN parameters.maxQ_PST1_WW2
+		 														ELSE IF(state.phase == 3)
+		 								  	 			 		 THEN parameters.maxQ_PST1_WW3
+		 																 ELSE parameters.maxQ_PST1_NA;
+	 interface.PST1_bp = IF (state.phase == 3)
+		 									THEN parameters.bp
+		 									ELSE 0;
+   };
+  :};
+		 
+	 CLASS PST_control_new
+   (* icon = "Controller" *)
+   "Controller for PSTs"
+ 
+   SPECIALISES
+   PhysicalDAEModelType :=
+   {:
+     comments <- "A model for a controller";
+     interface <-
+     {
+      OBJ Q_inf (* terminal = "in_1" *) "Flow to WWTP" : FlowRate := {: causality <- "CIN" ; group <- "Measurement data" :};
+		  OBJ Q_NS (* terminal = "in_1" *) "Flow from NS" : FlowRate := {: causality <- "CIN" ; group <- "Measurement data" :};
+		  OBJ Q_RZ (* terminal = "in_1" *) "Flow from RZ" : FlowRate := {: causality <- "CIN" ; group <- "Measurement data" :};
+		  OBJ Q_ES (* terminal = "in_1" *) "Flow from ES" : FlowRate := {: causality <- "CIN" ; group <- "Measurement data" :};
+	    OBJ FD_RZ (* terminal = "in_1" *) "Filling degree at RZ" : Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+		  OBJ FD_RBT (* terminal = "in_1" *) "Filling degree at RWT" : Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+      OBJ FD_ES (* terminal = "in_1" *) "Filling degree at ES" : Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+		  OBJ maxQ_NS (* terminal = "out_1" *) "Max flow from NS" : FlowRate := {: causality <- "COUT" ; group <- "Control action" :};
+		  OBJ maxQ_RZ (* terminal = "out_1" *) "Max flow from RZ" : FlowRate := {: causality <- "COUT" ; group <- "Control action" :};
+		  OBJ maxQ_ES (* terminal = "out_1" *) "Max flow from ES" : FlowRate := {: causality <- "COUT" ; group <- "Control action" :};
+		  OBJ maxQ_PC12 (* terminal = "out_1" *) "Max flow to PST3" : FlowRate := {: causality <- "COUT" ; group <- "Control action" :};
+		  OBJ maxQ_bio (* terminal = "out_1" *) "Max flow to biology" : FlowRate := {: causality <- "COUT" ; group <- "Control action" :};
+		  OBJ RBT_control_active (* terminal = "out_1" *) "RBT control active" : Real := {: causality <- "COUT" ; group <- "Control action" :};
+     };
+ 
+     parameters <-
+     {
+	    OBJ active "Active = 1, not active = 0" : Real := {: group <- "" :};
+		  OBJ RBT_active "Active = 1, not active = 0 (fixed to 0 when PST active = 1)" : Real := {: group <- "" :};
+		  OBJ f_3 "Fraction of capacity for ES in 3 if ES and RZ partially filled" : Real := {: value <- 0.6 ; group <- "FD" :};
+		  OBJ FD_th_RBT_f "Filling degree to define RBT as full" : Real := {: value <- 0.83 ; group <- "FD" :};
+		  OBJ FD_th_ES_f "Filling degree to define ES as full" : Real := {: value <- 0.62 ; group <- "FD" :};
+		  OBJ FD_th_RZ_f "Filling degree to define RZ as full" : Real := {: value <- 0.42 ; group <- "FD" :};
+		  OBJ FD_th_RBT_e "Filling degree to define RBT as empty" : Real := {: value <- 0.05 ; group <- "FD" :};
+		  OBJ FD_th_ES_e "Filling degree to define ES as empty" : Real := {: value <- 0.05 ; group <- "FD" :};
+		  OBJ FD_th_RZ_e "Filling degree to define RZ as empty" : Real := {: value <- 0.05 ; group <- "FD" :};
+		  OBJ FD_th_ES_r "Filling degree of ES for check in phase 31/32" : Real := {: value <- 0.28 ; group <- "FD" :};
+		  //OBJ FD_th_RZ_r "Filling degree of RZ for check in phase 31/32" : Real := {: value <- 0.21 ; group <- "FD" :};
+		  OBJ maxQ_bio_boundary_NA "Max flow to bio when not active" : FlowRate := {: value <- 540000 ; group <- "bio" :};
+		  OBJ maxQ_bio_boundary_1 "Max flow to bio in DW" : FlowRate := {: value <- 210000 ; group <- "bio" :};
+		  OBJ maxQ_bio_boundary_11 "Max flow to bio in 1a" : FlowRate := {: value <- 420000 ; group <- "bio" :};
+		  OBJ maxQ_bio_boundary_12 "Max flow to bio in 1b" : FlowRate := {: value <- 420000 ; group <- "bio" :};
+		  OBJ maxQ_bio_boundary_21 "Max flow to bio in 2a" : FlowRate := {: value <- 420000 ; group <- "bio" :};
+		  OBJ maxQ_bio_boundary_22 "Max flow to bio in 2b" : FlowRate := {: value <- 420000 ; group <- "bio" :};
+		  OBJ maxQ_bio_boundary_23 "Max flow to bio in 2c" : FlowRate := {: value <- 630000 ; group <- "bio" :};
+		  OBJ maxQ_bio_boundary_24 "Max flow to bio in 2d" : FlowRate := {: value <- 630000 ; group <- "bio" :};
+		  OBJ maxQ_bio_boundary_31 "Max flow to bio in 3a" : FlowRate := {: value <- 420000 ; group <- "bio" :};
+		  OBJ maxQ_bio_boundary_32 "Max flow to bio in 3b" : FlowRate := {: value <- 630000 ; group <- "bio" :};
+		  OBJ maxQ_NS_NA "Max flow from NS when not active" : FlowRate := {: value <- 76800 ; group <- "NS" :};
+	    OBJ maxQ_NS_all "Max flow from NS in all phases" : FlowRate := {: value <- 76800 ; group <- "NS" :};
+		  OBJ maxQ_ES_NA "Max flow from ES when not active" : FlowRate := {: value <- 336000 ; group <- "ES" :};
+		  OBJ maxQ_ES_1 "Max flow from ES in DW" : FlowRate := {: value <- 210000 ; group <- "ES" :};
+		  OBJ maxQ_ES_11 "Max flow from ES in 1a" : FlowRate := {: value <- 336000 ; group <- "ES" :};
+		  OBJ maxQ_ES_12 "Max flow from ES in 1b" : FlowRate := {: value <- 336000 ; group <- "ES" :};
+		  OBJ maxQ_ES_32m "Max flow from ES in 3b, max" : FlowRate := {: value <- 451200 ; group <- "ES" :};
+		  OBJ maxQ_RZ_NA "Max flow from RZ when not active" : FlowRate := {: value <- 312000 ; group <- "RZ" :};
+		  OBJ maxQ_RZ_1 "Max flow from RZ in DW" : FlowRate := {: value <- 210000 ; group <- "RZ" :};
+		  OBJ maxQ_RZ_11 "Max flow from RZ in 1a" : FlowRate := {: value <- 64800 ; group <- "RZ" :};
+		  OBJ maxQ_RZ_12 "Max flow from RZ in 1b" : FlowRate := {: value <- 64800 ; group <- "RZ" :};
+		  OBJ maxQ_RZ_21 "Max flow from RZ in 2a" : FlowRate := {: value <- 64800 ; group <- "RZ" :};
+		  OBJ maxQ_RZ_22 "Max flow from RZ in 2b" : FlowRate := {: value <- 64800 ; group <- "RZ" :};
+		  OBJ maxQ_RZ_23 "Max flow from RZ in 2c" : FlowRate := {: value <- 312000 ; group <- "RZ" :};
+		  OBJ maxQ_RZ_24 "Max flow from RZ in 2d" : FlowRate := {: value <- 312000 ; group <- "RZ" :};
+		  OBJ maxQ_RZ_32m "Max flow from RZ in 3b, max" : FlowRate := {: value <- 312000 ; group <- "RZ" :};
+		  OBJ maxQ_PC12_NA "Max flow to PC12 when not active" : FlowRate := {: value <- 0 ; group <- "PC3" :};
+		  OBJ maxQ_PC12_1 "Max flow to PC12 in DW" : FlowRate := {: value <- 0 ; group <- "PC3" :};
+		  OBJ maxQ_PC12_11 "Max flow to PC12 in 1a" : FlowRate := {: value <- 420000 ; group <- "PC3" :};
+		  OBJ maxQ_PC12_12 "Max flow to PC12 in 1b" : FlowRate := {: value <- 420000 ; group <- "PC3" :};
+		  OBJ maxQ_PC12_21 "Max flow to PC12 in 2a" : FlowRate := {: value <- 420000 ; group <- "PC3" :};
+		  OBJ maxQ_PC12_22 "Max flow to PC12 in 2b" : FlowRate := {: value <- 420000 ; group <- "PC3" :};
+		  OBJ maxQ_PC12_23 "Max flow to PC12 in 2c" : FlowRate := {: value <- 420000 ; group <- "PC3" :};
+		  OBJ maxQ_PC12_24 "Max flow to PC12 in 2d" : FlowRate := {: value <- 420000 ; group <- "PC3" :};
+		  OBJ maxQ_PC12_31 "Max flow to PC12 in 3a" : FlowRate := {: value <- 420000 ; group <- "PC3" :};
+		  OBJ maxQ_PC12_32 "Max flow to PC12 in 3b" : FlowRate := {: value <- 420000 ; group <- "PC3" :};
+		  OBJ maxQ_RBT "Max flow to RBT" : FlowRate := {: value <- 210000 ; group <- "RBT" :};
+		  OBJ tlag "Minimum time for phase change from 1a and 1b" : Time := {: group <- "" :};
+		  OBJ tlag1 "Minimum time for phase change from 2c" : Time := {: group <- "" :};
+     };
+	 
+	 independent <- 
+   {
+    OBJ t "Time" : Time := {: group <- "Time" :};
+   };
+	 
+	  state <-
+    {
+     OBJ phase "1=DW,11=1a,12=1b,21=2a,22=2b,23=2c,24=2d,31=3a,32=3b,4=not active" : Real := {: group <- "Operational" :};
+		 OBJ maxQ_ES_21 "Max flow from ES in 2a" : FlowRate := {: group <- "ES" :};
+		 OBJ maxQ_ES_22 "Max flow from ES in 2b" : FlowRate := {: group <- "ES" :};
+		 OBJ maxQ_ES_23 "Max flow from ES in 2c" : FlowRate := {: group <- "ES" :};
+		 OBJ maxQ_ES_24 "Max flow from ES in 2d" : FlowRate := {: group <- "ES" :};
+		 OBJ maxQ_avail_31 "Max flow available for RZ+ES in 3a" : FlowRate := {: group <- "Operational" :};
+		 OBJ maxQ_avail_32 "Max flow available for RZ+ES in 3b" : FlowRate := {: group <- "Operational" :};
+		 OBJ maxQ_ES_31 "Max flow from ES in 3a" : FlowRate := {: group <- "ES" :};
+		 OBJ maxQ_RZ_31 "Max flow from RZ in 3a" : FlowRate := {: group <- "RZ" :};
+		 OBJ maxQ_ES_32 "Max flow from ES in 3b" : FlowRate := {: group <- "ES" :};
+		 OBJ maxQ_RZ_32 "Max flow from RZ in 3b" : FlowRate := {: group <- "RZ" :};
+		 OBJ maxQ_ES_32h "Max flow from ES in 3b, help" : FlowRate := {: group <- "ES" :};
+		 OBJ maxQ_RZ_32h "Max flow from RZ in 3b, help" : FlowRate := {: group <- "RZ" :};
+		 OBJ RBT "RBT not full, 1 = true, 0 = false" : Real := {: group <- "Operational" :};
+		 OBJ ES "ES not full, 1 = true, 0 = false" : Real := {: group <- "Operational" :};
+		 OBJ RZ "RZ not full, 1 = true, 0 = false" : Real := {: group <- "Operational" :};
+		 OBJ tcount "Time of last counter start" : Time := {: group <- "Operational" :};
+		 OBJ tswitch "Time of last phase switch" : Time := {: group <- "Operational" :};
+		 OBJ pswitch "Phase before last counter start" : Time := {: group <- "Operational" :};
+		 OBJ FD_ES_b "To check if FD_ES has been below a threshold after last counter start, >0 if true" : Real := {: group <- "Operational" :};
+		 
+    };
+	 
+	 initial <-
+   {
+		 state.phase = 1;
+   };
+ 
+   equations <-
+   {
+	 interface.RBT_control_active = IF (parameters.active == 1)
+		 														 THEN 0
+		 														 ELSE parameters.RBT_active;
+	 state.maxQ_ES_21 = parameters.maxQ_bio_boundary_21 - interface.Q_NS - interface.Q_RZ;
+	 state.maxQ_ES_22 = parameters.maxQ_bio_boundary_22 + parameters.maxQ_RBT - interface.Q_NS - interface.Q_RZ;
+	 state.maxQ_ES_23 = parameters.maxQ_bio_boundary_23 - interface.Q_NS - interface.Q_RZ;
+	 state.maxQ_ES_24 = parameters.maxQ_bio_boundary_24 + parameters.maxQ_RBT - parameters.maxQ_RZ_24 - interface.Q_NS;
+	 state.maxQ_avail_31 = parameters.maxQ_bio_boundary_31 - interface.Q_NS;
+	 state.maxQ_avail_32 = parameters.maxQ_bio_boundary_32 - interface.Q_NS;
+	
+	 state.maxQ_ES_31 = IF (interface.FD_RZ > parameters.FD_th_RZ_e)
+		 								 THEN parameters.f_3 * state.maxQ_avail_31
+		 								 ELSE IF (interface.FD_ES > parameters.FD_th_ES_e)
+		 											THEN state.maxQ_avail_31 - previous(state.maxQ_RZ_31)
+		 								 		 ELSE parameters.f_3 * state.maxQ_avail_31;
+		 
+	 state.maxQ_RZ_31 = IF (interface.FD_ES > parameters.FD_th_ES_e)
+		 								 THEN (1 - parameters.f_3) * state.maxQ_avail_31
+		 								 ELSE IF (interface.FD_RZ > parameters.FD_th_RZ_e)
+		 											THEN state.maxQ_avail_31 - state.maxQ_ES_31
+		 								 		 ELSE (1 - parameters.f_3) * state.maxQ_avail_31;
+		 
+	 state.maxQ_ES_32h = IF (interface.FD_RZ > parameters.FD_th_RZ_e)
+		 								  THEN parameters.f_3 * state.maxQ_avail_32
+		 								  ELSE IF (interface.FD_ES > parameters.FD_th_ES_e)
+		 											 THEN state.maxQ_avail_32 - previous(state.maxQ_RZ_32)
+		 								 		  ELSE parameters.f_3 * state.maxQ_avail_32;
+		 
+	 state.maxQ_RZ_32h = IF (interface.FD_ES > parameters.FD_th_ES_e)
+		 								  THEN (1 - parameters.f_3) * state.maxQ_avail_32
+		 								  ELSE IF (interface.FD_RZ > parameters.FD_th_RZ_e)
+		 										   THEN state.maxQ_avail_32 - state.maxQ_ES_32
+		 								 		  ELSE (1 - parameters.f_3) * state.maxQ_avail_32;
+		 
+	 state.maxQ_ES_32 = IF (state.maxQ_ES_32h > parameters.maxQ_ES_32m)
+		 								 THEN parameters.maxQ_ES_32m
+		 								 ELSE state.maxQ_ES_32h;
+	 state.maxQ_RZ_32 = IF (state.maxQ_RZ_32h > parameters.maxQ_RZ_32m)
+		 								 THEN parameters.maxQ_RZ_32m
+		 								 ELSE state.maxQ_RZ_32h;
+	 
+	 /*state.maxQ_ES_31 = IF ((interface.Q_ES + interface.Q_RZ) > state.maxQ_avail_31)
+		 								 THEN parameters.f_3a * state.maxQ_avail_31
+		 								 ELSE state.maxQ_avail_31;
+	 state.maxQ_RZ_31 = IF ((interface.Q_ES + interface.Q_RZ) > state.maxQ_avail_31)
+		 								 THEN (1 - parameters.f_3a) * state.maxQ_avail_31
+		 								 ELSE state.maxQ_avail_31;*/
+		 
+	 state.RBT = IF (interface.FD_RBT < parameters.FD_th_RBT_f)
+		 				  THEN 1
+		 					ELSE 0;
+	 state.ES = IF (interface.FD_ES < parameters.FD_th_ES_f) //to be checked
+		 				  THEN 1
+		 					ELSE 0;
+	 state.RZ = IF (interface.FD_RZ < parameters.FD_th_RZ_f) //to be checked
+		 				  THEN 1
+		 					ELSE 0;
+		 
+	 state.tswitch = IF (previous(state.phase) == state.phase)
+		 							THEN previous(state.tswitch)
+		 							ELSE independent.t;
+	 
+	 state.tcount = IF (((previous(state.phase) == 11) || (previous(state.phase) == 12)) && (interface.FD_ES < parameters.FD_th_ES_e) && (interface.FD_RZ < parameters.FD_th_RZ_f))
+		 						 THEN previous(state.tcount)
+		 						 ELSE independent.t;
+		 
+	 state.pswitch = IF (previous(state.phase) == state.phase)
+		 							THEN previous(state.pswitch)
+		 							ELSE previous(state.phase);
+		 
+	 state.FD_ES_b = IF (previous(state.tcount) < state.tcount)
+		 							THEN 0
+		 							ELSE IF (interface.FD_ES < parameters.FD_th_ES_r)
+		 									 THEN previous(state.FD_ES_b) + 1
+		 									 ELSE previous(state.FD_ES_b);
+		 
+   state.phase = IF (parameters.active == 0)
+                 THEN 4
+		 						ELSE IF (previous(state.phase) == 1)
+		 								 THEN IF (interface.Q_inf <= parameters.maxQ_bio_boundary_1)
+		 											THEN 1
+		 											ELSE IF (state.RZ == 1)
+		 													 THEN IF (state.RBT == 1)
+		 																THEN IF (interface.Q_inf <= parameters.maxQ_bio_boundary_11)
+		 																		 THEN 11
+		 																		 ELSE IF (interface.Q_inf > parameters.maxQ_bio_boundary_12)
+		 																					THEN 12
+		 																					ELSE previous(state.phase)
+		 																ELSE IF (state.ES == 1)
+		 																		 THEN 21
+		 																		 ELSE previous(state.phase)
+		 													 ELSE previous(state.phase)
+		 								 ELSE IF (previous(state.phase) == 11)
+		 											THEN IF ((interface.FD_ES < parameters.FD_th_ES_e) && (interface.FD_RZ < parameters.FD_th_RZ_f))
+		 													 THEN IF ((independent.t - state.tcount) > parameters.tlag)
+		 																THEN 31
+		 																ELSE 11
+		 													 ELSE IF (state.RBT == 1)
+		 																THEN IF (state.RZ == 1)
+		 																		 THEN IF (interface.Q_inf <= parameters.maxQ_bio_boundary_11)
+		 																		 		 THEN 11
+		 																		 		 ELSE IF (interface.Q_inf > parameters.maxQ_bio_boundary_12)
+		 																							 THEN 12
+		 																							 ELSE previous(state.phase)
+		 																		 ELSE IF (state.ES == 1)
+		 																		 		 THEN 23
+		 																					ELSE 24
+		 																ELSE IF (state.ES == 1)
+		 																		 THEN IF (state.RZ == 1)
+		 																		 		 THEN 21
+		 																					ELSE 23
+		 																		 ELSE IF (state.RZ == 1)
+		 																		 		 THEN 22
+		 																					ELSE 24
+		 											 ELSE IF (previous(state.phase) == 12)
+		 														THEN IF ((interface.FD_ES < parameters.FD_th_ES_e) && (interface.FD_RZ < parameters.FD_th_RZ_f))
+		 													 			THEN IF ((independent.t - state.tcount) > parameters.tlag)
+		 																			THEN 31
+		 																			ELSE 11
+		 													 			ELSE IF (state.RBT == 1)
+		 																			THEN IF (state.RZ == 1)
+		 																		 			THEN IF (interface.Q_inf <= parameters.maxQ_bio_boundary_11)
+		 																		 		 			THEN 11
+		 																		 		 			ELSE IF (interface.Q_inf > parameters.maxQ_bio_boundary_12)
+		 																							 			THEN 12
+		 																							 			ELSE previous(state.phase)
+		 																		 			ELSE IF (state.ES == 1)
+		 																		 		 			THEN 23
+		 																								ELSE 24
+		 																			ELSE IF (state.ES == 1)
+		 																		 			THEN IF (state.RZ == 1)
+		 																		 		 			THEN 21
+		 																								ELSE 23
+		 																		 			ELSE IF (state.RZ == 1)
+		 																		 		 			THEN 22
+		 																								ELSE 24
+		 														ELSE IF (previous(state.phase) == 21)
+		 																 THEN IF ((interface.FD_ES < parameters.FD_th_ES_e) && (interface.FD_RZ < parameters.FD_th_RZ_f))
+		 																			THEN 31
+		 																			ELSE IF (state.ES == 1)
+		 																		 			THEN IF (state.RZ == 1)
+		 																		 		 			THEN 21
+		 																								ELSE 23
+		 																		 			ELSE IF (state.RZ == 1)
+		 																		 		 			THEN 22
+		 																								ELSE 24
+		 																 ELSE IF (previous(state.phase) == 22)
+		 																			THEN IF ((interface.FD_ES < parameters.FD_th_ES_f) && (interface.FD_RZ < parameters.FD_th_RZ_f))
+		 																					 THEN 31
+		 																					 ELSE IF (state.ES == 1)
+		 																		 					 THEN IF (state.RZ == 1)
+		 																		 		 					 THEN 21
+		 																										 ELSE 23
+		 																		 					 ELSE IF (state.RZ == 1)
+		 																		 		 					 THEN 22
+		 																										 ELSE 24
+		 																			ELSE IF (previous(state.phase) == 23)
+		 																					 THEN IF ((interface.FD_ES < parameters.FD_th_ES_f) && (interface.FD_RZ < parameters.FD_th_RZ_f))
+		 																					 		 THEN IF ((independent.t - previous(state.tswitch)) > parameters.tlag1)
+		 																										 THEN 32
+		 																										 ELSE 23
+		 																								ELSE IF (state.ES == 1)
+		 																										 THEN 23
+		 																										 ELSE 24
+		 																					 ELSE IF (previous(state.phase) == 24)
+		 																					 		 THEN IF ((interface.FD_ES < parameters.FD_th_ES_f) && (interface.FD_RZ < parameters.FD_th_RZ_f))
+		 																					 		 		 THEN 32
+		 																										 ELSE IF (state.ES == 1)
+		 																										 		 THEN 23
+		 																										 		 ELSE 24
+		 																								ELSE IF (previous(state.phase) == 31)
+		 																										 THEN IF ((interface.FD_RZ < parameters.FD_th_RZ_e) && (interface.FD_ES < parameters.FD_th_ES_e) 
+		 																															&& (interface.Q_inf <= parameters.maxQ_bio_boundary_1))
+		 																													THEN 1
+		 																													ELSE IF (state.RZ == 0)
+		 																															 THEN IF (state.ES == 1)
+		 																										 							 THEN 23
+		 																										 							 ELSE 24
+		 																															 ELSE IF ((previous(state.pswitch) == 11) || (previous(state.pswitch) == 12) || (previous(state.pswitch) == 21))
+		 																																		THEN IF (interface.FD_ES > parameters.FD_th_ES_r)
+		 																																				 THEN IF (state.RBT == 1)
+		 																																							THEN IF (interface.Q_inf <= parameters.maxQ_bio_boundary_11)
+		 																		 																							THEN 11
+		 																		 																							ELSE IF (interface.Q_inf > parameters.maxQ_bio_boundary_12)
+		 																																												THEN 12
+		 																																												ELSE previous(state.phase)
+		 																																							ELSE 21
+		 																																				 ELSE 31
+		 																																		ELSE IF (previous(state.pswitch) == 22)
+		 																																				 THEN IF (interface.FD_ES > parameters.FD_th_ES_f)
+		 																																							THEN 22
+		 																																				 		 ELSE IF ((interface.FD_ES > parameters.FD_th_ES_r) && (state.FD_ES_b > 0))
+		 																																									 THEN 21
+		 																																									 ELSE 31
+		 																																				 ELSE previous(state.phase)
+		 																										 ELSE IF (previous(state.phase) == 32)
+		 																													THEN IF ((interface.FD_RZ < parameters.FD_th_RZ_e) && (interface.FD_ES < parameters.FD_th_ES_e) 
+		 																															&& (interface.Q_inf <= parameters.maxQ_bio_boundary_1))
+		 																															 THEN 1
+		 																															 ELSE IF (state.RZ == 0)
+		 																															 		 THEN IF (state.ES == 1)
+		 																										 							 		 THEN 23
+		 																										 							 		 ELSE 24
+		 																																		ELSE IF (state.ES == 0)
+		 																																				 THEN 24
+		 																																				 ELSE 32
+		 																													ELSE previous(state.phase);
+		 		 
+	 interface.maxQ_NS = IF (state.phase == 4)
+		 									THEN parameters.maxQ_NS_NA
+		 									ELSE parameters.maxQ_NS_all;
+	 interface.maxQ_ES = IF (state.phase == 1)
+		 									THEN parameters.maxQ_ES_1
+		 									ELSE IF(state.phase == 11)
+		 								  	 	THEN parameters.maxQ_ES_11
+		 											 ELSE IF(state.phase == 12)
+		 								  	 			 THEN parameters.maxQ_ES_12
+		 														ELSE IF(state.phase == 21)
+		 								  	 			 		 THEN state.maxQ_ES_21
+		 																 ELSE IF(state.phase == 22)
+		 								  	 			 		 		 THEN state.maxQ_ES_22
+		 																 		 ELSE IF(state.phase == 23)
+		 								  	 			 		 				  THEN state.maxQ_ES_23
+		 																 					ELSE IF(state.phase == 24)
+		 								  	 			 		 							 THEN state.maxQ_ES_24
+		 																 							 ELSE IF(state.phase == 31)
+		 								  	 			 		 										THEN state.maxQ_ES_31
+		 																 										ELSE IF(state.phase == 32)
+		 								  	 			 		 												 THEN state.maxQ_ES_32
+		 																 												 ELSE parameters.maxQ_ES_NA;
+	 interface.maxQ_RZ = IF (state.phase == 1)
+		 									THEN parameters.maxQ_RZ_1
+		 									ELSE IF(state.phase == 11)
+		 								  	 	THEN parameters.maxQ_RZ_11
+		 											 ELSE IF(state.phase == 12)
+		 								  	 			 THEN parameters.maxQ_RZ_12
+		 														ELSE IF(state.phase == 21)
+		 								  	 			 		 THEN parameters.maxQ_RZ_21
+		 																 ELSE IF(state.phase == 22)
+		 								  	 			 		 		 THEN parameters.maxQ_RZ_22
+		 																 		 ELSE IF(state.phase == 23)
+		 								  	 			 		 				  THEN parameters.maxQ_RZ_23
+		 																 					ELSE IF(state.phase == 24)
+		 								  	 			 		 							 THEN parameters.maxQ_RZ_24
+		 																 							 ELSE IF(state.phase == 31)
+		 								  	 			 		 										THEN state.maxQ_RZ_31
+		 																 										ELSE IF(state.phase == 32)
+		 								  	 			 		 												 THEN state.maxQ_RZ_32
+		 																 												 ELSE parameters.maxQ_RZ_NA;
+	 interface.maxQ_bio = IF (state.phase == 1)
+		 									 THEN parameters.maxQ_bio_boundary_1
+		 									 ELSE IF(state.phase == 11)
+		 								  	 	 THEN parameters.maxQ_bio_boundary_11
+		 											  ELSE IF(state.phase == 12)
+		 								  	 			  THEN parameters.maxQ_bio_boundary_12
+		 														 ELSE IF(state.phase == 21)
+		 								  	 			 		  THEN parameters.maxQ_bio_boundary_21
+		 																  ELSE IF(state.phase == 22)
+		 								  	 			 		 		  THEN parameters.maxQ_bio_boundary_22
+		 																 		  ELSE IF(state.phase == 23)
+		 								  	 			 		 				   THEN parameters.maxQ_bio_boundary_23
+		 																 					 ELSE IF(state.phase == 24)
+		 								  	 			 		 							  THEN parameters.maxQ_bio_boundary_24
+		 																 							  ELSE IF(state.phase == 31)
+		 								  	 			 		 										 THEN parameters.maxQ_bio_boundary_31
+		 																 										 ELSE IF(state.phase == 32)
+		 								  	 			 		 												  THEN parameters.maxQ_bio_boundary_32
+		 																 												  ELSE parameters.maxQ_bio_boundary_NA;
+	 interface.maxQ_PC12 = IF (state.phase == 1)
+		 									  THEN parameters.maxQ_PC12_1
+		 									  ELSE IF(state.phase == 11)
+		 								  	  	 THEN parameters.maxQ_PC12_11
+		 											   ELSE IF(state.phase == 12)
+		 								  	 			   THEN parameters.maxQ_PC12_12
+		 														  ELSE IF(state.phase == 21)
+		 								  	 			 		   THEN parameters.maxQ_PC12_21
+		 																   ELSE IF(state.phase == 22)
+		 								  	 			 		 		   THEN parameters.maxQ_PC12_22
+		 																 		   ELSE IF(state.phase == 23)
+		 								  	 			 		 				    THEN parameters.maxQ_PC12_23
+		 																 					  ELSE IF(state.phase == 24)
+		 								  	 			 		 							   THEN parameters.maxQ_PC12_24
+		 																 							   ELSE IF(state.phase == 31)
+		 								  	 			 		 									 	 THEN parameters.maxQ_PC12_31
+		 																 										  ELSE IF(state.phase == 32)
+		 								  	 			 		 												   THEN parameters.maxQ_PC12_32
+		 																 												   ELSE parameters.maxQ_PC12_NA;
+
+   };
+  :};
+
+CLASS OnOffIdeal2
+  (* icon = "Controller" *)
+  "Ideal On-off controller"
+  SPECIALISES
+  PhysicalDAEModelType :=
+  {:
+    comments <- "A model for an on-off controller, if y_M > y_S then u_Off else u_On";
+    interface <-
+    {
+      OBJ y_M (* terminal = "in_1" *) "Sensor measured output" : 
+               Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+      OBJ u (* terminal = "out_1" *) "Controlled variable" : 
+               Real := {: causality <- "COUT" ; group <- "Control action" :};
+    };
+
+    parameters <-
+    {
+    OBJ y_S "Setpoint value for controlled variable" : 
+         Real := {: value <- 2  ; group <- "Operational":};
+    OBJ u_Off	"Output when off"	: Real := {: value <- 10 ; group <- "Operational" :};
+    OBJ u_On	"Output when on"	: Real := {: value <- 20 ; group <- "Operational" :};
+    };
+
+  independent <- 
+  { 
+    OBJ t "Time" : Time := {: group <- "Time" :}; 
+   };
+
+    state <-
+    {
+    };
+
+    equations <-
+    {
+    interface.u = IF (interface.y_M > parameters.y_S)
+                  THEN parameters.u_Off
+                  ELSE parameters.u_On;
+   };
+
+ :};
+	
+	CLASS MLSS_T
+  (* icon = "Controller" *)
+  "MLSS setpoint in function of T"
+  SPECIALISES
+  PhysicalDAEModelType :=
+  {:
+    comments <- "MLSS setpoint in function of T";
+    interface <-
+    {
+      OBJ T (* terminal = "in_1" *) "Sensor measured output" : 
+               CelsiusTemperature := {: causality <- "CIN" ; group <- "Measurement data" :};
+      OBJ u (* terminal = "out_1" *) "Controlled variable" : 
+               Real := {: causality <- "COUT" ; group <- "Control action" :};
+    };
+
+    parameters <-
+    {
+    OBJ T1 "Temperature 1" : CelsiusTemperature := {: value <- 11 ; group <- "Operational":};
+		OBJ T2 "Temperature 2" : CelsiusTemperature := {: value <- 14 ; group <- "Operational":};
+		OBJ T3 "Temperature 3" : CelsiusTemperature := {: value <- 20 ; group <- "Operational":};
+    OBJ u_1	"Output when T<T1"	: Concentration := {: value <- 5000 ; group <- "Operational" :};
+    OBJ u_2	"Output when T<T2"	: Concentration := {: value <- 4550 ; group <- "Operational" :};
+		OBJ u_3	"Output when T<T3"	: Concentration := {: value <- 3700 ; group <- "Operational" :};
+		OBJ u_4	"Output when T>T3"	: Concentration := {: value <- 2600 ; group <- "Operational" :};
+    };
+
+  independent <- 
+  { 
+    OBJ t "Time" : Time := {: group <- "Time" :}; 
+   };
+
+    state <-
+    {
+    };
+
+    equations <-
+    {
+    interface.u = IF (interface.T < parameters.T1)
+                  THEN parameters.u_1
+                  ELSE IF (interface.T < parameters.T2)
+												THEN parameters.u_2
+                  			ELSE IF (interface.T < parameters.T3)
+														 THEN parameters.u_3
+                  					 ELSE parameters.u_4;
+   };
+
+ :};
+
+CLASS OnOffIdeal3
+  (* icon = "Controller" *)
+  "Ideal On-off controller + filling degree control"
+  SPECIALISES
+  PhysicalDAEModelType :=
+  {:
+    comments <- "A model for an on-off controller, if y_M > y_S and y_FD < 1 then u_Off else u_On";
+    interface <-
+    {
+      OBJ y_M (* terminal = "in_1" *) "Sensor measured output" : 
+               Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+	    OBJ y_FD (* terminal = "in_1" *) "Filling Degree" : 
+               Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+      OBJ u (* terminal = "out_1" *) "Controlled variable" : 
+               Real := {: causality <- "COUT" ; group <- "Control action" :};
+    };
+
+    parameters <-
+    {
+    OBJ y_S "Setpoint value for controlled variable" : 
+         Real := {: value <- 7000000  ; group <- "Operational":};
+    OBJ u_Off	"Output when off"	: Real := {: value <- 0 ; group <- "Operational" :};
+    OBJ u_On	"Output when on"	: Real := {: value <- 10000000 ; group <- "Operational" :};
+    };
+
+  independent <- 
+  { 
+    OBJ t "Time" : Time := {: group <- "Time" :}; 
+   };
+
+    state <-
+    {
+    };
+
+    equations <-
+    {
+    interface.u = IF ((interface.y_M > parameters.y_S) && (interface.y_FD < 1))
+                  THEN parameters.u_Off
+                  ELSE parameters.u_On;
+   };
+
+ :};
+
+ CLASS linear_Saturation
+    (* icon = "Controller" *)
+    "Linear controller with saturation"
+    SPECIALISES
+    PhysicalDAEModelType :=
+    {:
+      comments <- "A model for a linear controller with saturation";
+      interface <-
+      {
+        OBJ y_M (* terminal = "in_1" *) "Sensor measured output" : 
+                 Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+        OBJ u (* terminal = "out_1" *) "Controlled variable" : 
+                 Real := {: causality <- "COUT" ; group <- "Control action" :};
+      };
+  
+      parameters <-
+      {
+       OBJ a "u=a+b*y_M" : Real := {: value <- 0 ; group <- "Operational" :};
+       OBJ b "u=a+b*y_M" : Real := {: value <- 1 ; group <- "Operational" :};
+       OBJ u_Min "Minimum control action" : Real := {: value <- 0 ; group <- "Operational" :};
+       OBJ u_Max "Maximum control action" : Real := {: value <- 1000 ; group <- "Operational" :};
+      };
+  
+      independent <- 
+      { 
+       OBJ t "Time" : Time := {: group <- "Time" :}; 
+      };
+  
+      state <-
+      {
+       OBJ uhelp (* hidden = "1" *) "Help variable to calculate the proportional-integral control action" : Real;
+      };
+  
+      equations <-
+      {
+       state.uhelp = parameters.a + parameters.b * interface.y_M; 
+  
+       interface.u = IF(state.uhelp < parameters.u_Min)
+                     THEN (parameters.u_Min)
+                     ELSE
+                       IF (state.uhelp > parameters.u_Max)
+                       THEN parameters.u_Max
+                       ELSE state.uhelp;
+      };
+  :};
+
+CLASS P_sat
+  (* icon = "Controller" *)
+  "P controller with saturation"
+
+// Purpose: 
+// Limit excursion of a signal. 
+// Description: 
+// The saturation block imposes upper and lower bounds on a signal. Within the range of the specified limits, the input   
+// signal is amplified by K_P. Outside these bounds, the signal is clipped to the maximum or minimum bound. 
+// When the lower and upper output limits are set to the same value, the block constantly outputs that value. A   
+// maximum bound which is lower than the minimum bound is not allowed. This means u_Max >= u_Min.         
+
+  SPECIALISES
+  PhysicalDAEModelType :=
+  {:
+    comments <- "A model for a proportional controller with saturation";
+    interface <-
+    {
+      OBJ y_M (* terminal = "in_1"; is_favorite = "1" *) "Sensor measured output" : 
+               Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+      OBJ u (* terminal = "out_1"; is_favorite = "1" *) "Controlled variable" : 
+               Real := {: causality <- "COUT" ; group <- "Control action" :};
+     OBJ y_S  (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Setpoint value for controlled variable " : 
+     Real := {: causality <- "CIN" ; value <- 0 ; group <- "Operational" :};
+     OBJ K_P  (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) " Factor of proportionality" : 
+     Real := {: causality <- "CIN" ; value <- 1 ; group <- "Operational" :};
+     OBJ u0 (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "No error action" : 
+     Real := {: causality <- "CIN" ; value <- 1 ; group <- "Operational" :};
+     OBJ u_Min  (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Minimum control action" : 
+     Real := {: causality <- "CIN" ; value <- 0 ; group <- "Operational" :};
+     OBJ u_Max  (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Maximum control action" : 
+     Real := {: causality <- "CIN" ; value <- 1000 ; group <- "Operational" :};
+     // u_Max >= u_Min
+    };
+
+    parameters <-
+    {
+    };
+
+    independent <- 
+    { 
+    OBJ t "Time" : Time := {: group <- "Time" :}; 
+    };
+
+    state <-
+    {
+     OBJ e (* is_favorite = "1" *) "Error" : PhysicalQuantityType := {: group <- "Operational" :};
+     OBJ uhelp (* hidden = "1" *) "Help variable to calculate the proportional control action" : Real;
+    };
+
+    equations <-
+    {
+
+     state.e = interface.y_S - interface.y_M ;
+     state.uhelp = interface.u0 + interface.K_P * state.e;
+
+     interface.u = IF(state.uhelp < interface.u_Min)
+                   THEN (interface.u_Min)
+                   ELSE
+                     IF (state.uhelp > interface.u_Max)
+                     THEN interface.u_Max
+                     ELSE state.uhelp;
+   };
+
+ :};
+
+ CLASS OnOff_FF_aer
+  (* icon = "Controller" *)
+  "On-off controller for feed-forward aeration control"
+  SPECIALISES
+  PhysicalDAEModelType :=
+  {:
+    comments <- "A model for an on-off controller";
+    interface <-
+    {
+      OBJ y_M (* terminal = "in_1" *) "Sensor measured output" : 
+               Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+      OBJ u (* terminal = "out_1" *) "Controlled variable" : 
+               Real := {: causality <- "COUT" ; group <- "Control action" :};
+	    OBJ ON (* terminal = "in_2"; manip = "1" *) "Additional criterion for on/off" :
+	 					  Real := {: causality <- "CIN"  ; group <- "Operational":};
+    };
+
+    parameters <-
+    {
+    OBJ y_S "Threshold for on/off" : Real := {: value <- 7000000  ; group <- "Operational":};
+    OBJ u_max	"Max out"	: Real := {: value <- 10000 ; group <- "Operational" :};
+    OBJ u_min	"Min out"	: Real := {: value <- 0 ; group <- "Operational" :};
+	  OBJ change_rate "Rate of change" : Real := {: value <- 1000000 ; group <- "Operational" :};
+    };
+
+    independent <- 
+    { 
+     OBJ t "Time" : Time := {: group <- "Time" :}; 
+    };
+
+    state <-
+    {
+     OBJ TS (* hidden = "1" *) "Time step" : Time := {: group <- "Operational" :};  
+	   OBJ help_u (* hidden = "1" *) "Previous u help variable" : Real;
+	   OBJ help_u_h (* hidden = "1" *) "Previous u help variable" : Real;
+    };
+
+    equations <-
+    {
+    state.TS = independent.t - previous(independent.t); 
+	  state.help_u = interface.u;
+    state.help_u_h = IF ((interface.y_M > parameters.y_S) || (interface.ON == 1))
+                     THEN previous(state.help_u) + parameters.change_rate * state.TS
+                     ELSE previous(state.help_u) - parameters.change_rate * state.TS;
+	  interface.u = IF (state.help_u_h > parameters.u_max)
+				  			  THEN parameters.u_max
+				  			  ELSE IF (state.help_u_h < parameters.u_min)
+				  	   				THEN parameters.u_min
+					   				  ELSE state.help_u_h;
+    };
+ :};
+
+	CLASS Irvine_Aeration_model_Carbon_foot_print
+    (* icon = "Controller" *)
+    "Irvine Carbon foot print"
+  
+  // This model will calculate the Kla-values that the ASM-models need. The actuator is airflow.
+  // All parameters will be explained further in the code.
+  
+    SPECIALISES
+    PhysicalDAEModelType :=
+    {:
+    comments <- "A model that calculates Kla based on airflow rate, aerator design and other parameters";
+    interface <-
+    {
+   	OBJ TSS_Anaerobic (* terminal = "in_1"; manip = "1" *) "TSS concentration in the aeration tank (g/m3)" : Concentration := {: causality <- "CIN" ; group <- "Measurement data" :};
+	   OBJ TSS_Aerobic (* terminal = "in_1"; manip = "1" *) "TSS concentration in the aeration tank (g/m3)" : Concentration := {: causality <- "CIN" ; group <- "Measurement data" :};
+	   OBJ TSS_Anoxic (* terminal = "in_1"; manip = "1" *) "TSS concentration in the aeration tank (g/m3)" : Concentration := {: causality <- "CIN" ; group <- "Measurement data" :};
+	   OBJ Q_was (* terminal = "in_1"; manip = "1" *) "Sludge waste" : FlowRate := {: causality <- "CIN" ; group <- "Measurement data" :};
+		 OBJ C_was (* terminal = "in_1"; manip = "1" *) "Sludge waste" : Concentration := {: causality <- "CIN" ; group <- "Measurement data" :};
+     OBJ Kla (* terminal = "out_1" *) "Calculated Kla (1/d)" : OxygenTransferCoefficient := {: causality <- "COUT" ; group <- "Control action" :};
+	   OBJ O2_tank (* terminal = "in_1"; manip = "1" *) "Actual oxygen concentration in the aeration tank (g/m³)" : Concentration := {: causality <- "CIN" ; group <- "Measurement data" :};
+	   OBJ Volume (* terminal = "in_1"; manip = "1" *) "Aeration tank volume (m³)" : Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+	   OBJ Q_air (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Air flow rate of the fine bubble aerators under standard conditions (Nm³/d)": FlowRate := {: causality <- "CIN" ; value <- 1000 ; group <- "Operational" :};
+	   OBJ Temp (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Temperature (°C)": CelsiusTemperature := {: causality <- "CIN" ; value <- 15.0 ; group <- "Measurement data" :};
+	   OBJ P_atm (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Standard atmospheric pressure (Pa)": Real := {: causality <- "CIN" ; value <- 101325; group <- "Measurement data" :};
+	   OBJ Temp_air (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Temperature (°C)": CelsiusTemperature := {: causality <- "CIN" ; value <- 15.0 ; group <- "Measurement data" :};
+
+	// connect one of these last interfaces (the biggest?) to the O2_sat parameter in an ASM1-ASU if you don't want to run the model with O2_sat equal to 8 mg/L as stated in BSM1
+    };
+  
+ parameters <-
+    {
+	OBJ Depth "Depth of fine bubble aerator below the watersurface (m)": Real := {: value <- 6 ; group <- "Geometry of the tank and aerators" :};
+	OBJ H "altitudine": Real := {: value <- 10 ; group <- "Local conditions of the situ" :};
+	OBJ p_site "Vapour pressure (Pa)": Real := {: value <- 2334; group <- "Local conditions of the situ" :};
+	OBJ P_st_atm "Standard atmospheric pressure (Pa)": Real := {: value <- 101325; group <- "Local conditions of the situ" :};
+	OBJ Rho_sludge "Density of sludge (kg/m³)": Real := {: value <- 988 ; group <- "Characteristic of the sludge and air" :};
+	OBJ Rho_air "Air Density (kg/m³)": Real := {: value <- 1.23 ; group <- "Characteristic of the sludge and air" :};
+	OBJ Beta "Beta factor (-)": Real := {: value <- 0.98 ; group <- "Characteristic of the sludge and air" :};
+	OBJ Phi "Phi factor (-)": Real := {: value <- 1.024 ; group <- "Characteristic of the sludge and air" :};
+	OBJ O2_air "Oxygen concentration in the atmosphere (%)": Real := {: value <- 20.85 ; group <- "Characteristic of the sludge and air" :};
+	OBJ CO2_in "CO2 concentration in the atmosphere (%)": Real := {: value <- 0.03 ; group <- "Characteristic of the sludge and air" :};
+	OBJ O2_sat20 "Oxygen saturation of water under standard conditions (g/m³): 1 atm, 20 °C, no salts": Real := {: value <- 10.50 ; group <- "Characteristic of the sludge and air" :};
+	OBJ g "Strength of the gravitational field (m/s³)": Real := {: value <- 9.82 ; group <- "Characteristic of the sludge and air" :};
+	OBJ a "diffuser specific aerea (m2)": Real := {: value <- 2 ; group <- "Geometry of the tank and aerators" :};
+	OBJ A "dimensionaless Aeration model": Real := {: value <- 5.717 ; group <- "Aeration model" :};
+	OBJ B "dimensionaless Aeration model": Real := {: value <- 6.815 ; group <- "Aeration model" :};
+	OBJ f "fraction of the tank": Real := {: value <- 0.44 ; group <- "Aeration model" :};
+	OBJ Nd "Total diffuser number (-)": Real := {: value <- 504 ; group <- "Geometry of the tank and aerators" :};
+	OBJ SOTE "standard oxygen transfer efficiency (%)": Real := {: value <- 42 ; group <- "Operational" :};
+	OBJ Anaerobic_Volume_biological "anaerobic volume biological reactor  (mc)": Real := {: value <- 11200 ; group <- "Operational" :};
+	OBJ Anoxic_Volume_biological "anoxic volume biological reactor  (mc)": Real := {: value <- 28750 ; group <- "Operational" :};
+	OBJ Aerobic_Volume_biological "aerobic volume biological reactor  (mc)": Real := {: value <- 50100 ; group <- "Operational" :};
+	OBJ T_Average "averaging time used for the calculation of the average retention time" : Time := {: value <- 15; group <- "System" :};
+	// Power consumption and Energy FootPrint
+	OBJ P_out "Outut Pressure from the Blower (Pa)": Real := {: value <- 80000; group <- "Power consumption" :};
+	OBJ landa "costant for air (-)": Real := {: value <- 1.395 ; group <- "Power consumption" :};
+	OBJ epsilon "efficiency of the motor (-)": Real := {: value <- 0.58 ; group <- "Power consumption" :};
+	OBJ fCO2 "factor of CO2 production (-)": Real := {: value <- 0.718 ; group <- "Power consumption" :};
+	OBJ Tin "absolute inlet temperature  (K)": Real := {: value <- 293.15 ; group <- "Power consumption" :};
+	};	 
+		
+	independent <- 
+    { 
+    OBJ t "Time" : Time := {: group <- "Time" :}; 
+     };
+		
+	state <-
+    {
+	OBJ O2_rsat_average "Average oxygen saturation depending on water temperature and tank depth for fine bubble aeration (g/m³)" : Concentration := {: group <- "Characteristic of liquid and air" :};
+	OBJ p_site_variable "Vapour pressure (Pa)": Real := {: group <- "Local conditions" :};
+	OBJ MCRT "Instantaneous sludge age": Time := {: group <- "Operational" :};
+	OBJ MCRT_av "Sludge age over T": Time := {: group <- "Operational" :};
+	OBJ Alpha "alphafactor ": Real := {: group <- "Operational" :};
+	OBJ AlphaSOTE "Oxygen transfer efficiency for new fine bubble aeration in wastewater ": Real := {: group <- "Aeration" :};
+	OBJ Chi "Characteristic number (-)": Real := {: group <- "Aeration" :};
+	OBJ lgChi "Characteristic number (-)": Real := {: group <- "Aeration":};
+	OBJ Qn "Normalized air flow (-)": Real := {: group <- "Aeration" :};
+  OBJ SOTR "Standard oxygen transfer rate for fine bubble aeration (g/d)": Real := {: group <- "Aeration" :};
+	OBJ AOTR "Actual oxygen transfer rate for fine bubble aeration (g/d)": Real := {: group <- "Aeration" :};
+	OBJ AOTRspecific "Oxygen transfer for diffuser (kg/d/m2)": Real := {: group <- "Aeration" :};
+	OBJ O2_rsat "Oxygen saturation depending on water temperature (g/m3)": Real := {: group <- "Characteristic of liquid and air" :};
+	OBJ O2sat_std "Oxygen saturation depending on water depth (g/m3)": Real := {: group <- "Characteristic of liquid and air" :};
+	OBJ MRi "mole ratio of oxygen to inters in ambient air and off gas (%)": Real := {: group <- "Aeration" :};
+	OBJ MRe "mole ratio of oxygen to leave from aeration tank (%)": Real := {: group <- "Aeration" :};
+	OBJ P_depth "Pressure at the bottom of the tank (Pa)": Real := {: group <- "Characteristic of liquid and air" :};
+	OBJ OTEf "Oxygen transfer efficiency under field conditions (%)": Real := {: group <- "Aeration" :};
+	//Power consumption and Energy footprint
+	OBJ CO2 "CO2 production (kg/d)": Real := {: group <- "Power consumption" :};
+	OBJ k "costant power factor (kW/(m3/s))": Real := {: group <- "Power consumption" :};
+	OBJ Energy_consume "energy consume (kWh)": Real := {: group <- "Power consumption" :};
+	OBJ Integ_energy_consume "Integral energy consume(kWh)" : Real:= {: group <- "Power consumption" :} ;
+	OBJ Integ_emissione_CO2 "Integral CO2(kg)" : Real:= {: group <- "Power consumption" :} ;
+	OBJ Power_blowers "Power(kW)" : Real:= {: group <- "Power consumption" :};
+	};
+    
+		 
+    equations <-
+    { 
+	// Diego Rosso et al.
+	state.MCRT = (parameters.Anoxic_Volume_biological * interface.TSS_Anoxic + parameters.Anaerobic_Volume_biological * interface.TSS_Anaerobic + parameters.Aerobic_Volume_biological * interface.TSS_Aerobic)/(interface.Q_was*interface.C_was + 1);
+	DERIV(state.MCRT_av,[independent.t]) = (state.MCRT - state.MCRT_av) / parameters.T_Average;
+		state.Qn = interface.Q_air / (24*3600*(parameters.a * parameters.Nd * parameters.Depth));
+//	state.Chi = state.MCRT/state.Qn;
+       state.Chi = IF (state.Qn == 0.0)
+                   THEN 0.0
+                   ELSE state.MCRT_av/state.Qn;
+	
+//	state.lgChi = log10(state.Chi);
+       state.lgChi = IF (state.Chi == 0.0)
+                     THEN 0.0
+                     ELSE log10(state.Chi);
+//	state.AlphaSOTE = (parameters.A * log10(state.Chi) - parameters.B)/100;
+       state.AlphaSOTE = IF (state.Chi == 0.0)
+                         THEN 0.0
+                         ELSE (parameters.A * log10(state.Chi) - parameters.B)/100;
+
+	state.Alpha = state.AlphaSOTE / parameters.SOTE * 100;	
+	// Off gast test ASCE.
+	state.MRi = parameters.O2_air/100/(1 - parameters.O2_air/100 - parameters.CO2_in/100);
+	state.MRe =  state.MRi*(1-state.OTEf);
+	state.OTEf = state.AlphaSOTE * (parameters.Beta * state.O2_rsat_average - interface.O2_tank) / ( state.O2sat_std) * pow(parameters.Phi,(interface.Temp-20));
+	// Local conditions.
+	state.P_depth = parameters.Rho_sludge * parameters.g * parameters.Depth;
+	state.p_site_variable = pow(10, 0.6979 + 0.02618* interface.Temp_air)* 133.33;
+	state.O2_rsat = 14.65 - 0.41 * (interface.Temp) + 0.00799 * (interface.Temp) * (interface.Temp) - 0.0000778 * (interface.Temp) * (interface.Temp) * (interface.Temp);
+	state.O2_rsat_average = state.O2_rsat * (state.P_depth * parameters.f + interface.P_atm - state.p_site_variable)/ (parameters.P_st_atm - parameters.p_site);
+	state.O2sat_std =  parameters.O2_sat20;
+	// Oxygen Transfer and Aeration Efficiency.
+	state.SOTR =  interface.Q_air * parameters.Rho_air  * parameters.SOTE * parameters.O2_air / 10000;
+	state.AOTR = state.Alpha * state.SOTR * (parameters.Beta * state.O2_rsat_average - interface.O2_tank) /state.O2sat_std * pow(parameters.Phi,(interface.Temp-20));
+	interface.Kla = 1000 * state.AOTR/((parameters.Beta * state.O2_rsat_average - interface.O2_tank) * interface.Volume);
+	state.AOTRspecific = state.AOTR /(interface.Volume);
+	// Power consumption and Energy footprint
+	state.k = (parameters.P_st_atm * parameters.landa * parameters.Tin) / (2.73 * 100000 * parameters.epsilon * (parameters.landa - 1)) * (pow((parameters.P_out + parameters.P_st_atm)/parameters.P_st_atm,1-1/parameters.landa)-1);
+	state.Power_blowers = state.k * interface.Q_air/(24*3600);
+	state.CO2 = state.Power_blowers * parameters.fCO2;
+	DERIV(state.Integ_energy_consume, [independent.t]) = 24 * state.Power_blowers ;
+	DERIV(state.Integ_emissione_CO2, [independent.t]) = state.CO2 ;
+	};
+    :};
+
+CLASS Aeration_model
+    (* icon = "Controller" *)
+    "Aeration model"
+  
+  // This model will calculate the Kla-values that the ASM-models need. The actuator is airflow.
+  // All parameters will be explained further in the code.
+  
+    SPECIALISES
+    PhysicalDAEModelType :=
+    {:
+    comments <- "A model that calculates Kla based on airflow rate, aerator design and other parameters";
+    interface <-
+    {
+    OBJ TSS   	 (* terminal = "in_2" *) "TSS concentration in the aeration tank (g/m3)" :
+                 Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+    OBJ Kla   	 (* terminal = "out_1" *) "Calculated Kla (1/d)" :
+                 Real := {: causality <- "COUT" ; group <- "Control action" :};
+	  OBJ O2_tank  (* terminal = "in_2" *) "Actual oxygen concentration in the aeration tank (g/m³)" :
+                 Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+	  OBJ Volume   (* terminal = "in_2"; manip = "1" *) "Aeration tank volume (m³)" :
+                 Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+	  OBJ O2_rsat_average_fine   (* terminal = "out_1" *) "Average oxygen saturation depending on water temperature and tank depth for fine bubble aeration (g/m³)" :
+    			 Real := {: causality <- "COUT" ; group <- "Control action" :};
+	  OBJ DOsat   (* terminal = "out_1" *) "Average oxygen saturation depending on water temperature and tank depth for coarse bubble aeration (g/m³)" :
+    			 Real := {: causality <- "COUT" ; group <- "Control action" :};		
+	  OBJ Q_air_fine (* terminal = "in_1"; manip = "1" *) "Air flow rate of the fine bubble aerators under standard conditions (Nm³/h)":
+					 Real := {: causality <- "CIN" ; group <- "Operational" :}; 
+	  OBJ Temp (* terminal = "in_1"; manip = "1" *) "Temperature (°C)":
+					 Real := {: causality <- "CIN" ; group <- "Operational" :};
+	  OBJ P_atm (* terminal = "in_1"; manip = "1" *) "Standard atmospheric pressure (Pa)":
+					 Real := {: causality <- "CIN" ; group <- "Operational" :};
+    };
+  
+    parameters <-
+    {
+	  OBJ Depth_fine "Depth of fine bubble aerator below the watersurface (m)": Real := {: value <- 5.0 ; group <- "Operational" :};
+	  OBJ Depth_coarse "Depth of coarse bubble aerator below the watersurface (m)": Real := {: value <- 5.0 ; group <- "Operational" :};
+	  OBJ Depth_tank "Depth of aeration tank": Real := {: value <- 5.0 ; group <- "Operational" :};
+  	//OBJ P_atm "Standard atmospheric pressure (Pa)": Real := {: value <- 101325; group <- "Operational" :};
+	  OBJ Rho_sludge "Density of sludge (kg/m³)": Real := {: value <- 1020 ; group <- "Operational" :};
+	  OBJ Beta "Beta factor (-)": Real := {: value <- 0.95 ; group <- "Operational" :};
+	  OBJ Phi "Phi factor (-)": Real := {: value <- 1.024 ; group <- "Operational" :};
+	  OBJ O2_ssat "Oxygen saturation of water under standard conditions (g/m³): 1 atm, 20 °C, no salts": Real := {: value <- 9.08 ; group <- "Operational" :};
+	  OBJ F_fine "Fouling factor for fine bubble aeration (-)": Real := {: value <- 1.0 ; group <- "Operational" :};
+	  //OBJ F_coarse "Fouling factor for coarse bubble aeration (-)": Real := {: value <- 1.0 ; group <- "Operational" :};
+	  OBJ SOTE_fine "Oxygen transfer efficiency for fine bubble aeration in a standard test expressed per meter depth (-)": Real := {: value <- 0.045 ; group <- "Operational" :};
+	  //OBJ SOTE_coarse "Oxygen transfer efficiency for coarse bubble aeration in a standard test expressed per meter depth (-)": Real := {: value <- 0.015 ; group <- "Operational" :};
+	  OBJ Rho_air "Density of air at standard conditions (kg/m³)": Real := {: value <- 1.23 ; group <- "Operational" :};
+	  //OBJ Q_air_coarse "Air flow rate of the coarse bubble aerators under standard conditions (Nm³/h)": Real := {: value <- 1000 ; group <- "Operational" :};
+	  OBJ O2_air "Oxygen concentration in the atmosphere (%)": Real := {: value <- 21 ; group <- "Operational" :};
+	  OBJ g "Strength of the gravitational field (m/s³)": Real := {: value <- 9.82 ; group <- "Operational" :};
+	  OBJ Omega "Exponentional coëfficient for determining the alpha factor": Real := {: value <- 0.083 ; group <- "Operational" :};
+    OBJ O2_sat "Saturation oxygen concentration in the aeration tank as stated in BSM1 (g/m³)": Real := {: value <- 8 ; group <- "Operational" :};
+	  };	 
+		
+	  state <-
+    {
+    OBJ Alpha "Alpha factor (-)": Real := {: group <- "Operational" :};
+    OBJ SOTR_fine "Standard oxygen transfer rate for fine bubble aeration (g/d)": MassFlux := {: group <- "Operational" :};
+	  //OBJ SOTR_coarse "Standard oxygen transfer rate for coarse bubble aeration (g/d)": Real := {: group <- "Operational" :};
+    OBJ AOTR_fine "Actual oxygen transfer rate for fine bubble aeration (g/d)": MassFlux := {: group <- "Operational" :};
+	  //OBJ AOTR_coarse "Actual oxygen transfer rate for coarse bubble aeration (g/d)": Real := {: group <- "Operational" :};
+  	OBJ O2_out_fine "Concentration of oxygen in air leaving the tank with fine bubble aeration (g/m³)": Real := {: group <- "Operational" :};
+	  //OBJ O2_out_coarse "Concentration of oxygen in air leaving the tank with coarse bubble aeration (g/m³)": Real := {: group <- "Operational" :};
+	  OBJ O2_rsat "Oxygen saturation depending on water temperature (g/m3)": Real := {: group <- "Operational" :};
+	  OBJ P_depth "Pressure at the bottom of the tank (Pa)": Real := {: group <- "Operational" :};
+    };
+		 
+    equations <-
+    {
+    state.Alpha = exp((interface.TSS / 1000) * parameters.Omega * (-1));
+	  state.O2_rsat = 14.65 - 0.41 * interface.Temp + 0.00799 * interface.Temp * interface.Temp - 0.0000778 * interface.Temp * interface.Temp * interface.Temp;
+	  state.P_depth = parameters.Rho_sludge * parameters.g * parameters.Depth_tank + interface.P_atm;
+	  state.O2_out_fine = parameters.O2_air - (parameters.SOTE_fine * parameters.Depth_fine) * parameters.O2_air * state.Alpha; // rough approximation
+  	//state.O2_out_coarse = parameters.O2_air - (parameters.SOTE_coarse * parameters.Depth_coarse) * parameters.O2_air * state.Alpha; // rough approximation
+	  interface.O2_rsat_average_fine = state.O2_rsat * (state.P_depth / interface.P_atm + state.O2_out_fine / parameters.O2_air) / 2;
+	  interface.DOsat = state.O2_rsat;
+	  state.SOTR_fine = 24 * interface.Q_air_fine * parameters.Rho_air * 1000 * parameters.SOTE_fine * parameters.Depth_fine * parameters.O2_air / 100;
+  	//state.SOTR_coarse = 24 * parameters.Q_air_coarse * parameters.Rho_air * 1000 * parameters.SOTE_coarse * parameters.Depth_coarse * parameters.O2_air / 100;
+  	state.AOTR_fine = state.SOTR_fine * (parameters.Beta * interface.O2_rsat_average_fine - interface.O2_tank) / parameters.O2_ssat * pow(parameters.Phi,(interface.Temp-20)) * state.Alpha * parameters.F_fine;
+	  //state.AOTR_coarse = state.SOTR_coarse * (parameters.Beta * interface.O2_rsat_average_coarse - interface.O2_tank) / parameters.O2_ssat * pow(parameters.Phi,(parameters.Temp-20)) * state.Alpha * parameters.F_coarse;
+  	// Switch between these last two lines of code when using 8 mg/L as O2_sat or not;
+	  interface.Kla = (state.AOTR_fine) / ((interface.O2_rsat_average_fine - interface.O2_tank) * interface.Volume);
+	  //interface.Kla = (state.AOTR_fine + state.AOTR_coarse) / ((parameters.O2_sat - interface.O2_tank) * interface.Volume);
+	  };
+   :};
+	
+	CLASS Aeration_model_2
+    (* icon = "Controller" *)
+    "Aeration model with fixed alpha"
+  
+  // This model will calculate the Kla-values that the ASM-models need. The actuator is airflow.
+  // All parameters will be explained further in the code.
+  
+    SPECIALISES
+    PhysicalDAEModelType :=
+    {:
+    comments <- "A model that calculates Kla based on airflow rate, aerator design and other parameters";
+    interface <-
+    {
+   // OBJ TSS   	 (* terminal = "in_2" *) "TSS concentration in the aeration tank (g/m3)" :
+   //              Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+    OBJ Kla   	 (* terminal = "out_1" *) "Calculated Kla (1/d)" :
+                 Real := {: causality <- "COUT" ; group <- "Control action" :};
+	  OBJ O2_tank  (* terminal = "in_2" *) "Actual oxygen concentration in the aeration tank (g/m³)" :
+                 Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+	  OBJ Volume   (* terminal = "in_2"; manip = "1" *) "Aeration tank volume (m³)" :
+                 Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+	  OBJ O2_rsat_average_fine   (* terminal = "out_1" *) "Average oxygen saturation depending on water temperature and tank depth for fine bubble aeration (g/m³)" :
+    			 Real := {: causality <- "COUT" ; group <- "Control action" :};
+	  OBJ DOsat   (* terminal = "out_1" *) "Average oxygen saturation depending on water temperature and tank depth for coarse bubble aeration (g/m³)" :
+    			 Real := {: causality <- "COUT" ; group <- "Control action" :};		
+	  OBJ Q_air_fine (* terminal = "in_1"; manip = "1" *) "Air flow rate of the fine bubble aerators under standard conditions (Nm³/h)":
+					 Real := {: causality <- "CIN" ; group <- "Operational" :}; 
+	  OBJ Temp (* terminal = "in_1"; manip = "1" *) "Temperature (°C)":
+					 Real := {: causality <- "CIN" ; group <- "Operational" :};
+	  OBJ P_atm (* terminal = "in_1"; manip = "1" *) "Standard atmospheric pressure (Pa)":
+					 Real := {: causality <- "CIN" ; group <- "Operational" :};
+    };
+  
+    parameters <-
+    {
+	  OBJ Depth_fine "Depth of fine bubble aerator below the watersurface (m)": Real := {: value <- 5.0 ; group <- "Operational" :};
+	  //OBJ Depth_coarse "Depth of coarse bubble aerator below the watersurface (m)": Real := {: value <- 5.0 ; group <- "Operational" :};
+	  OBJ Depth_tank "Depth of aeration tank": Real := {: value <- 5.0 ; group <- "Operational" :};
+  	//OBJ P_atm "Standard atmospheric pressure (Pa)": Real := {: value <- 101325; group <- "Operational" :};
+	  OBJ Rho_sludge "Density of sludge (kg/m³)": Real := {: value <- 1020 ; group <- "Operational" :};
+	  OBJ Beta "Beta factor (-)": Real := {: value <- 0.95 ; group <- "Operational" :};
+	  OBJ Phi "Phi factor (-)": Real := {: value <- 1.024 ; group <- "Operational" :};
+	  OBJ O2_ssat "Oxygen saturation of water under standard conditions (g/m³): 1 atm, 20 °C, no salts": Real := {: value <- 9.08 ; group <- "Operational" :};
+	  OBJ F_fine "Fouling factor for fine bubble aeration (-)": Real := {: value <- 1.0 ; group <- "Operational" :};
+	  //OBJ F_coarse "Fouling factor for coarse bubble aeration (-)": Real := {: value <- 1.0 ; group <- "Operational" :};
+	  OBJ SOTE_fine "Oxygen transfer efficiency for fine bubble aeration in a standard test expressed per meter depth (-)": Real := {: value <- 0.045 ; group <- "Operational" :};
+	  //OBJ SOTE_coarse "Oxygen transfer efficiency for coarse bubble aeration in a standard test expressed per meter depth (-)": Real := {: value <- 0.015 ; group <- "Operational" :};
+	  OBJ Rho_air "Density of air at standard conditions (kg/m³)": Real := {: value <- 1.23 ; group <- "Operational" :};
+	  //OBJ Q_air_coarse "Air flow rate of the coarse bubble aerators under standard conditions (Nm³/h)": Real := {: value <- 1000 ; group <- "Operational" :};
+	  OBJ O2_air "Oxygen concentration in the atmosphere (%)": Real := {: value <- 21 ; group <- "Operational" :};
+	  OBJ g "Strength of the gravitational field (m/s³)": Real := {: value <- 9.82 ; group <- "Operational" :};
+	  OBJ alpha_fix "Fixed alpha factor": Real := {: value <- 0.85 ; group <- "Operational" :};
+   // OBJ O2_sat "Saturation oxygen concentration in the aeration tank as stated in BSM1 (g/m³)": Real := {: value <- 8 ; group <- "Operational" :};
+	  };	 
+		
+	  state <-
+    {
+    OBJ Alpha "Alpha factor (-)": Real := {: group <- "Operational" :};
+    OBJ SOTR_fine "Standard oxygen transfer rate for fine bubble aeration (g/d)": MassFlux := {: group <- "Operational" :};
+	  //OBJ SOTR_coarse "Standard oxygen transfer rate for coarse bubble aeration (g/d)": Real := {: group <- "Operational" :};
+    OBJ AOTR_fine "Actual oxygen transfer rate for fine bubble aeration (g/d)": MassFlux := {: group <- "Operational" :};
+	  //OBJ AOTR_coarse "Actual oxygen transfer rate for coarse bubble aeration (g/d)": Real := {: group <- "Operational" :};
+  	OBJ O2_out_fine "Concentration of oxygen in air leaving the tank with fine bubble aeration (g/m³)": Real := {: group <- "Operational" :};
+	  //OBJ O2_out_coarse "Concentration of oxygen in air leaving the tank with coarse bubble aeration (g/m³)": Real := {: group <- "Operational" :};
+	  OBJ O2_rsat "Oxygen saturation depending on water temperature (g/m3)": Real := {: group <- "Operational" :};
+	  OBJ P_depth "Pressure at the bottom of the tank (Pa)": Real := {: group <- "Operational" :};
+    };
+		 
+    equations <-
+    {
+    state.Alpha = parameters.alpha_fix;
+	  state.O2_rsat = 14.65 - 0.41 * interface.Temp + 0.00799 * interface.Temp * interface.Temp - 0.0000778 * interface.Temp * interface.Temp * interface.Temp;
+	  state.P_depth = parameters.Rho_sludge * parameters.g * parameters.Depth_tank + interface.P_atm;
+	  state.O2_out_fine = parameters.O2_air - (parameters.SOTE_fine * parameters.Depth_fine) * parameters.O2_air * state.Alpha; // rough approximation
+  	//state.O2_out_coarse = parameters.O2_air - (parameters.SOTE_coarse * parameters.Depth_coarse) * parameters.O2_air * state.Alpha; // rough approximation
+	  interface.O2_rsat_average_fine = state.O2_rsat * (state.P_depth / interface.P_atm + state.O2_out_fine / parameters.O2_air) / 2;
+	  interface.DOsat = state.O2_rsat;
+	  state.SOTR_fine = 24 * interface.Q_air_fine * parameters.Rho_air * 1000 * parameters.SOTE_fine * parameters.Depth_fine * parameters.O2_air / 100;
+  	//state.SOTR_coarse = 24 * parameters.Q_air_coarse * parameters.Rho_air * 1000 * parameters.SOTE_coarse * parameters.Depth_coarse * parameters.O2_air / 100;
+  	state.AOTR_fine = state.SOTR_fine * (parameters.Beta * interface.O2_rsat_average_fine - interface.O2_tank) / parameters.O2_ssat * pow(parameters.Phi,(interface.Temp-20)) * state.Alpha * parameters.F_fine;
+	  //state.AOTR_coarse = state.SOTR_coarse * (parameters.Beta * interface.O2_rsat_average_coarse - interface.O2_tank) / parameters.O2_ssat * pow(parameters.Phi,(parameters.Temp-20)) * state.Alpha * parameters.F_coarse;
+  	// Switch between these last two lines of code when using 8 mg/L as O2_sat or not;
+	  interface.Kla = (state.AOTR_fine) / ((interface.O2_rsat_average_fine - interface.O2_tank) * interface.Volume);
+	  //interface.Kla = (state.AOTR_fine + state.AOTR_coarse) / ((parameters.O2_sat - interface.O2_tank) * interface.Volume);
+	  };
+   :};
+
+  CLASS PI_Saturation_recB
+  (* icon = "Controller" *)
+  "PI controller with saturation"
+  SPECIALISES
+  PhysicalDAEModelType :=
+  {:
+    comments <- "A model for a proportional-integral controller with saturation";
+    interface <-
+    {
+     OBJ y_MA (* terminal = "in_1" *) "Sensor measured output" : 
+               Concentration := {: causality <- "CIN" ; group <- "Measurement data" :};
+	   OBJ y_MB (* terminal = "in_1" *) "Sensor measured output" : 
+               Concentration := {: causality <- "CIN" ; group <- "Measurement data" :};
+		 OBJ temp (* terminal = "in_2" *) "Temperature" : 
+               CelsiusTemperature := {: causality <- "CIN" ; group <- "Measurement data" :};
+     OBJ u (* terminal = "out_1" *) "Controlled variable" : 
+               FlowRate := {: causality <- "COUT" ; group <- "Control action" :};
+    };
+
+    parameters <-
+    {
+     OBJ y_SA "Setpoint value for controlled variable" : Concentration := {: value <- 3 ; group <- "Operational" :};
+     OBJ K_PA "Factor of proportionality" : Real := {: value <- 25 ; group <- "Operational" :};
+	   OBJ K_PB "Factor of proportionality" : Real := {: value <- 25 ; group <- "Operational" :};
+     OBJ T_I "Integral time" : Time := {: value <- 0.1 ; group <- "Operational" :};
+     OBJ u0A "No error action" : FlowRate := {: value <- 50 ; group <- "Operational" :};
+	   OBJ u0B "No error action" : FlowRate := {: value <- 50 ; group <- "Operational" :};
+     OBJ u_Min "Minimum control action" : FlowRate := {: value <- 0 ; group <- "Operational" :};
+     OBJ u_Max "Maximum control action" : FlowRate := {: value <- 1000 ; group <- "Operational" :};
+	   OBJ switch "1=A, 2=B, 0=min(A,B)" : Real := {: value <- 0 ; group <- "Operational" :};
+		 OBJ temp1 "temp1" : CelsiusTemperature := {: value <- 11 ; group <- "Operational" :};
+		 OBJ temp2 "temp2" : CelsiusTemperature := {: value <- 12 ; group <- "Operational" :};
+		 OBJ temp3 "temp3" : CelsiusTemperature := {: value <- 13 ; group <- "Operational" :};
+		 OBJ temp4 "temp4" : CelsiusTemperature := {: value <- 14 ; group <- "Operational" :};
+		 OBJ temp5 "temp5" : CelsiusTemperature := {: value <- 15 ; group <- "Operational" :};
+		 OBJ temp6 "temp6" : CelsiusTemperature := {: value <- 16 ; group <- "Operational" :};
+		 OBJ temp7 "temp7" : CelsiusTemperature := {: value <- 17 ; group <- "Operational" :};
+		 OBJ temp8 "temp8" : CelsiusTemperature := {: value <- 18 ; group <- "Operational" :};
+		 OBJ NO3_1 "NO3 1" : Concentration := {: value <- 11.8 ; group <- "Operational" :};
+		 OBJ NO3_2 "NO3 2" : Concentration := {: value <- 11 ; group <- "Operational" :};
+		 OBJ NO3_3 "NO3 3" : Concentration := {: value <- 10.8 ; group <- "Operational" :};
+		 OBJ NO3_4 "NO3 4" : Concentration := {: value <- 10.5 ; group <- "Operational" :};
+		 OBJ NO3_5 "NO3 5" : Concentration := {: value <- 10.2 ; group <- "Operational" :};
+		 OBJ NO3_6 "NO3 6" : Concentration := {: value <- 3.3 ; group <- "Operational" :};
+		 OBJ NO3_7 "NO3 7" : Concentration := {: value <- 2.4 ; group <- "Operational" :};
+		 OBJ NO3_8 "NO3 8" : Concentration := {: value <- 2.2 ; group <- "Operational" :};
+		 OBJ NO3_9 "NO3 9" : Concentration := {: value <- 2.1 ; group <- "Operational" :};
+    };
+
+    independent <- 
+    { 
+     OBJ t "Time" : Time := {: group <- "Time" :}; 
+    };
+
+    state <-
+    {
+     OBJ eA "Error" : PhysicalQuantityType := {: group <- "Operational" :};
+     OBJ Integ_eA "Integral of error": PhysicalQuantityType := {: group <- "Operational" :};
+     OBJ uhelpA (* hidden = "1" *) "Help variable to calculate the proportional-integral control action" : Real;
+	   OBJ uA (* hidden = "0" *) "" : FlowRate;
+	   OBJ eB "Error" : PhysicalQuantityType := {: group <- "Operational" :};
+     OBJ Integ_eB "Integral of error": PhysicalQuantityType := {: group <- "Operational" :};
+     OBJ uhelpB (* hidden = "1" *) "Help variable to calculate the proportional-integral control action" : Real;
+	   OBJ y_SB (* hidden = "0" *) "Setpoint value for controlled variable" : Concentration;
+	   OBJ uB (* hidden = "0" *) "" : FlowRate;
+	     };
+
+    equations <-
+    {
+     state.eA = parameters.y_SA - interface.y_MA;
+
+     DERIV(state.Integ_eA, [independent.t]) = state.eA ;
+
+     state.uhelpA = parameters.u0A + parameters.K_PA * (state.eA + (1 / parameters.T_I) * state.Integ_eA); 
+
+     state.uA = IF(state.uhelpA < parameters.u_Min)
+                THEN (parameters.u_Min)
+                ELSE IF (state.uhelpA > parameters.u_Max)
+                     THEN parameters.u_Max
+                     ELSE state.uhelpA;
+	
+	   state.y_SB = IF(interface.temp < parameters.temp1)
+	 			 			  THEN parameters.NO3_1
+				  			  ELSE IF(interface.temp < parameters.temp2) 
+					  					 THEN parameters.NO3_2
+				      				 ELSE IF(interface.temp < parameters.temp3) 
+					      			 		 THEN parameters.NO3_3
+				          					ELSE IF(interface.temp < parameters.temp4) 
+					          						 THEN parameters.NO3_4
+				             					  ELSE IF(interface.temp < parameters.temp5) 
+					              							THEN parameters.NO3_5
+				                  						ELSE IF(interface.temp < parameters.temp6) 
+					                  							 THEN parameters.NO3_6
+				                     						  ELSE IF(interface.temp < parameters.temp7) 
+					                      							  THEN parameters.NO3_7
+				                          							ELSE IF(interface.temp < parameters.temp8) 
+					                          								 THEN parameters.NO3_8
+				                              							 ELSE parameters.NO3_9;
+					 
+	   state.eB = state.y_SB - interface.y_MB;
+
+     DERIV(state.Integ_eB, [independent.t]) = state.eB ;
+
+     state.uhelpB = parameters.u0B + parameters.K_PB * (state.eB + (1 / parameters.T_I) * state.Integ_eB); 
+
+     state.uB = IF(state.uhelpB < parameters.u_Min)
+                THEN (parameters.u_Min)
+                ELSE IF (state.uhelpB > parameters.u_Max)
+                     THEN parameters.u_Max
+                     ELSE state.uhelpB;				
+	 
+	   interface.u = IF (parameters.switch == 1)
+	 			   			 THEN state.uA
+				   				ELSE IF (parameters.switch == 2)
+					   					 THEN state.uB
+					   					 ELSE IF (state.uB < state.uA)
+	 			   				 				THEN state.uB
+				   				 				 ELSE state.uA;
+				   
+    };
+  :};
+
+ CLASS effluent_aeration
+ (* icon = "River_aeration" *)
+ "A dosing unit model"
+ SPECIALISES PhysicalDAEModelType :=
+ {:
+
+  interface <-
+  {
+   OBJ Outflow (* terminal = "out_1" *) "Outflow" :
+  	  OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent" :};
+	 OBJ Q_Dose (* terminal = "in_1" *) "Flowrate of the solution" :
+  	  FlowRate := {: causality <- "CIN" ; group <- "Operational" :};
+  };
+
+  parameters <-
+  {
+  OBJ WWTPSpecificVolume (* hidden = "1" *) "The specific volumes (= 1/density) of the components"
+        : SpecificVolumeVector;
+  OBJ C_Dose "Concentration of the solution" : 
+   	   Concentration := {: value <- 1000000 ; group <- "Concentration" :};
+  OBJ MW (* hidden = "1" *) "Molecular weight of the chemical species dosed"
+   	    : Real := {: group <- "System" :};
+  };
+
+  independent <-
+  {
+  OBJ t "Time": Time := {: group <- "Time" :};
+  };
+
+  initial <-
+  {
+  parameters.WWTPSpecificVolume[IndexOfSolvent] := 0.000001;
+  };
+  
+    state <-
+    {
+	OBJ DO_flux : MassFlux := {: group <- "Operational" :};
+	OBJ DO_mass : Mass := {: group <- "Operational" :};
+   	  };
+
+  equations <-
+  {
+  interface.Outflow[IndexOfSolvent] = - interface.Q_Dose
+   		/ parameters.WWTPSpecificVolume[IndexOfSolvent];
+  interface.Outflow[S_O] = - interface.Q_Dose * parameters.C_Dose;
+  state.DO_flux = interface.Q_Dose * parameters.C_Dose;
+  DERIV(state.DO_mass, [independent.t]) = state.DO_flux ;
+  };
+
+ :};
+
+ CLASS in_stream_aeration
+ (* icon = "River_aeration" *)
+ "A dosing unit model"
+ SPECIALISES PhysicalDAEModelType :=
+ {:
+
+  interface <-
+  {
+   OBJ Outflow (* terminal = "out_1" *) "Outflow" :
+  	  OutRivTerminal := {: causality <- "COUT" ; group <- "Effluent" :};
+	 OBJ Q_Dose (* terminal = "in_1" *) "Flowrate of the solution" :
+  	  FlowRate := {: causality <- "CIN" ; group <- "Operational" :};
+  };
+
+  parameters <-
+  {
+  OBJ WWTPSpecificVolume (* hidden = "1" *) "The specific volumes (= 1/density) of the components"
+        : SpecificVolumeVector;
+  OBJ C_Dose "Concentration of the solution" : 
+   	   Concentration := {: value <- 1000000 ; group <- "Concentration" :};
+  OBJ MW (* hidden = "1" *) "Molecular weight of the chemical species dosed"
+   	    : Real := {: group <- "System" :};
+  };
+
+  independent <-
+  {
+  OBJ t "Time": Time := {: group <- "Time" :};
+  };
+
+  initial <-
+  {
+  parameters.WWTPSpecificVolume[IndexOfSolvent] := 0.000001;
+  };
+  
+    state <-
+    {
+	OBJ DO_flux : MassFlux := {: group <- "Operational" :};
+	OBJ DO_mass : Mass := {: group <- "Operational" :};
+   	  };
+
+  equations <-
+  {
+  interface.Outflow[IndexOfSolvent] = - interface.Q_Dose
+   		/ parameters.WWTPSpecificVolume[IndexOfSolvent];
+  interface.Outflow[rO2] = - interface.Q_Dose * parameters.C_Dose;
+  state.DO_flux = interface.Q_Dose * parameters.C_Dose;
+  DERIV(state.DO_mass, [independent.t]) = state.DO_flux ;
+  };
+
+ :};
+
+  CLASS Operator
+    (* icon = "Controller" *)
+    "P controller with saturation"
+  
+  // Purpose:	
+  // Limit excursion of a signal.	
+  // Description:	
+  // block mimicking the behaviour of an operator
+  // between the set point limits the operator does nothing
+  // outside the set point limits the operator acts proportional to the error
+  // the actions are limited by the saturation limits (physical constraints)
+  
+  
+    SPECIALISES
+    PhysicalDAEModelType :=
+    {:
+      comments <- "A model for a proportional controller with saturation";
+      interface <-
+      {
+        OBJ y_M (* terminal = "in_1" *) "Sensor measured output" : 
+                 Concentration := {: causality <- "CIN" ; group <- "Measurement data" :};
+		    OBJ y_S_Lower (* terminal = "in_2" *) "Lower limit setpoint value for controlled variable" : 
+                 Concentration := {: causality <- "CIN" ; group <- "Operational" :};
+		    OBJ y_S_Upper (* terminal = "in_2" *) "Upper limit setpoint value for controlled variable" : 
+                 Concentration := {: causality <- "CIN" ; group <- "Operational" :};
+        OBJ u (* terminal = "out_1" *) "Controlled variable" : 
+                 FlowRate := {: causality <- "COUT" ; group <- "Control action" :};
+      };
+  
+      parameters <-
+      {
+       OBJ K_P " Factor of proportionality" : Real := {: value <- 1 ; group <- "Operational" :};
+       OBJ u0 "No error action" : FlowRate := {: value <- 1 ; group <- "Operational" :};
+       OBJ u_Min "Minimum control action" : FlowRate := {: value <- 0 ; group <- "Operational" :};
+       OBJ u_Max "Maximum control action" : FlowRate := {: value <- 1000 ; group <- "Operational" :};
+       // u_Max >= u_Min
+       OBJ t_win "Control window" : Time := {: value <- 0.04166666667 ; group <- "Operational" :};
+	     OBJ t_ini "Initial time" : Time := {: value <- 0 ; group <- "Control" :};
+	     OBJ gain "Multiplyer of set-points, for GSA" : Real := {: value <- 1 ; group <- "Operational" :};
+      };
+  
+      independent <- 
+      { 
+      OBJ t "Time" : Time := {: group <- "Time" :}; 
+      };
+  
+      state <-
+      {
+       OBJ uhelp (* hidden = "0" *) "Help variable to calculate the proportional control action" : Real;
+	     OBJ uhelp_h (* hidden = "0" *) "Help variable to calculate the proportional control action" : Real;
+       OBJ Prev_t (* hidden = "0" *) "Help variable to calculate the begin of each period" : Time ;
+      };
+  
+      initial <-
+      {
+      state.Prev_t = parameters.t_ini;
+      };
+   
+      equations <-
+      {
+  
+       state.Prev_t = IF	(independent.t - previous(state.Prev_t) < (parameters.t_win))
+  			 	 				 THEN previous(state.Prev_t)
+  			 						ELSE previous(state.Prev_t) + parameters.t_win;
+  
+       state.uhelp_h = IF (previous(state.uhelp) < 0)
+  	 			   				 THEN 0
+  				   					ELSE IF (independent.t - previous(state.Prev_t) < parameters.t_win)
+  	 			   	 					 THEN previous(state.uhelp)
+  				   	 						ELSE IF(interface.y_M < interface.y_S_Lower * parameters.gain)
+                     	   			 THEN previous(state.uhelp) - parameters.K_P * (interface.y_S_Lower * parameters.gain - interface.y_M)
+                     	   			 ELSE IF (interface.y_M > interface.y_S_Upper * parameters.gain)
+                         	 				  THEN previous(state.uhelp) + parameters.K_P * (interface.y_M - interface.y_S_Upper * parameters.gain)
+                         	 					ELSE previous(state.uhelp);
+  
+      state.uhelp = IF(state.uhelp_h < parameters.u_Min)
+                    THEN (parameters.u_Min)
+                    ELSE IF (state.uhelp_h > parameters.u_Max)
+                      	 THEN parameters.u_Max
+                        ELSE state.uhelp_h;
+					   
+	    interface.u = state.uhelp;
+     };
+  
+   :};

@@ -1,0 +1,85 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 23. marts 2012 12:41:32$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_BASE_SBR_SBRPOINTSETTLER3PHASEREACT
+#define WWTP_BASE_SBR_SBRPOINTSETTLER3PHASEREACT
+
+#ifdef StandardCategoryModels
+CLASS SBRPointsettler3PhaseReact
+ (* icon = "sbr"; is_default = "" *)
+ EXTENDS SBRPointsettler WITH
+  {:
+  interface <-  
+   {
+     OBJ T2R1 (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Period for the reaction phase 1" : Time 
+       := {: causality <- "CIN" ; value <- 0.05; group <- "Operational":};
+     OBJ T2R2 (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Period for the reaction phase 2" : Time 
+       := {: causality <- "CIN" ; value <- 0.05; group <- "Operational":};
+     OBJ T2R3 (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Period for the reaction phase 3" : Time 
+       := {: causality <- "CIN" ; value <- 0.05; group <- "Operational":};
+     OBJ Kla_Launch (* terminal = "in_2"; manip = "1" *) "Oxygen transfer coefficient during the launch time of the SBR" : OxygenTransferCoefficient 
+     := {: causality <- "CIN" ; value <- 0; group <- "Operational":}; 
+     OBJ Kla_Fill (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Oxygen transfer coefficient during the filling period of the SBR" : OxygenTransferCoefficient 
+     := {: causality <- "CIN" ; value <- 0; group <- "Operational":}; 
+     OBJ Kla_React1 (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Oxygen transfer coefficient for the reaction phase 1" : OxygenTransferCoefficient 
+     := {: causality <- "CIN" ; value <- 50 ; group <- "Operational" :};   
+     OBJ Kla_React2 (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Oxygen transfer coefficient for the reaction phase 2" : OxygenTransferCoefficient 
+     := {: causality <- "CIN" ; value <- 0 ; group <- "Operational" :};   
+     OBJ Kla_React3 (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Oxygen transfer coefficient for the reaction phase 3" : OxygenTransferCoefficient 
+     := {: causality <- "CIN" ; value <- 50 ; group <- "Operational" :};   
+   };   
+  
+  parameters <-
+    { 
+     };
+ 
+ state <-
+    {
+     };
+  
+  initial <-
+    {
+    };
+  
+  equations <- 
+    {
+    state.T2 = interface.T2R1 + interface.T2R2 + interface.T2R3 ;
+ 
+      //assigning the Kla in the launch, fill and reaction phases. note that the outside reaction phase, Kla is set by default to zero.
+      
+       state.Kla_Actual =
+          IF  (independent.t < interface.T_Launch )
+        THEN interface.Kla_Launch 
+          ELSE
+            IF ((independent.t - state.t_Begin) < interface.T1)
+          THEN interface.Kla_Fill 
+          ELSE 
+            IF ((independent.t - state.t_Begin)<(interface.T2R1 + interface.T1))
+            THEN interface.Kla_React1 
+            ELSE 
+                IF ((independent.t - state.t_Begin)<(interface.T2R1 + interface.T2R2 + interface.T1))
+              THEN interface.Kla_React2
+              ELSE  
+                  IF ((independent.t - state.t_Begin)<(state.T2 + interface.T1))
+              THEN interface.Kla_React3
+                  ELSE 0; 
+            
+    };
+    
+    :};
+#endif // StandardCategoryModels
+
+#endif // WWTP_BASE_SBR_SBRPOINTSETTLER3PHASEREACT

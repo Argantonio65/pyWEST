@@ -1,0 +1,72 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 23. april 2012 08:05:08$
+ *
+ ******************************************************************************/
+
+#ifndef N_TANKS_FIXVOLUMETHREETANK
+#define N_TANKS_FIXVOLUMETHREETANK
+
+CLASS  FixVolumeThreeTank
+EXTENDS FixVolumeTwoTank WITH
+{:
+
+ sub_models <-
+ {
+
+  OBJ ASU3 : FixVolumeASU,
+ };
+
+ interface <-
+ {
+  OBJ Kla3 (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Oxygen transfer coefficient in ASU3" : OxygenTransferCoefficient := {: causality <- "CIN" ; value <- 0 ; group <- "Operational" :};   
+  OBJ AerationEnergy3 (* terminal = "out_2" *)"Aeration energy for ASU3" : ElectricalEnergy := {: causality <- "COUT"; group <- "Energy" :};
+  OBJ MixingEnergy3 (* terminal = "out_2" *)"Mixing energy for ASU3" : ElectricalEnergy := {: causality <- "COUT"; group <- "Energy" :};
+#define ASU_THREE_TANK
+#include "activated_sludge_unit/wwtp.n_tanks_interface.msl"
+#undef ASU_THREE_TANK
+ };
+
+ parameters <-  
+ {
+  OBJ Vol3 (* is_favorite = "1" *) "Volume of ASU3" : Volume := {: value <- 1000 ; group <- "Dimension" :};   
+  }; 
+
+ coupling <-
+ {
+  // parameter coupling
+  sub_models.ASU3.parameters.Vol.value := parameters.Vol3.value,
+ #define ASU_THREE_TANK 
+#include"activated_sludge_unit/wwtp.n_tanks_parameters_coupling.msl"
+#include "activated_sludge_unit/wwtp.n_tanks_sensor_coupling.msl"
+ #undef ASU_THREE_TANK
+
+#if (defined ASM1Temp || defined ASM2dModTemp || defined ASM3Temp || defined ASM3P_EAWAG)
+  sub_models.ASU3.parameters.Temp_Ref.value := parameters.Temp_Ref.value,
+#endif // ASM1Temp or ASM2dModTemp or ASM3Temp or ASM3P_EAWAG
+
+  // sub-model coupling
+
+  connect(sub_models.ASU2.interface.Outflow, sub_models.ASU3.interface.Inflow),
+  connect(interface.Kla3, sub_models.ASU3.interface.Kla),
+  connect(sub_models.ASU3.interface.AerationEnergy, interface.AerationEnergy3),
+  connect(sub_models.ASU3.interface.MixingEnergy, interface.MixingEnergy3),
+#if (defined ASM1Temp || defined ASM2dModTemp || defined ASM3Temp || defined ASM3P_EAWAG)
+  connect(interface.Temp, sub_models.ASU3.interface.Temp),
+#endif // ASM1Temp or ASM2dModTemp or ASM3Temp or ASM3P_EAWAG
+
+ };
+:};
+
+#endif // N_TANKS_FIXVOLUMETHREETANK
+

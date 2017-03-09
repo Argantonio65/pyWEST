@@ -1,0 +1,172 @@
+// ------------------------------------------------------------------------------------------
+//  HEMMIS - University of Gent, BIOMATH
+//  Implementation: Veerle De Schepper, Lorenzo Benedetti, Veerle Gevaert, Peter Vanrolleghem
+//  Description: MSL-USER/WWTP/Base definitions
+// ------------------------------------------------------------------------------------------ 
+
+#ifndef RIVER_BASE
+#define RIVER_BASE
+
+
+ CLASS RivAtomicModel
+ "
+  A generic atomic WWTP model.
+  Only specifies mass balances (mass variation is
+  sum of biological mass fluxes (bioflux, with incoming = 
+  positive sign, outgoing = negative sign) and a generic 
+  conversion term (only declared here. Has to be specified 
+  later).
+ "
+ SPECIALISES PhysicalDAEModelType :=
+ {:
+  
+  
+  parameters <-
+   {
+
+ /* OBJ RivSpecificVolume (* hidden = "1" *)
+    "Vector containing the specific volume (= 1/density) for all the components"
+    : RivSpecificVolumeVector;*/
+	OBJ T_conv "Time conversion factor from days to second": Real:={:value<- 86400:};
+
+   };
+
+     initial <-
+    {
+   // parameters.RivSpecificVolume[rH2O] := 0.000001;
+    };
+
+  independent <- { OBJ t "Time"  : Time; };
+
+  state <-
+   {
+    OBJ M "Vector containing masses for all the components" : RivMassVector;
+    OBJ FluxPerComponent (* hidden = "1" *) "Vector containing fluxes for all the components, the sum of all incoming and outgoing fluxes" : RivMassFluxVector;
+    OBJ InFluxPerComponent (* hidden = "1" *) "Vector containing incoming fluxes for all the components": RivMassFluxVector;
+    OBJ ConversionTermPerComponent (* hidden = "1" *) "Vector containing conversionterms for all the components": RivMassFluxVector;
+    OBJ Q_In "Influent flow rate" : FlowRate ;
+    OBJ Q_Out "Effluent flow rate" : FlowRate ;
+
+   };
+
+  equations <-
+   {
+
+    
+
+   }; 
+ :};
+
+ 
+//===================================================================
+//==============================RivAtomicModelWithoutVolume=========
+//===================================================================
+
+ CLASS RivAtomicModelWithoutVolume 
+ SPECIALISES PhysicalDAEModelType :=
+ {:
+  parameters <-
+   {
+   /* OBJ RivSpecificVolume (* hidden = "1" *)
+    "Vector containing the specific volume (= 1/density) for all the components"
+    : RivSpecificVolumeVector;*/
+   };
+
+  initial <-
+   {
+   // parameters.RivSpecificVolume[rH2O] := 0.000001;
+   };
+
+  independent <- 
+  { 
+    OBJ t "Time"  : Time := {: group <- "Time" :}; 
+   };
+   
+  state <-
+   {
+    OBJ InFluxPerComponent (* hidden = "1" *) "Vector containing incoming fluxes for all components" : RivMassFluxVector;
+    OBJ Q_In "Influent flow rate" : FlowRate := {: group <- "Operational" :};
+   };
+
+   equations <-
+   {
+     { FOREACH Comp_Index IN {1 .. RivNrOfComponents}:
+        state.InFluxPerComponent[Comp_Index] =
+         SUMOVER In_RivTerminal IN {SelectByType(interface,InRivTerminal)}:
+         (In_RivTerminal[Comp_Index]);
+     };
+
+     {state.Q_In = (0.000001
+                  * state.InFluxPerComponent[rH2O]);
+     };
+
+   };
+ :};
+
+
+//=================================================================
+//===============================RivAtomicModelWithVolume=========
+//=================================================================
+
+
+ CLASS RivAtomicModelWithVolume EXTENDS RivAtomicModel WITH
+ {:
+
+   state <-
+    {
+      OBJ V "Volume" : Volume;
+      OBJ C "Vector containing concentrations for all the components" : RivConcentrationVector; 
+    };
+
+   equations <-
+    {
+     // volume and conc equations are calculated
+     // specific to fixed or variable volume
+    };
+
+ :};
+
+//======================================================================
+//===========================RivAtomicModelWithVariableVolume==========
+//======================================================================
+
+ CLASS RivAtomicModelWithVariableVolume
+ EXTENDS RivAtomicModelWithVolume WITH
+ {:
+
+  interface <-
+   {
+     OBJ Inflow1 (* terminal = "in_1" *) "Inflow" : 
+         InRivTerminal := {: causality <- "CIN" :};
+	 OBJ Inflow2 (* terminal = "in_2" *) "Inflow" : 
+         InRivTerminal := {: causality <- "CIN" :};
+     OBJ Outflow (* terminal = "out_1" *)"Outflow" : 
+         OutRivTerminal := {: causality <- "COUT" :};
+   };
+
+  parameters <-
+   {
+
+   };
+
+  state <-
+   {
+
+   };
+   
+initial <-{};
+   
+equations <-{};
+   :};
+
+ CLASS RivVarVolumeConversionModel EXTENDS RivAtomicModelWithVariableVolume WITH
+ {:
+ #include "river.VolumeConversionModel_Duflow_simple.body.msl"
+ :};
+
+ #include "river.Volume_Duflow_simple.msl"
+ #include "river.Volume_Muskingum.msl"
+ #include "river.Volume_MuskingumCungeTodini.msl"
+ #include "river.Volume_MuskingumVariableParametersPrice2013.msl"
+// #include "river.Volume_MuskingumVariableParametersPrice2013TESTING.msl"
+ #endif RIVER_BASE

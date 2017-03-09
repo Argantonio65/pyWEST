@@ -1,0 +1,261 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 2$
+ * $Date: 27. juli 2012 11:47:40$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_BASE_PRIMARY_CLARIFIER_PRIMARYOTTERPOHLFREUND
+#define WWTP_BASE_PRIMARY_CLARIFIER_PRIMARYOTTERPOHLFREUND
+
+#if (defined ASM1Temp || defined ASM2dModTemp || defined ASM3Temp || defined ASM3P_EAWAG)
+ CLASS PrimaryOtterpohlFreund
+ (* icon = "primary_clarifier" *)
+ "Otterpohl & Freund model for primary clarifiers"
+
+// The model of Otterpohl and Freund (1992) for primary clarifiers is based on
+// the assumption that a certain removal efficiency for particulate material
+// is reached. The removal of particulate matter for the waste water is depending
+// on the hydraulic residence time. Sierp (1967) measured the efficiency of
+// primary clarifiers on BOD removal. He developed an empirical curve, which can
+// also be used for COD removal. This curve can be approximate by the function :
+//
+// Eff_COD = alfa * ( log ( ( V / Q_In ) * ( V / Q_In ) ) + beta ) ;
+// with :  alfa = 2.7
+//           beta = 9
+//
+// This gives Eff_COD as a percent of the total COD in the influent which is
+// removed by the primary clarifier. Division by 100 gives a value between
+// 0 en 1.
+//
+// Because the underflow of a primary clarifier also contains soluble COD,
+// this has to be accounted for. Eff_X = Eff_COD * ( CODt / CODpart ) in the underflow.
+// In this model all COD removed is assumed to be particulate COD.
+//
+// The volume used in this model (parameters.V_Clar
+// The dilution of all fractions of the waste water is according to the water
+// volume present in the tank. It is assumed that there is no biological activity
+// in the primary clarifier.
+//
+//Literature :
+//o  Otterpohl R. & Freund M. (1992), Dynamic models for clarifiers of
+// activated sludge plants with dry and wet weather flows, Wat. Sci. Tech.,
+// 26 (5-6), 1391-1400.
+//
+//o  Sierp F. (1967), Die gewerblichen und industriellen Abwasser,
+// Springer-Verlag, Berlin, Heidelberg, New York.
+//
+
+ EXTENDS WWTPAtomicModelWithoutVolume WITH
+ {:
+   comments <- "A model for a primary settler by Otterpohl and Freund";
+   interface <-
+   { 
+    OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+         InWWTPTerminal := {: causality <- "CIN" ; group <- "Influent" :};
+    OBJ Outflow (* terminal = "out_1" *) "Overflow" : 
+         OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent" :};
+    OBJ Underflow (* terminal = "out_2" *) "Underflow" : 
+         OutWWTPTerminal := {: causality <- "COUT" ; group <- "Underflow" :};
+    OBJ Q_Under (* terminal = "in_2"; manip = "1"; is_favorite = "true" *) "Underflow rate" : 
+    FlowRate := {: causality <- "CIN" ; value <- 10 ; group <- "Operational" :};  
+   OBJ PumpingEnergy (* terminal = "out_3" *)"Pumping energy" : ElectricalEnergy := {: causality <- "COUT"; group <- "Energy" :};
+   };
+
+  parameters <- 
+   { 
+    OBJ F_TSS_COD "Fraction TSS/COD" : Fraction := {: value <- 0.75 ; group <- "Conversion factors" :};
+    OBJ alfa "Otterpohl and Freund function constant" : PhysicalQuantityType := 
+        {: 
+          value <- 2.7;
+      group <- "Settling";
+          interval  <- {: lowerBound <- 0; :};
+        :};
+    OBJ beta "Otterpohl and Freund function constant" : PhysicalQuantityType := 
+        {:
+          value <- 9;
+      group <- "Settling";
+          interval  <- {: lowerBound <- 0; :};
+        :};
+   // note that the volume used here is intended ONLY to be used in the
+   // calculation of Eff_COD and is NOT based on any mass balance
+   // hence, it is declared as a parameter
+    OBJ V_Clar (* is_favorite = "true" *) "Volume of the clarifier" : Volume := {: value <- 500 ; group <- "Dimension" :};
+// PUMPING ENERGY
+    OBJ F_Energy_FlowRate "Conversion factor Energy needed/Pump flow rate" : Ratio := {: value <- 0.04 ; group <- "Energy":};
+   };
+
+  state <-
+   {
+    OBJ Q_Out (* is_favorite = "true" *) "Effluent flow rate" : FlowRate := {: group <- "Operational" :};
+    OBJ Q_Under_Actual (* is_favorite = "true" *) "Actual underflow rate" : FlowRate := {: group <- "Operational" :};
+    OBJ Help_X_In (* hidden = "1" *) "" : MassFlux;
+    OBJ Help_X_Out (* hidden = "1" *) "" : MassFlux;
+    OBJ Help_X_Under (* hidden = "1" *) "" : MassFlux;
+    OBJ Eff_COD "Efficiency of COD removal" : PhysicalQuantityType := {: group <- "Settling" :};
+    OBJ Eff_X_COD "Efficiency of particulate COD removal" :     PhysicalQuantityType := {: group <- "Settling" :};
+    OBJ COD "Total COD in the clarifier influent" : MassFlux := {: group <- "Influent characterization" :};
+    OBJ X_COD "Particulate COD in the clarifier influent" : MassFlux := {: group <- "Influent characterization" :};
+    OBJ X_In (* is_favorite = "true" *) "Influent suspended solids concentration" : Concentration := {: group <- "Concentration" :};
+    OBJ X_Out (* is_favorite = "true" *) "Effluent suspended solids concentration" : Concentration := {: group <- "Concentration" :};
+    OBJ X_Under (* is_favorite = "true" *) "Underflow suspended solids concentration" : Concentration := {: group <- "Concentration" :};
+    OBJ f_Out (* hidden = "1" *) "Fraction of the influent waterflux going to the Overflow" : Fraction ;
+// PUMPING ENERGY
+    OBJ Integ_PE (* hidden = "1" *)"Integral Pumping energy" : ElectricalEnergy ;
+   };
+
+  equations <-
+   {
+
+    state.Q_Under_Actual = IF (state.Q_In <= interface.Q_Under)
+           THEN state.Q_In
+           ELSE interface.Q_Under; 
+
+    state.Q_Out = state.Q_In - state.Q_Under_Actual;
+
+#if (defined ASM1Temp)
+    {state.COD = 
+              state.X_COD
+              +interface.Inflow[S_I] + interface.Inflow[S_S] ;
+     };
+
+     {state.X_COD = 
+      (SUMOVER Comp_Index IN {IndexOfFirstTSSComponent .. IndexOfLastTSSComponent}: (interface.Inflow[Comp_Index]));
+     };
+#endif //ASM1Temp
+
+#if (defined ASM2dModTemp)
+    {state.COD = 
+            state.X_COD 
+            + interface.Inflow[S_I] + interface.Inflow[S_F]+ interface.Inflow[S_A] ;
+     };
+
+     {state.X_COD = (interface.Inflow[X_S] + interface.Inflow[X_I]
+           + interface.Inflow[X_AUT] + interface.Inflow[X_H] 
+           + interface.Inflow[X_PAO] + interface.Inflow[X_PHA]);
+     };
+#endif // ASM2dModTemp
+
+#if (defined ASM3Temp)
+    state.COD = state.X_COD + interface.Inflow[S_I] + interface.Inflow[S_S] ;
+    {state.X_COD = (SUMOVER Comp_Index IN {X_I .. X_A}: (interface.Inflow[Comp_Index])) ; };
+#endif // ASM3Temp
+
+#ifdef ASM3P_EAWAG
+    state.COD = state.X_COD + interface.Inflow[S_I] + interface.Inflow[S_S] ;
+    state.X_COD = ( interface.Inflow[X_I] + interface.Inflow[X_A] + interface.Inflow[X_H] + interface.Inflow[X_PAO]
+		+ interface.Inflow[X_PHA]+ interface.Inflow[X_STO] + interface.Inflow[X_S]);
+#endif // ASM3P_EAWAG
+
+    state.Eff_COD =   IF ( state.Q_In == 0)
+            THEN 1
+            ELSE  parameters.alfa * 0.01 *
+               ( log ( pow(24 * parameters.V_Clar/state.Q_In,2) ) + parameters.beta ) ;
+
+    state.Eff_X_COD = IF (state.X_COD == 0)
+              THEN 0
+          ELSE state.Eff_COD * state.COD / state.X_COD ;
+
+     // Soluble components (including water itself) are splitted into the two
+     // streams (effluent and underflow)
+
+    state.f_Out = IF (state.Q_In <= interface.Q_Under)
+      THEN 0
+      ELSE (state.Q_In - interface.Q_Under) / state.Q_In ;
+
+    {FOREACH Comp_Index IN {IndexOfSolvent .. IndexOfLastSolubleComponent}:
+      interface.Outflow[Comp_Index] =
+      - state.InFluxPerComponent[Comp_Index] * state.f_Out ;};
+
+    {FOREACH Comp_Index IN {IndexOfSolvent .. IndexOfLastSolubleComponent}:
+     interface.Underflow[Comp_Index] = - (state.InFluxPerComponent[Comp_Index]
+     + interface.Outflow[Comp_Index]) ;};
+
+    // particulate components
+     // Outflow = Q_Out * X_Out = a flux 
+     //         = Q_Out * (1 - Eff_XCOD) * X_i
+     //         = Q_Out *  (1 - Eff_XCOD) * Inflow / Q_In
+     //         = Inflow * Q_Out / Q_In * (1 - Eff_XCOD)  ==> see equations below
+     // Underflow = Inflow - Outflow
+
+    {FOREACH Comp_Index IN {IndexOfFirstParticulateComponent .. IndexOfLastParticulateComponent}:
+      interface.Outflow[Comp_Index] =
+      - state.InFluxPerComponent[Comp_Index] * state.f_Out * 
+        (1 - state.Eff_X_COD) ;};   
+
+    {FOREACH Comp_Index IN {IndexOfFirstParticulateComponent .. IndexOfLastParticulateComponent}:
+     interface.Underflow[Comp_Index] = - (state.InFluxPerComponent[Comp_Index] 
+     + interface.Outflow[Comp_Index]);};
+
+#ifdef CalculateTSSComponent
+
+    state.Help_X_In = (SUMOVER Comp_Index IN {IndexOfFirstTSSComponent .. IndexOfLastTSSComponent}:
+                     (interface.Inflow[Comp_Index]));
+
+    {state.X_In = IF (state.Q_In == 0)
+      THEN 0
+      ELSE state.Help_X_In / state.Q_In * parameters.F_TSS_COD;
+     };
+
+      state.Help_X_Out = (SUMOVER Comp_Index IN {IndexOfFirstTSSComponent .. IndexOfLastTSSComponent}: (- interface.Outflow[Comp_Index]));
+    {
+      state.X_Out = IF (state.Q_In <= interface.Q_Under)
+        THEN 0
+        ELSE state.Help_X_Out * parameters.F_TSS_COD / (state.Q_In - interface.Q_Under) ;
+     };
+     state.Help_X_Under = (SUMOVER Comp_Index IN {IndexOfFirstTSSComponent .. IndexOfLastTSSComponent}:(- interface.Underflow[Comp_Index]));
+
+    {state.X_Under = 
+        IF (state.Q_In <= interface.Q_Under)
+    THEN
+      IF (state.Q_In == 0)
+      THEN 0
+      ELSE
+               state.Help_X_Under / state.Q_In * parameters.F_TSS_COD
+    ELSE 
+      IF (interface.Q_Under == 0)
+      THEN 0
+      ELSE
+               state.Help_X_Under / interface.Q_Under * parameters.F_TSS_COD ;
+     };
+#endif // CalculateTSSComponent
+
+#ifdef UseTSSComponent
+    state.X_In =  IF (state.Q_In == 0)
+      THEN 0
+      ELSE interface.Inflow[IndexOfTSSComponent] / state.Q_In;
+
+    state.X_Out = IF (state.Q_In <= interface.Q_Under)
+                  THEN 0
+                  ELSE - interface.Outflow[IndexOfTSSComponent] / (state.Q_In - interface.Q_Under);
+
+    state.X_Under = IF (state.Q_In <= interface.Q_Under) 
+        THEN
+           IF (state.Q_In == 0)
+               THEN 0
+           ELSE - interface.Underflow[IndexOfTSSComponent] / (state.Q_In)
+        ELSE 
+           IF (interface.Q_Under == 0)
+               THEN 0
+           ELSE - interface.Underflow[IndexOfTSSComponent] / (interface.Q_Under);
+
+#endif // UseTSSComponent
+
+// PUMPING ENERGY
+  DERIV(state.Integ_PE,[independent.t])=  state.Q_Under_Actual;
+  interface.PumpingEnergy = parameters.F_Energy_FlowRate * state.Integ_PE ;
+    }; 
+
+ :};
+#endif // (defined ASM1Temp || defined ASM2dModTemp || defined ASM3Temp || defined ASM3P_EAWAG)
+
+#endif // WWTP_BASE_PRIMARY_CLARIFIER_PRIMARYOTTERPOHLFREUND

@@ -1,0 +1,285 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 5. september 2011 16:01:09$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_BASE_PROCESS_CALCULATOR
+#define WWTP_BASE_PROCESS_CALCULATOR
+
+CLASS BaseParameters
+  "Base class for all process calculators, ie cost and process parameters"
+
+  SPECIALISES
+  PhysicalDAEModelType :=
+  {:
+
+    interface <-
+    {
+  // Solids accumulated in the system (cost), HRT (process parameters)
+  OBJ V1 (* terminal = "in_1" *)"Volume of unit 1" : Volume := {:causality <- "CIN" ; group <- "Dimension" :};
+    OBJ V2 (* terminal = "in_1" *)"Volume of unit 2" : Volume := {:causality <- "CIN" ; group <- "Dimension" :};
+    OBJ V3 (* terminal = "in_1" *)"Volume of unit 3" : Volume := {:causality <- "CIN" ; group <- "Dimension" :};
+    OBJ V4 (* terminal = "in_1" *)"Volume of unit 4" : Volume := {:causality <- "CIN" ; group <- "Dimension" :};
+    OBJ V5 (* terminal = "in_1" *)"Volume of unit 5" : Volume := {:causality <- "CIN" ; group <- "Dimension" :};
+    OBJ V6 (* terminal = "in_1" *)"Volume of unit 6" : Volume := {:causality <- "CIN" ; group <- "Dimension" :};
+    OBJ V7 (* terminal = "in_1" *)"Volume of unit 7" : Volume := {:causality <- "CIN" ; group <- "Dimension" :};
+    OBJ V8 (* terminal = "in_1" *)"Volume of unit 8" : Volume := {:causality <- "CIN" ; group <- "Dimension" :};
+    OBJ V9 (* terminal = "in_1" *)"Volume of unit 9" : Volume := {:causality <- "CIN" ; group <- "Dimension" :};
+    OBJ V10 (* terminal = "in_1" *)"Volume of unit 10" : Volume := {:causality <- "CIN" ; group <- "Dimension" :};
+  //
+  OBJ TSS1 (* terminal = "in_1" *) "Tot.susp.solids (unit 1)": Concentration:= {:causality <- "CIN" ; group <- "Measurement data" :};
+    OBJ TSS2 (* terminal = "in_1" *) "Tot.susp.solids (unit 2)": Concentration:= {:causality <- "CIN" ; group <- "Measurement data" :};
+    OBJ TSS3 (* terminal = "in_1" *) "Tot.susp.solids (unit 3)": Concentration:= {:causality <- "CIN" ; group <- "Measurement data" :};
+    OBJ TSS4 (* terminal = "in_1" *) "Tot.susp.solids (unit 4)": Concentration:= {:causality <- "CIN" ; group <- "Measurement data" :};
+    OBJ TSS5 (* terminal = "in_1" *) "Tot.susp.solids (unit 5)": Concentration:= {:causality <- "CIN" ; group <- "Measurement data" :};
+    OBJ TSS6 (* terminal = "in_1" *) "Tot.susp.solids (unit 6)": Concentration:= {:causality <- "CIN" ; group <- "Measurement data" :};
+    OBJ TSS7 (* terminal = "in_1" *) "Tot.susp.solids (unit 7)": Concentration:= {:causality <- "CIN" ; group <- "Measurement data" :};
+    OBJ TSS8 (* terminal = "in_1" *) "Tot.susp.solids (unit 8)": Concentration:= {:causality <- "CIN" ; group <- "Measurement data" :};
+    OBJ TSS9 (* terminal = "in_1" *) "Tot.susp.solids (unit 9)": Concentration:= {:causality <- "CIN" ; group <- "Measurement data" :};
+    OBJ TSS10 (* terminal = "in_1" *) "Tot.susp.solids (unit 10)": Concentration:= {:causality <- "CIN" ; group <- "Measurement data" :};
+  //
+  // Solids in the sludge waste flow (cost), SRT (operation)
+  OBJ Q_Waste (*terminal = "in_1" *) "Flow rate of waste sludge": FlowRate := {: causality <- "CIN" ; group <- "Operational" :};
+  OBJ TSS_waste (* terminal = "in_1" *) "Suspended solids in the waste sludge" : Concentration := {: causality <- "CIN" ; group <- "Measurement data" :};
+    };
+  
+  independent <-
+    {
+    OBJ t "Time" : Time := {: group <- "Time" :}; 
+    };
+
+  parameters <-
+    {
+    };
+
+  state <-
+    {
+  OBJ m_TSS (* hidden = "1" *) "Amount of sludge accumulated in the system" : Mass :={:group <- "Measurement data":};
+    OBJ V (* hidden = "1" *) "Total volume of the tanks" : Volume := {: group <- "Dimension" :};
+    };
+
+  equations <-
+    {
+  state.m_TSS = interface.V1 * interface.TSS1 + interface.V2 * interface.TSS2 + interface.V3 * interface.TSS3
+         + interface.V4 * interface.TSS4 + interface.V5 * interface.TSS5 + interface.V6 * interface.TSS6
+         + interface.V7 * interface.TSS7 + interface.V8 * interface.TSS8 + interface.V9 * interface.TSS9
+         + interface.V10 * interface.TSS10 ;
+  state.V = interface.V1 + interface.V2 + interface.V3 + interface.V4 + interface.V5
+        + interface.V6 + interface.V7 + interface.V8 + interface.V9 + interface.V10 ;
+    };
+
+  :};
+
+  
+CLASS OperationalParameters
+  (* icon = "process_calculator" ; is_default = "true" *)
+  "Calculation of the basic operational parameters of the plant: eg SRT, HRT"
+// References
+// Wastewater Engineering, Treatment, disposal, reuse
+// Metcalf & Eddy, Third edition
+// McGRAW-HILL international editions
+
+  EXTENDS BaseParameters WITH
+  {:
+    comments <- "A model for the calculation of basic operational parameters";
+    interface <-
+    {
+  // Effluent stream
+    OBJ TSS_out (* terminal = "in_1" *) "Sludge concentration in the effluent" : Concentration := {: causality <- "CIN" ; group <- "Measurement data" :};
+  // flow rates: In, Out, Sludge waste
+  OBJ Q_In (* terminal = "in_1" *) "Influent flow rate": FlowRate:= {:causality <- "CIN" ; group <- "Operational":};
+  OBJ Q_Out (* terminal = "in_1" *) "Effluent flow rate": FlowRate:= {:causality <- "CIN" ; group <- "Operational" :};
+  // BOD, COD in
+    OBJ BOD_In (* terminal = "in_1" *) "BOD concentration in the influent" : Concentration := {: causality <- "CIN" ; group <- "Measurement data" :};
+    OBJ COD_In (* terminal = "in_1" *) "COD concentration in the influent" : Concentration := {: causality <- "CIN" ; group <- "Measurement data" :};
+    };
+
+    state <-
+    {
+    OBJ SRT "Instantenous Sludge retention time" : Time := {: group <- "Operational" :};
+    OBJ HRT "Hydraulic retention time" : Time := {: group <- "Operational" :};
+    OBJ F_M_BOD "Food to microorganism ratio on BOD basis" : Rate := {: group <- "Operational" :};
+    OBJ F_M_COD "Food to microorganism ratio on COD basis" : Rate := {: group <- "Operational" :};
+    };
+
+    equations <-
+    {
+  // Total mass of solids (state.m_TSS, see: Base Class)
+    state.SRT =  IF ((interface.TSS_out * interface.Q_Out + interface.TSS_waste * interface.Q_Waste) <= 0)
+                 THEN 0
+                 ELSE state.m_TSS / (interface.TSS_out * interface.Q_Out + interface.TSS_waste * interface.Q_Waste);
+  // Total volume (state.V, see: Base Class)
+    state.HRT = IF (interface.Q_In == 0)
+        THEN 0
+        ELSE state.V / interface.Q_In;
+    state.F_M_BOD = IF (interface.Q_In == 0)
+        THEN 0
+        ELSE interface.BOD_In / (state.m_TSS / interface.Q_In);
+    state.F_M_COD = IF (interface.Q_In == 0)
+        THEN 0
+        ELSE interface.COD_In / (state.m_TSS / interface.Q_In);
+     };
+  :};
+	
+	CLASS Sampler
+  (* class = "" *)
+  "sampler"
+  SPECIALISES
+  PhysicalDAEModelType :=
+  {:
+    interface <-
+    {
+      OBJ y_M (* terminal = "in_1" *) "Quantity to be measured with the sampler" : 
+         Concentration := {: causality <- "CIN" :};
+      OBJ Q (* terminal = "in_1" *) "Flow rate" : 
+         FlowRate := {: causality <- "CIN" :};
+      OBJ u (* terminal = "out_1" *) "Measured quantity" : 
+         Real := {: causality <- "COUT" :};
+    };
+
+    independent <- 
+    {
+      OBJ t "Time": Time ;
+    };
+		
+	 parameters <- 
+    {
+	  OBJ unit_cost "Cost of analysis of one sample" : Euro := {: value <- 50 ; group <- "Cost" :};
+	};
+
+    state <-
+    {
+      OBJ Q_in "Influent flow rate" : FlowRate := {: group <- "Sampling" :};
+	  OBJ meas_C "Measured concentration" : Concentration := {: group <- "Sampling" :};
+	  OBJ meas_L "Measured load" : MassFlux := {: group <- "Sampling" :};
+	  OBJ cost "Total sampling cost" : Euro := {: group <- "Cost" :};
+    };
+
+
+    equations <-
+    {
+      state.Q_in = interface.Q;
+	  interface.u = state.meas_L;
+    };
+ :};
+
+CLASS flow_proportional_time_based_sampler
+  (* icon = "process_calculator" *)
+  "Flow proportional sampler with time-based emptying of bottle(s)"
+  SPECIALISES
+  Sampler :=
+  {:
+    parameters <-
+    {
+      OBJ t_start "Start time for sampling" : Time := {: value <- 0 ; group <- "Sampling" :};
+	  OBJ t_stop "Stop time for sampling" : Time := {: value <- 1 ; group <- "Sampling" :};
+	  OBJ detection_limit "Detection limit" : Concentration := {: value <- 0.1 ; group <- "Sampling" :};
+	  OBJ min_flow "Minimum flow above which sampling starts" : FlowRate := {: value <- 0 ; group <- "Sampling" :};
+	  OBJ V_sample "Volume of each sample; must be <= V_bottles" : Volume := {: value <- 0.0001 ; group <- "Sampling" :};
+	  OBJ V_frequency "Volume of water between each sample; must be >= V_sample" : Volume := {: value <- 100 ; group <- "Sampling" :};
+	  OBJ frequency "Sampling frequency of composite samples" : Time := {: value <- 1 ; group <- "Sampling" :};
+	  OBJ T "Time frame for avg calculation" : Time := {: value <- 1.0 ; group <- "Operational":};
+    };
+
+    state <-
+    {
+	  OBJ flag_samp_per "True if time is in the sampling period" : Boolean := {: group <- "Sampling" :};
+	  OBJ V_through "Volume passed through since last sample" : Volume := {: group <- "Sampling" :};
+	  OBJ n_samples "Number of samples collected so far in total" : Integer := {: group <- "Sampling" :};
+	  OBJ n_samples_bottle "Maximum number of samples per bottle" : Integer := {: group <- "Sampling" :};
+	  OBJ n_samples_bottle_temp "Number of samples collected so far in the bottle" : Integer := {: group <- "Sampling" :};
+	  OBJ n_comp_samples "Number of composite samples collected so far" : Integer := {: group <- "Sampling" :};
+	  OBJ meas_C_comp "Measured concentration in the composite sample before full bottle" : Concentration := {: group <- "Sampling" :};
+	  OBJ t1 "Start time for filling bottle" : Time := {: group <- "Sampling" :};
+	  OBJ t2 "Stop time for filling bottle" : Time := {: group <- "Sampling" :};
+	  OBJ meas_C_av "Measured average concentration" : Concentration := {: group <- "Sampling" :};
+    };
+	
+	initial <-
+    {
+	  state.flag_samp_per = 0;
+	  state.V_through = 0;
+	  state.n_samples = 0;
+	  state.n_samples_bottle = 0;
+	  state.n_samples_bottle_temp = 0;
+	  state.meas_C_comp = 0;
+	};
+
+    equations <-
+    {
+	  DERIV(state.meas_C_av,[independent.t]) = (state.meas_C - state.meas_C_av) / parameters.T;
+	  state.flag_samp_per = IF ((independent.t >= parameters.t_start) && (independent.t <= parameters.t_stop))
+	  					    THEN True
+						    ELSE False;
+							
+	  state.V_through = IF (state.flag_samp_per == True)
+	  			        THEN IF (state.Q_in >= parameters.min_flow)
+	  				         THEN previous(state.V_through) + state.Q_in * (independent.t - previous(independent.t))
+						     ELSE previous(state.V_through)
+						ELSE 0;
+						
+	  state.n_samples = IF (state.flag_samp_per == True)
+	  			        THEN IF (state.V_through >= (parameters.V_frequency * (previous(state.n_samples) + 1)))
+	  				         THEN previous(state.n_samples) + 1
+						     ELSE previous(state.n_samples)
+						ELSE 0;
+	  
+	  state.n_samples_bottle = IF (state.n_comp_samples > previous(state.n_comp_samples))
+	  						   THEN state.n_samples
+							   ELSE previous(state.n_samples_bottle);
+	  
+	  state.n_comp_samples = IF (floor((independent.t - parameters.t_start) / parameters.frequency) > 0)
+	  					   	 THEN floor((independent.t - parameters.t_start) / parameters.frequency)
+							 ELSE 0;
+	  
+	  state.n_samples_bottle_temp = state.n_samples - state.n_samples_bottle;
+	  
+	  state.cost = parameters.unit_cost * state.n_comp_samples; 
+	  
+	  state.meas_C_comp = IF (state.flag_samp_per == True)
+	  			          THEN IF (state.n_comp_samples == previous(state.n_comp_samples))
+						  	   THEN IF (state.n_samples == previous(state.n_samples))
+							   		THEN previous(state.meas_C_comp)
+									ELSE (previous(state.meas_C_comp) * (state.n_samples_bottle_temp - 1) + interface.y_M) / (state.n_samples_bottle_temp)
+							   ELSE 0
+						  ELSE 0;
+							    
+	  state.meas_C = IF (state.flag_samp_per == True)
+	  			   THEN IF (state.n_comp_samples > previous(state.n_comp_samples))
+	  			   		THEN IF (previous(state.meas_C_comp) < parameters.detection_limit)
+				   			 THEN parameters.detection_limit / 2
+							 ELSE (previous(state.meas_C_comp) * (previous(state.n_samples_bottle_temp)) + interface.y_M) / (previous(state.n_samples_bottle_temp) + 1)
+				   		ELSE previous(state.meas_C)
+				   ELSE 0;
+			   
+	  state.t1 = IF (state.flag_samp_per == True)
+	  	  	  			      THEN IF (state.n_comp_samples > previous(state.n_comp_samples))
+	  	  	  			   		   THEN previous(state.t2)
+	  	  				   		   ELSE previous(state.t1)
+	  				              ELSE parameters.t_start;
+	  	  
+	  state.t2 = IF (state.flag_samp_per == True)
+	  	  	  	  		      THEN IF (state.n_comp_samples > previous(state.n_comp_samples))
+	  	  	  	  			   		   THEN independent.t
+	  	  	  				   		   ELSE previous(state.t2)
+	  				              ELSE parameters.t_start;
+	  				   
+	  state.meas_L = IF ((state.t2 - state.t1) > 0)
+	  	  		 THEN state.meas_C * parameters.V_sample * state.n_samples_bottle_temp / (state.t2 - state.t1)
+	  	  		 ELSE 0;
+
+    };
+ :};
+
+#endif // WWTP_BASE_PROCESS_CALCULATOR

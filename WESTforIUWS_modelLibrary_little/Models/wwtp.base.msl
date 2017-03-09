@@ -1,0 +1,512 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 29. juni 2012 15:53:33$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_BASE
+#define WWTP_BASE
+
+ CLASS WWTPAtomicModel
+ " A generic atomic WWTP model. Only specifies mass balances"
+ 
+// A generic atomic WWTP model. Only specifies mass balances
+// (mass variation is
+// sum of biological mass fluxes (bioflux, with incoming = 
+// positive sign, outgoing = negative sign) and a generic 
+// conversion term (only declared here. Has to be specified 
+// later).
+ 
+ SPECIALISES PhysicalDAEModelType :=
+ {:
+  
+  
+  parameters <-
+   {
+
+ // Due to the shape of the equations we use,
+ // it is more appropriate to work with Specific Volume =
+ // 1/Density (thus, we deal with specific volume = 0 rather than
+ // with density = infinity) than with density.
+
+ // The density (and hence specific volume) of different components 
+ // seems to be global information (i.e., not model instance specific).
+ // There are however two reasons for NOT declaring 
+ // WWTPSpecificVolume information as a global object.
+ //  1. WWTPSpecificVolume is a vector of size NrOfComponents.
+ //     Obvioulsy, filling in values in this vector can only
+ //     be done once we know which components are used.
+ //     Example: referring to WWTPSpecificVolume[S_S] if the
+ //     component S_S is not used is pointless.
+ //     Thus, it seems more reasonable to put WWTPSpecificVolume
+ //     in the parameter section of a (generic) model.
+ //  2. Once MSL-EXEC code is generated, the user
+ //     currently only has access (from the Experiment Environment)
+ //     to variables and parameters. Global variables (the logical
+ //     C equivalent of global MSL objects) are not accessible
+ //     (and currently not even generated for that matter).
+ //     We thus HAVE to put WWTPSpecificVolume with the parameters.
+ //     When it is put there, the user will be able to see(including
+ //     symbolic information) and even change (though that may not be needed) 
+ //     Specific Volume data.
+
+    // We only declare WWTPSpecificVolume here. 
+    // Actual values will be given by the user in the equations of a model.
+    // except for  WWTPSpecificVolume[H2O] := 0.000001
+    // declared in the initial section
+  /*  OBJ WWTPSpecificVolume (* hidden = "1" *)
+    "Vector containing the specific volume (= 1/density) for all the components"
+    : SpecificVolumeVector;*/
+
+    //
+    // Indexing is done by means of the symbolic indices from the 
+    // enumerated type Components.
+    //
+    // WWTPSpecificVolume[H2O] := 0.000001;
+    //
+    // By default, if no explicit assignment is done, the value is zero.
+    // Thus, with the assumption that density of H2O = 1 and all the
+    // other densities are infinite, WWTPSpecificVolume[S_S] = 0; 
+    // etc. must not be written. 
+
+   };
+
+  initial <-
+   {
+  //  parameters.WWTPSpecificVolume[IndexOfSolvent] := 0.000001;
+   };
+
+  independent <- 
+  { 
+    OBJ t "Time"  : Time := {: group <- "Time" :}; 
+   };
+
+  state <-
+   {
+    OBJ M "Vector containing masses for all the components" : MassVector 
+#if (defined ASM1Temp)
+         := [{: value <- 1000000000:},{: value <- 1 :},
+                  {: value <- 2 :},{: value <- 1 :},
+                {: value <- 2 :}, {: value <- 1 :},
+                {: value <- 1 :},{: value <- 1 :},
+                {: value <- 1 :},{: value <- 1 :},
+                                {: value <- 1000 :},{: value <- 100 :},
+                {: value <- 1 :},{: value <- 1 :}; ]
+#endif // ASM1Temp
+#if (defined ASM2dModTemp)
+   := [{: value <- 1000000000 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},
+          {: value <- 1 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},
+          {: value <- 1 :},{: value <- 1 :},{: value <- 100 :},{: value <- 10 :},{: value <- 1 :},
+          {: value <- 1 :},{: value <- 10 :},{: value <- 113.33 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :};]
+#endif // ASM2dModTemp
+#if (defined ASM3Temp)
+   := [{: value <- 1000000000 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},
+          {: value <- 1 :},{: value <- 1 :},{: value <- 1 :},
+          {: value <- 1 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},
+          {: value <- 84.9 :};]
+#endif // ASM3Temp
+#ifdef ASM3P_EAWAG
+   := [{: value <- 1000000000 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},
+          {: value <- 1 :},{: value <- 1 :},{: value <- 10 :},{: value <- 1 :},{: value <- 100 :},
+          {: value <- 1 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},
+          {: value <- 1 :},{: value <- 1 :},{: value <- 165.23 :};]
+#endif // ASM3P_EAWAG
+#if (defined ASM1_AN)
+         := [{: value <- 1000000000:}, {: value <- 1 :}, {: value <- 2 :}, {: value <- 1 :},
+		 {: value <- 1 :}, {: value <- 1 :}, {: value <- 1 :},
+		 {: value <- 1 :}, {: value <- 1 :},
+		 {: value <- 1 :}, {: value <- 1 :}, {: value <- 1000 :},
+		 {: value <- 100 :}, {: value <- 100 :}, {: value <- 100 :},
+		 {: value <- 1 :}; ]
+#endif
+#if (defined ASMG1)
+         := [{: value <- 1000000000:}, {: value <- 1 :}, {: value <- 2 :}, {: value <- 1 :},
+		 {: value <- 1 :}, {: value <- 1 :}, {: value <- 1 :}, {: value <- 1 :}, {: value <- 1 :},
+		 {: value <- 1 :}, {: value <- 1 :},
+		 {: value <- 1 :},
+		 {: value <- 1 :}, {: value <- 1 :}, {: value <- 1000 :},
+		 {: value <- 50 :}, {: value <- 50 :},
+		 {: value <- 1 :},{: value <- 1 :}; ]
+#endif
+;
+    OBJ FluxPerComponent (* hidden = "1" *) "Vector containing fluxes for all the components, the sum of all incoming and outgoing fluxes" : MassFluxVector;
+    OBJ InFluxPerComponent (* hidden = "1" *) "Vector containing incoming fluxes for all the components": MassFluxVector;
+    OBJ ConversionTermPerComponent (* hidden = "1" *) "Vector containing conversionterms for all the components": MassFluxVector;
+    OBJ Q_In (* is_favorite = "1" *) "Influent flow rate" : FlowRate := {: group <- "Operational" :};
+   };
+
+  equations <-
+   {
+
+    // The FluxPerComponent is the sum of all
+    // incoming (positive) and outgoing (negative) fluxes 
+
+    {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+      state.FluxPerComponent[Comp_Index] =
+
+    // If not only WWTPTerminal type terminals are present in the interface
+    // (e.g., also ControlTerminal), we have to select only
+    // those terminals from the interface which are of
+    // WWTPTerminal type (or any SUBtype such as InWWTPTerminal of it) 
+    // as those are the only ones for which the mass balance law holds.
+
+    (SUMOVER In_Terminal IN {SelectByType(interface,InWWTPTerminal)}:
+    In_Terminal[Comp_Index])+
+    (SUMOVER Out_Terminal IN {SelectByType(interface,OutWWTPTerminal)}:
+    Out_Terminal[Comp_Index]);};
+
+    // The mass balance equations.
+    // These are composed of a term due to incoming and
+    // outgoing fluxes and of a term due to biochemical
+    // interactions between components.
+
+    {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+      DERIV(state.M[Comp_Index],[independent.t]) = 
+      state.FluxPerComponent[Comp_Index]
+      +state.ConversionTermPerComponent[Comp_Index];};
+
+    // for efficiency and because most models need it anyway
+    // we calculate Q_In here
+    
+    {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+      state.InFluxPerComponent[Comp_Index] =
+         SUMOVER In_Terminal IN {SelectByType(interface,InWWTPTerminal)}:
+            (In_Terminal[Comp_Index]);
+    };
+
+    {state.Q_In = (0.000001 
+                  * state.InFluxPerComponent[IndexOfSolvent]);
+    };
+
+// Less general Q_In calculation to avoid algebraic loops in the
+// modelling of WWTP's (Algebraic loops for S_I -> X_ND induced
+// by Q_In !!!)
+
+   }; 
+ :};
+
+//===================================================================
+//==============================WWTPAtomicModelWithoutVolume=========
+//===================================================================
+
+// BE CAREFUL
+// IS NOT A SPECIALIZATION OF WWTPATOMICMODEL !!!
+// FOR EFFICIENCY REASONS
+
+ CLASS WWTPAtomicModelWithoutVolume 
+ SPECIALISES PhysicalDAEModelType :=
+ {:
+  parameters <-
+   {
+   /* OBJ WWTPSpecificVolume (* hidden = "1" *)
+    "Vector containing the specific volume (= 1/density) for all the components"
+    : SpecificVolumeVector;*/
+   };
+
+  initial <-
+   {
+   // parameters.WWTPSpecificVolume[IndexOfSolvent] := 0.000001;
+   };
+
+  independent <- 
+  { 
+    OBJ t "Time"  : Time := {: group <- "Time" :}; 
+   };
+   
+  state <-
+   {
+    OBJ InFluxPerComponent (* hidden = "1" *) "Vector containing incoming fluxes for all components" : MassFluxVector;
+    OBJ Q_In (* is_favorite = "1" *) "Influent flow rate" : FlowRate := {: group <- "Operational" :};
+   };
+
+   equations <-
+   {
+     { FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+        state.InFluxPerComponent[Comp_Index] =
+         SUMOVER In_Terminal IN {SelectByType(interface,InWWTPTerminal)}:
+         (In_Terminal[Comp_Index]);
+     };
+
+     {state.Q_In = (0.000001
+                  * state.InFluxPerComponent[IndexOfSolvent]);
+     };
+
+   };
+ :};
+
+//=================================================================
+//===============================WWTPAtomicModelWithVolume=========
+//=================================================================
+
+ CLASS WWTPAtomicModelWithVolume EXTENDS WWTPAtomicModel WITH
+ {:
+
+   state <-
+    {
+      OBJ V (* is_favorite = "1" *) "Volume" : Volume := {: group <- "Dimension" :};
+      OBJ C "Vector containing concentrations for all the components" : ConcentrationVector := {: group <- "Concentration" :};
+    };
+
+   equations <-
+    {
+     // volume and conc equations are calculated
+     // specific to fixed or variable volume
+    };
+
+ :};
+
+//======================================================================
+//===========================WWTPAtomicModelWithVariableVolume==========
+//======================================================================
+
+ CLASS WWTPAtomicModelWithVariableVolume
+ EXTENDS WWTPAtomicModelWithVolume WITH
+ {:
+  interface <-
+   {
+     OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+       InWWTPTerminal := {: causality <- "CIN" ; group <- "Influent" :};
+     OBJ Outflow (* terminal = "out_1" *)"Outflow" : 
+       OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent" :};
+   };
+
+  parameters <-
+   {
+     OBJ N "Number of weirs on a tank" : PhysicalQuantityType := 
+         {: value <- 100 ; 
+            interval <- {:lowerBound <- 0; upperBound <- PLUS_INF; :};
+      group <- "Hydraulic" 
+         :} ;
+     OBJ A (* is_favorite = "1" *) "Surface area of the tank" : Area := {: value <- 200; group <- "Dimension"  :} ;
+     OBJ alfa "Parameter, function of the weir type or width" 
+         : PhysicalQuantityType := {: value <- 1; group <- "Hydraulic"  :};
+     OBJ beta "Parameter, depends on the weir design" 
+         : PhysicalQuantityType := {: value <- 1; group <- "Hydraulic" :};
+     OBJ V_Const (* is_favorite = "1" *) "Constant tank volume beneath the lowest point of the weir" 
+         : Volume := {: value <- 1900; group <- "Dimension" :};
+   };
+
+  state <-
+   {
+     OBJ Q_Out (* is_favorite = "1" *) "Effluent flow rate" : FlowRate := {: group <- "Operational" :};
+   };
+
+  equations <-
+   {
+    // Q_Out is stated variable and declared as 
+    // Q_Out = N*alfa*(V/A^beta)
+    // for an explanation of these parameters
+    // see the parameter section above
+
+    state.Q_Out = IF (state.V > parameters.V_Const)
+                THEN
+    parameters.N * parameters.alfa 
+      * pow((state.V - parameters.V_Const)/parameters.A, parameters.beta)
+        ELSE 0;
+
+    // The total volume is the sum of the volumes of each
+    // of the components. The volume of each component
+    // is determined by multiplying its mass by its
+    // specific volume.
+
+    state.V = SUMOVER Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+    (0.000001*state.M[Comp_Index]);
+
+    // The concentration of each component is just the mass
+    // of that component divided by the total volume
+
+    {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+     state.C[Comp_Index] = IF (state.V == 0)
+           THEN 0
+           ELSE state.M[Comp_Index]/state.V;
+     };
+
+    {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+      interface.Outflow[Comp_Index] =
+       - state.C[Comp_Index] * state.Q_Out ;};
+   };
+ :};
+
+ // ConversionModel stands for all models where the ConversionTermPerComponent 
+ // takes on the form of Stoichiometry * Kinetics * V
+ // For each component, the reaction term is the sum
+ // of products of corresponding (one for each reaction)
+ // factors from the Stochiometry and the Kinetics matrices.
+
+ CLASS VarVolumeConversionModel EXTENDS WWTPAtomicModelWithVariableVolume WITH
+ {:
+#include "wwtp.VolumeConversionModel.body.msl"
+ :};
+ 
+ // Below is an ASMConversionModel
+
+ CLASS VarVolumeASMConversionModel EXTENDS VarVolumeConversionModel WITH
+ {:
+#include "wwtp.VolumeASMConversionModel.body.msl"
+ :};
+
+//======================================================================
+//===========================WWTPAtomicModelVariablePumpedVolume========
+//======================================================================
+
+CLASS WWTPAtomicModelWithPumpedVolume
+ EXTENDS WWTPAtomicModelWithVolume WITH
+ {:
+  interface <-
+   {
+     OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+       InWWTPTerminal := {: causality <- "CIN" ; group <- "Influent" :};
+     OBJ Outflow (* terminal = "out_1" *) "Outflow" : 
+       OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent" :};
+     OBJ Q_Pump (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Desired effluent flow rate" : FlowRate := {: causality <- "CIN" ; value <- 100; group <- "Operational" :} ;
+   };
+
+  parameters <-
+   {
+     OBJ V_Max (* is_favorite = "1" *) "Maximum volume of the tank" : Volume := {: group <- "Operational" :};
+     OBJ V_Min (* is_favorite = "1" *) "Minimum volume of the tank" : Volume := {: group <- "Operational" :}; 
+   };
+
+  state <-
+   {
+     OBJ Q_Out (* is_favorite = "1" *) "Actual effluent flow rate" : FlowRate := {: group <- "Operational" :};
+   };
+
+  equations <-
+   {
+    state.V = SUMOVER Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+    (0.000001*state.M[Comp_Index]);
+
+    // The concentration of each component is just the mass
+    // of that component divided by the total volume
+
+    {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+     state.C[Comp_Index] = IF (state.V == 0)
+           THEN 0
+           ELSE state.M[Comp_Index]/state.V;
+     };
+
+    state.Q_Out = IF (state.V < parameters.V_Min && 
+                    interface.Q_Pump > state.Q_In) 
+                THEN state.Q_In
+                ELSE  
+                  IF (state.V < parameters.V_Max)
+                  THEN interface.Q_Pump
+                  ELSE
+                    IF (state.Q_In < interface.Q_Pump)
+                    THEN interface.Q_Pump
+                    ELSE state.Q_In ;    
+
+    {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+      interface.Outflow[Comp_Index] =
+       - state.C[Comp_Index] * state.Q_Out ;};
+   };
+ :};
+
+CLASS PumpedVolumeConversionModel EXTENDS WWTPAtomicModelWithPumpedVolume WITH
+ {:
+#include "wwtp.VolumeConversionModel.body.msl"
+ :};
+
+ CLASS PumpedVolumeASMConversionModel EXTENDS PumpedVolumeConversionModel WITH
+ {:
+#include "wwtp.VolumeASMConversionModel.body.msl"
+
+ :};
+
+//====================================================================================
+//=========================WWTPAtomicModelWithFixedVolume=============================
+//====================================================================================
+
+ CLASS WWTPAtomicModelWithFixedVolume EXTENDS WWTPAtomicModelWithVolume WITH
+ {:
+  interface <-
+   {
+     OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+       InWWTPTerminal := {: causality <- "CIN" ; group <- "Influent" :};
+     OBJ Outflow (* terminal = "out_1" *)"Outflow" : 
+       OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent" :};
+   };
+
+  parameters <-  
+   {
+     OBJ Vol (* is_favorite = "1" *) "Volume of the tank" : Volume := {: value <- 1000; group <- "Dimension" :};
+   };   
+   
+  state <-
+   {
+//     OBJ Q_Out "Effluent flow rate" : FlowRate ;
+   };
+
+  initial <-  
+  {
+  state.M[IndexOfSolvent] = parameters.Vol / 0.000001;
+  };   
+  equations <-
+   {
+    // because of a fixed volume ...
+    // state.Q_Out = state.Q_In; anyway
+    // so skip it
+ 
+     // The total volume is the sum of the volumes of each
+    // of the components. The volume of each component
+    // is determined by multiplying its mass by its
+    // specific volume.
+
+    //state.V = SUMOVER Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+    //(0.000001*state.M[Comp_Index]);
+	 state.V = state.M[IndexOfSolvent] * 0.000001;
+
+    // The concentration of each component is just the mass
+    // of that component divided by the total volume
+
+    {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+     state.C[Comp_Index] = IF (state.V == 0)
+           THEN 0
+           ELSE state.M[Comp_Index]/state.V;
+     };
+
+   {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+      interface.Outflow[Comp_Index] =
+       - state.C[Comp_Index] * state.Q_In ;};
+   };
+ :};
+
+ CLASS FixVolumeConversionModel EXTENDS WWTPAtomicModelWithFixedVolume WITH
+ {:
+#include "wwtp.VolumeConversionModel.body.msl"
+ :};
+ 
+ CLASS FixVolumeASMConversionModel EXTENDS FixVolumeConversionModel WITH
+ {:
+#include "wwtp.VolumeASMConversionModel.body.msl"
+ :};
+
+ 
+
+//=========================================================================
+//==================End of WWTPAtomicModel hierarchy=======================
+//=========================================================================
+
+//
+// End of WWTPAtomicModel hierarchy
+//
+
+//
+// From this point on, non-WWTPAtomicModels are considered
+// like Takacs model, sensors, controllers, ...
+// they are mostly non-WWTP specializations of PhysicalDAEModelType
+//
+
+#endif // WWTP_BASE
+

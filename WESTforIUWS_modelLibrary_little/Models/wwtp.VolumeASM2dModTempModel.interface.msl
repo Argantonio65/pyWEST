@@ -1,0 +1,42 @@
+// ------------------------------------------------------------------------
+//  MOSTforWATER - Ghent University, BIOMATH
+//  Implementation: Code generator Petersen's Matrix
+//  Description: MSL-USER/WWTP/VolumeASM2dModTempModel.interface.msl
+// ------------------------------------------------------------------------
+
+#ifdef ASM2dModTemp
+	OBJ DO (* terminal = "out_2" *) "Dissolved oxygen concentration measurement"
+	: DissolvedOxygen := {: causality <- "COUT" ; group <- "Measurement data" :}; 
+	OBJ NH4 (* terminal = "out_2" *) "Ammonium concentration measurement"
+	: Concentration := {: causality <- "COUT" ; group <- "Measurement data" :}; 
+	OBJ NO3 (* terminal = "out_2" *) "Nitrate+Nitrite concentration measurement"
+	: Concentration := {: causality <- "COUT" ; group <- "Measurement data" :}; 
+	OBJ TSS (* terminal = "out_2" *) "Total suspended solids concentration"
+	: Concentration := {: causality <- "COUT" ; group <- "Measurement data" :}; 
+	OBJ OnlineCOD (* terminal = "out_2" *) "Chemical Oxygen Demand measurement"
+	: Concentration := {: causality <- "COUT" ; group <- "Measurement data" :}; 
+	OBJ OfflineBOD (* terminal = "out_2" *) "Biological Oxygen Demand measurement"
+	: Concentration := {: causality <- "COUT" ; group <- "Measurement data" :}; 
+	OBJ OnlineTN (* terminal = "out_2" *) "Total nitrogen concentration measurement"
+	: Concentration := {: causality <- "COUT" ; group <- "Measurement data" :}; 
+	OBJ OfflineTKN (* terminal = "out_2" *) "Total Kjeldal nitrogen concentration measurement"
+	: Concentration := {: causality <- "COUT" ; group <- "Measurement data" :}; 
+	OBJ OnlineTP (* terminal = "out_2" *) "Total phosphorous concentration measurement"
+	: Concentration := {: causality <- "COUT" ; group <- "Measurement data" :}; 
+	OBJ PO4 (* terminal = "out_2" *) "Phosphorous concentration measurement"
+	: Concentration := {: causality <- "COUT" ; group <- "Measurement data" :}; 
+	OBJ V_ASU (* terminal = "out_2" *) "Volume measurement data"
+	: Volume := {: causality <- "COUT" ; group <- "Measurement data" :}; 
+	OBJ OUR_ASU (* terminal = "out_2" *) "OUR measurement data"
+	: OxygenUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :}; 
+	OBJ NUR (* terminal = "out_2" *) "Nitrate Uptake Rate measurement data"
+	: NitrateUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :}; 
+	OBJ NPR (* terminal = "out_2" *) "Nitrate Production Rate measurement data"
+	: NitrateProductionRate := {: causality <- "COUT" ; group <- "Measurement data" :}; 
+	OBJ AUR (* terminal = "out_2" *) "Ammonium Uptake Rate measurement data"
+	: AmmoniumUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :}; 
+	OBJ PUR (* terminal = "out_2" *) "Phosphate Uptake Rate measurement data"
+	: PhosphateUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :}; 
+	OBJ Kla_ASU (* terminal = "out_2" *) "Kla measurement data"
+	: OxygenTransferCoefficient := {: causality <- "COUT" ; group <- "Measurement data" :}; 
+#endif // ASM2dModTemp

@@ -1,0 +1,97 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 23. april 2012 08:05:14$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_BASE_SENSORS_SENSORBOD
+#define WWTP_BASE_SENSORS_SENSORBOD
+
+#if (defined ASM1Temp || defined ASM2dModTemp || defined ASM3Temp || defined ASM3P_EAWAG)
+CLASS Sensor_BOD
+  (* icon = "sensor_bod" ; is_default = "true" *)
+  "BOD sensor"
+  EXTENDS Sensor WITH 
+  {:
+    comments <- "A model for a sensor measuring the Biodegradable Oxygen Demand";
+
+    interface <-
+    {
+      OBJ y_M (* terminal = "out_2"; is_favorite = "1" *) "Sensor measured output" :
+         Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    };
+    
+    parameters <-
+    {
+#if (defined ASM1Temp)
+     OBJ f_P      "Fraction Of Biomass Converted To Inert Matter"
+      : FractOfBiomassLeadingToPartProd := {:value<- 0.20 ; group <- "Stoichiometry" :};
+#endif //ASM1Temp
+#if (defined ASM2dModTemp)
+     OBJ f_X_I "Fraction of inert COD generated in biomass lysis"
+      : Fraction := {:value <- 0.10 ; group <- "Stoichiometry" :};
+#endif // ASM2dModTemp
+#if (defined ASM3Temp || defined ASM3P_EAWAG)
+     OBJ f_X_I      "Production of X_I in aerobic endogenous respiration" 
+      : FractOfBiomassLeadingToPartProd := {:value <- 0.2 ; group <- "Stoichiometry" :};
+#endif // ASM3Temp or ASM3P_EAWAG
+     OBJ F_BOD_COD "Conversion factor BOD/COD" : Fraction := {:value<- 0.65 ; group <- "Conversion factors":};
+     };
+
+    equations <-
+    {
+#if (defined ASM1Temp)
+       interface.y_M = IF (state.Q_In == 0)
+           THEN 0
+           ELSE parameters.F_BOD_COD * 
+            (interface.Inflow[S_S] + interface.Inflow[X_S] 
+             + (1 - parameters.f_P) * (interface.Inflow[X_BH] + interface.Inflow[X_BA]) )
+            / state.Q_In ; 
+   
+#endif //ASM1Temp
+
+#if (defined ASM2dModTemp)
+    interface.y_M = IF (state.Q_In == 0)
+                THEN 0
+                ELSE parameters.F_BOD_COD *
+    (interface.Inflow[S_A] + interface.Inflow[S_F] + interface.Inflow[X_S] + interface.Inflow[X_PHA]
+     + (1 - parameters.f_X_I) * (interface.Inflow[X_AUT] + interface.Inflow[X_H] + interface.Inflow[X_PAO] ))
+      / state.Q_In ; 
+  
+#endif // ASM2dModTemp
+
+#if (defined ASM3Temp)
+    interface.y_M = IF (state.Q_In == 0)
+            THEN 0
+            ELSE parameters.F_BOD_COD *
+             (interface.Inflow[S_S] + interface.Inflow[X_S] + interface.Inflow[X_STO]
+          + (1 - parameters.f_X_I) * (interface.Inflow[X_A] + interface.Inflow[X_H])) 
+             / state.Q_In ; 
+  
+#endif // ASM3Temp
+
+#ifdef ASM3P_EAWAG
+    interface.y_M = IF (state.Q_In == 0)
+            THEN 0
+            ELSE parameters.F_BOD_COD *
+             (interface.Inflow[S_S] + interface.Inflow[X_S] + interface.Inflow[X_STO] + interface.Inflow[X_PHA]
+          + (1 - parameters.f_X_I) * (interface.Inflow[X_A] + interface.Inflow[X_H] + interface.Inflow[X_PAO])) 
+             / state.Q_In ; 
+  
+#endif // ASM3P_EAWAG
+  };
+    :};
+#endif // (defined ASM1Temp || defined ASM2dModTemp || defined ASM3Temp || defined ASM3P_EAWAG)
+
+#endif // WWTP_BASE_SENSORS_SENSORBOD
+

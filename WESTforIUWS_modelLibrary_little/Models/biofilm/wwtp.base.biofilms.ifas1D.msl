@@ -1,0 +1,92 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 23. marts 2012 12:41:29$
+ *
+ ******************************************************************************/
+
+#ifndef BASE_BIOFILM_IFAS1D
+#define BASE_BIOFILM_IFAS1D
+
+CLASS IFAS1D (* icon = "ifas"; is_default = "true" *)
+ "A model for an Integrated Fixed film Activated Sludge unit, based on the biofilm model by Van Hulle and Vanrolleghem"
+ EXTENDS BaseBiofilm1D WITH
+ {:
+    
+    comments <- "A model for an Integrated Fixed film Activated Sludge unit. Detachment when d>dmax and proportional to (d-dmax)^2";
+    interface <-
+    {
+   OBJ MixingEnergy (* terminal = "out_2" *)"Mixing energy" : ElectricalEnergy := {: causality <- "COUT"; group <- "Energy" :};
+    };
+    parameters <- 
+    {  
+       OBJ f_solid "Fraction of the solid support to the total volume of the reactor" : Ratio := {:value <- 0.05 ; group <- "Dimension" :} ;
+     OBJ A_Sp_C "(carrier) Specific surface area" : SpecificAreaVolume := {:value <- 400 ; group <- "System" :};
+// MIXING ENERGY
+  OBJ ME_unit "Energy requirement per unit of volume for mixing in a AS tank" : Real := {: value <- 0.005; group <- "Mixing energy":};
+  OBJ Kla_Min "Lowest kLa value that ensures adequate mixing" : OxygenTransferCoefficient :={: value <- 20.0; group <- "Mixing energy":};
+    OBJ Mixing_When_Aerated "Mixing activity during aeration" : Real := {: value <- 0 ; group <- "Mixing energy":};
+    };
+    
+      state <-
+    {
+// MIXING ENERGY
+    OBJ Integ_ME (* hidden = "1" *)"Integral mixing energy" : ElectricalEnergy ;
+  OBJ ME_Instant (* hidden = "1" *)"Instantaneous mixing energy" : Real:= {: group <- "Mixing":};
+    };
+     
+    initial <-
+    {
+     // the apparent and true volume of the solid support are the same, in a IFAS
+     parameters.fc = parameters.f_solid ;
+     parameters.fc_real = parameters.f_solid ;
+     parameters.area_sp = parameters.A_Sp_C ;
+     //
+     //Volume of the reactor
+     parameters.V_R = parameters.L * parameters.W * parameters.H ;
+     parameters.Vc_real = parameters.fc_real * parameters.V_R ;
+     parameters.Vc = parameters.fc * parameters.V_R ;
+     // Surface of the biofilm
+     parameters.A = parameters.area_sp * parameters.Vc ;
+     //
+     //rho = f(d)
+     {FOREACH Layer_Index IN {1 .. NrOfLayers}:
+          parameters.rho_layer[Layer_Index]=parameters.eta*parameters.rho ; };
+     //
+     state.M[IndexOfSolvent] = ((parameters.V_R - parameters.Vc_real) - (parameters.A*parameters.d_ini)) / 0.000001 ;
+    };
+ 
+    equations <-
+    {
+    // ... ... CALCULATION OF THE DETACHMENT ... ...
+    {FOREACH Layer_Index IN {1 .. NrOfLayers} : state.u_Dt[Layer_Index] =
+           IF ( state.d_layer_calc[Layer_Index] <= (parameters.d_max/NrOfLayers) )
+            THEN 0.0
+          ELSE parameters.k_detach * pow(( state.d_layer_calc[Layer_Index] - (parameters.d_max/NrOfLayers) ),2) ; 
+       };
+
+// MIXING ENERGY
+  state.ME_Instant = IF ((state.Kla_Actual < parameters.Kla_Min) || (state.Kla_Actual == 0))
+            THEN parameters.ME_unit * state.V
+          ELSE 
+            IF (parameters.Mixing_When_Aerated)
+            THEN parameters.ME_unit * state.V
+            ELSE 0;   
+
+  DERIV(state.Integ_ME,[independent.t])= state.ME_Instant;
+  interface.MixingEnergy = state.Integ_ME ;
+          
+    }; 
+
+ :};
+
+#endif // BASE_BIOFILM_IFAS1D

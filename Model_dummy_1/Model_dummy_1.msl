@@ -1,0 +1,59 @@
+#ifndef __MODEL_DUMMY_1_MSL__
+#define __MODEL_DUMMY_1_MSL__
+
+#include "iuws.msl"
+
+CLASS Model_dummy_1 (* icon = ""; file = ""; *)  SPECIALISES CoupledModelType := 
+{:
+  comments <- "";
+
+  interface <-
+  {
+    OBJ Rural_baseflow (*terminal = ""; *) "" : Real := {: causality <- "CIN"; :};
+    OBJ Urban_CSO_flow (*terminal = ""; *) "" : Real := {: causality <- "CIN"; :};
+    OBJ Temperature_water (*terminal = ""; *) "" : CelsiusTemperature := {: causality <- "CIN"; :};
+    OBJ Solar_Radiation (*terminal = ""; *) "" : DensityOfHeatFlowRate := {: causality <- "CIN"; :};
+  };
+
+  parameters <-
+  {
+  };
+
+  sub_models <-
+  {
+    OBJ River_2 "" : RivVarVolumeRIVER;
+    OBJ River_3 "" : RivVarVolumeRIVER;
+    OBJ River_4 "" : RivVarVolumeRIVER;
+    OBJ River_5 "" : RivVarVolumeRIVER;
+    OBJ Urban_InputEmulator "" : simple_Duflow_generator_CSOload;
+    OBJ River_1 "" : RivVarVolumeRIVER;
+    OBJ Rural_inflow "" : simple_Duflow_generator;
+  };
+
+  coupling <-
+  {
+
+    connect(interface.Temperature_water, sub_models.River_4.interface.T),
+    connect(sub_models.River_1.interface.Outflow, sub_models.River_2.interface.Inflow1),
+    connect(interface.Temperature_water, sub_models.River_5.interface.T),
+    connect(interface.Solar_Radiation, sub_models.River_2.interface.I0),
+    connect(interface.Temperature_water, sub_models.River_3.interface.T),
+    connect(interface.Temperature_water, sub_models.River_2.interface.T),
+    connect(interface.Solar_Radiation, sub_models.River_3.interface.I0),
+    connect(sub_models.River_4.interface.Outflow, sub_models.River_5.interface.Inflow1),
+    connect(sub_models.Urban_InputEmulator.interface.Outflow, sub_models.River_2.interface.Inflow2),
+    connect(interface.Solar_Radiation, sub_models.River_4.interface.I0),
+    connect(interface.Temperature_water, sub_models.River_1.interface.T),
+    connect(interface.Rural_baseflow, sub_models.Rural_inflow.interface.rainfall),
+    connect(interface.Urban_CSO_flow, sub_models.Urban_InputEmulator.interface.rainfall),
+    connect(sub_models.River_3.interface.Outflow, sub_models.River_4.interface.Inflow1),
+    connect(interface.Solar_Radiation, sub_models.River_1.interface.I0),
+    connect(sub_models.Rural_inflow.interface.Outflow, sub_models.River_1.interface.Inflow1),
+    connect(interface.Solar_Radiation, sub_models.River_5.interface.I0),
+    connect(sub_models.River_2.interface.Outflow, sub_models.River_3.interface.Inflow1),
+
+  };
+:};
+
+#endif
+

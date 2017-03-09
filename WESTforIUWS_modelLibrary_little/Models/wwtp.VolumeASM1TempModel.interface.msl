@@ -1,0 +1,36 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 5. september 2011 16:01:11$
+ *
+ ******************************************************************************/
+
+// Define the sensor output interface for the ASM1 models
+    
+    OBJ DO (* terminal = "out_2"; is_favorite = "1" *)"Dissolved oxygen concentration measurement" :DissolvedOxygen:= {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NH4 (* terminal = "out_2"; is_favorite = "1" *)"Ammonium concentration measurement" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    
+    OBJ NO3 (* terminal = "out_2"; is_favorite = "1" *)"Nitrate+Nitrite concentration measurement" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ TSS (* terminal = "out_2"; is_favorite = "1" *)"Total suspended solids concentration" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OnlineCOD (* terminal = "out_2" *)"Chemical Oxygen Demand measurement" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+   
+    OBJ OfflineBOD (* terminal = "out_2" *)"Biological Oxygen Demand measurement" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OnlineTN (* terminal = "out_2" *)"Total nitrogen concentration measurement" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OfflineTKN (* terminal = "out_2" *)"Total Kjeldal nitrogen concentration measurement" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+   
+
+    OBJ V_ASU (* terminal = "out_2" *)"Volume measurement data" : Volume := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OUR_ASU (* terminal = "out_2" *)"Oxygen Uptake Rate measurement data" : OxygenUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NUR (* terminal = "out_2" *)"Nitrate Uptake Rate measurement data" : NitrateUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NPR (* terminal = "out_2" *)"Nitrate Production Rate measurement data" : NitrateProductionRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ AUR (* terminal = "out_2" *)"Ammonium Uptake Rate measurement data" : AmmoniumUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ Kla_ASU (* terminal = "out_2" *)"Kla measurement data" : OxygenTransferCoefficient := {: causality <- "COUT" ; group <- "Measurement data" :};

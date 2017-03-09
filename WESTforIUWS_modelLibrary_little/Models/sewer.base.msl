@@ -1,0 +1,604 @@
+#ifndef SEWER_BASE
+#define SEWER_BASE
+
+
+// With this library as a starting point, the modeller 
+// only needs to specify relevant biological components
+// (e.g., H2O, S_S, X_S, ...) as well as Stochiometric
+// and Kinetic conversion information (from IAWQ).
+// Also, any number of terminals (physical flow
+// of matter in/out of a sub-system, but also
+// control and information terminals) may be added to 
+// the model.
+// Once the above are specified, the appropriate model
+// will automatically be expanded. Currently, automatic
+// expansion only takes into account the hydorlogical,
+// chemical, and biological aspects.
+//
+// This library includes non-causal models as well as 
+// an inheritance hierarchy to separate
+// different model aspects and enhance model re-use.
+
+
+ // The following SewComponents TYPE declaration is commented
+ // as it will be specified further on.
+ // As the order of declarations does not matter in MSL,
+ // the actual place of declaration of the SewComponents TYPE 
+ // does not matter. 
+ // We already present a TYPE SewComponents definition here
+ // as it will make the rest of the generic model
+ // easier to understand.
+
+ // In the Components type declaration, the user indicates
+ // which components will be used in his/her models.
+ // A number of assumptions are made:
+ //  1. In one system, ALL the connections between
+ //     sub-models pass exactly those biological components
+ //     indicated in the Components declaration.
+ //  2. In a physical flow, ALL components are explicitly
+ //     considered: H2O, dissoved gasses, solids in suspension, ...
+ //     The usual assumption that the concentration of H2O is 1
+ //     and all the other concentrations are infinite will be put in 
+ //     further. This, to allow modelling of systems where
+ //     the above assumption is not valid.
+
+ // EVERYTHING is deduced from the SewComponents type declaration !
+ // From this declaration, appropriate models will be expanded
+ // automatically.
+ //
+ // As a convention, the component H2O is always written first
+ // as it is the "main" component in a wWtp.
+
+
+
+//
+
+
+//===================================================================
+//==========================Begin of SewerAtomicModel hierarchy=======
+//===================================================================
+
+//
+// Begin of SewerAtomicModel hierarchy
+//
+
+
+//<<<<<<<<<<<<<<<<<<<<<<<<<<                >>>>>>>>>>>>>>>>>>>>>>>>>>
+//<<<<<<<<<<<<<<<<<<<<<<<<<<SewerAtomicModel>>>>>>>>>>>>>>>>>>>>>>>>>>
+//<<<<<<<<<<<<<<<<<<<<<<<<<<                >>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+ CLASS SewerAtomicModel
+ 
+  /*"
+  A generic atomic sewer model.
+  Only specifies mass balances (mass variation is
+  sum of biological mass fluxes (bioflux, with incoming =
+  positive sign, outgoing = negative sign) and a generic 
+  conversion term (only declared here. Has to be specified 
+  later).
+ "*/
+
+ SPECIALISES PhysicalDAEModelType :=
+ {:
+  
+  parameters <-
+   {
+
+ // Due to the shape of the equations we use,
+ // it is more appropriate to work with Specific Volume =
+ // 1/Density (thus, we deal with specific volume = 0 than
+ // density = infinity) than with density.
+
+ // The density (and hence specific volume) of different components 
+ // seems to be global information (i.e., not model instance specific).
+ // There are however two reasons for NOT declaring 
+ // SewSpecificVolume information as a global object.
+ //  1. SewSpecificVolume is a vector of size NrOfSewComponents.
+ //     Obvioulsy, filling in values in this vector can only
+ //     be done once we know which components are used.
+ //     Example: referring to SewSpecificVolume[S_S] if the
+ //     component S_S is not used is pointless.
+ //     Thus, it seems more reasonable to put SewSpecificVolume
+ //     in the parameter section of a (generic) model.
+ //  2. Once MSL-EXEC code is generated, the user
+ //     currently only has access (from the Experiment Environment)
+ //     to variables and parameters. Global variables (the logical
+ //     C equivalent of global MSL objects) are not accessible
+ //     (and currently not even generated for that matter).
+ //     We thus HAVE to put SewSpecificVolume with the parameters.
+ //     When it is put there, the user will be able to see(including
+ //     symbolic information) and even change (though that may not be needed) 
+ //     Specific Volume data.
+ //     Later, it may be meaningful to include a global
+ //     constants/parameters section in MSL-EXEC.
+
+    // We only declare SewSpecificVolume here. 
+    // Actual values will be given by the user in the equations of a model.
+    // except for  SewSpecificVolume[H2O_sew] := 0.000001
+    // declared in the initial section
+  /*  OBJ SewSpecificVolume (* hidden = "1" *)
+    "     The specific volumes (= 1/density) of the components    "
+    : SewSpecificVolumeVector;*/
+
+
+    
+    // Indexing is done by means of the symbolic indices from the 
+    // enumerated type SewComponents.
+    //
+    // SewSpecificVolume[H2O_sew] := 0.000001;
+    //
+    // By default, if no explicit assignment is done, the value is zero.
+    // Thus, with the assumption that density of H2O = 1 and all the
+    // other densities are infinite, SewSpecificVolume[S_S] = 0; 
+    // etc. must not be written. 
+
+   };
+
+  independent <- { OBJ t : Time; };
+
+  state <-
+   {
+    OBJ SewM (* hidden = "0" *) : SewMassVector := [{:value <-1000000 :}, 
+	   {:value <- 30 :}, {:value <- 10 :}, {:value <- 100 :}, 
+	   {:value <- 200 :}, {:value <- 150 :};];
+    OBJ FluxPerSewComponent (* hidden = "0" *) : SewMassFluxVector;
+    OBJ inFluxPerSewComponent (* hidden = "0" *) : SewMassFluxVector;
+    OBJ conversionTermPerSewComponent (*hidden = "0" *): SewMassFluxVector;
+    OBJ Q_i "Influent flow rate" : FlowRate;
+
+   };
+
+  initial <-
+   {
+   // parameters.SewSpecificVolume[H2O_sew] := 0.000001;
+   };
+
+  equations <-
+   {
+    // The FluxPerSewComponent is the sum of all
+    // incoming (positive) and outgoing (negative) fluxes 
+
+    {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+      state.FluxPerSewComponent[s_comp_index] =
+
+    // If not only SewTerminal type terminals are present in the interface
+    // (e.g., also ControlTerminal), we have to select only
+    // those terminals from the interface which are of
+    // SewTerminal type (or any SUBtype such as InSewTerminal of it) 
+    // as those are the only ones for which the mass balance law holds.
+
+    state.inFluxPerSewComponent[s_comp_index]+
+    (SUMOVER s_out_terminal IN {SelectByType(interface,OutSewTerminal)}:
+    s_out_terminal[s_comp_index]);};
+
+    // The mass balance equations.
+    // These are composed of a term due to incoming and
+    // outgoing fluxes and of a term due to biochemical
+    // interactions between components.
+
+    {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+      DERIV(state.SewM[s_comp_index],[independent.t]) = 
+      state.FluxPerSewComponent[s_comp_index]
+      + state.conversionTermPerSewComponent[s_comp_index];};
+
+    // for efficiency and because most models need it anyway
+    // we calculate Q_i here
+    
+    {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+      state.inFluxPerSewComponent[s_comp_index] =
+         SUMOVER s_in_terminal IN {SelectByType(interface,InSewTerminal)}:
+            (s_in_terminal[s_comp_index]);
+    };
+
+    {state.Q_i = (0.000001 
+                  * state.inFluxPerSewComponent[H2O_sew]);
+    };
+
+ //Less general Q_i calculation to avoid algebraic loops in the
+ //modelling of WWTP's (Algebraic loops for S_I -> X_ND induced
+  //by Q_i !!!)
+
+   }; 
+ :};
+
+ 
+
+ 
+ 
+ 
+//=================================================================
+//===============================SewerAtomicModelWithoutVolume=========
+//=================================================================
+
+
+CLASS SewerAtomicModelWithoutVolume 
+ SPECIALISES PhysicalDAEModelType :=
+ {:
+  parameters <-
+   {
+    /*OBJ SewSpecificVolume (* hidden = "1" *)
+    "Vector containing the specific volume (= 1/density) for all the components"
+    : SewSpecificVolumeVector;*/
+   };
+
+  initial <-
+   {
+   // parameters.SewSpecificVolume[H2O_sew] := 0.000001;
+   };
+
+  independent <- { OBJ t "Time" : Time; };
+
+  state <-
+   {
+    OBJ inFluxPerSewComponent (* hidden = "0" *) "Vector containing incoming fluxes for all components" : SewMassFluxVector;
+    OBJ Q_i "Influent flow rate" : FlowRate ;
+   };
+
+   equations <-
+   {
+     { FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+        state.inFluxPerSewComponent[s_comp_index] =
+         SUMOVER In_Terminal IN {SelectByType(interface,InSewTerminal)}:
+         (In_Terminal[s_comp_index]);
+     };
+
+     {state.Q_i = (0.000001
+                  * state.inFluxPerSewComponent[H2O_sew]);
+     };
+
+   };
+ :};
+
+
+//=================================================================
+//===============================SewerAtomicModelWithVolume=========
+//=================================================================
+
+
+ CLASS SewerAtomicModelWithVolume EXTENDS SewerAtomicModel WITH
+ {:
+   interface <-
+   {
+		};
+
+
+   parameters <-
+    {    
+    };
+
+   state <-
+
+   {
+         OBJ WaterLevel "Water level inside the tank" : Length ;
+
+      OBJ V : Volume;
+      OBJ SewC : SewConcentrationVector ;
+      OBJ Q_Out "Effluent flow rate" : FlowRate;	  
+    };
+
+   equations <-
+    {
+    };
+
+// volume and concentration equations are calculated
+// specific to fixed or variable volume
+
+ :};
+  
+CLASS KosimTank_runoff
+  (* class = "pipe"; category = "" *)
+  "A buffertank with linear outflow equation" 
+  
+  
+  EXTENDS SewerAtomicModelWithVolume WITH
+  {:
+   interface <-
+    {
+      OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+        InSewTerminal := {: causality <- "CIN" :};
+      OBJ Outflow (* terminal = "out_1" *)"Outflow" : 
+        OutSewTerminal := {: causality <- "COUT" :};
+    };
+    initial <-
+    {
+    };
+   parameters <-
+   {
+     OBJ k "reservoir constant" : Time := {:value <- 0.005787 ; group <- "Hydraulic":};
+ 	   OBJ m "exponent (1 corresponds to linearity)" : Real := {:value <- 1 ; group <- "Hydraulic" :};
+ 	   OBJ k_fact "factor for sensitivity analysis" : Real := {:value <- 1 ; group <- "Hydraulic" :};
+     OBJ Vmin (*hidden = "0" *) "Minimum volume of the tank, to avoid problems with to low numbers" : Volume := {: value <- 1 ; group <- "Hydraulic":};
+   };
+ 
+   state <-
+    {
+    };
+ 
+   equations <-
+    {
+    state.V = 0.000001*state.SewM[H2O_sew];
+    state.Q_Out =  IF (state.V < parameters.Vmin)
+                   THEN 0
+                   ELSE pow(state.V/(parameters.k*parameters.k_fact),1/parameters.m);
+    {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+      state.SewC[s_comp_index] = state.SewM[s_comp_index]/state.V;};
+    {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+       interface.Outflow[s_comp_index] =
+        - state.SewC[s_comp_index] * state.Q_Out ;};
+ 
+    };
+  :};
+			 
+ CLASS SewRetentionVolume
+ (* class = ""; category = "" *)
+ "Retention volume of the system"
+ EXTENDS SewerAtomicModelWithVolume WITH
+ {:
+  
+  interface <-
+   {
+     OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+       InSewTerminal := {: causality <- "CIN" :};
+      OBJ Outflow1 (* terminal = "out_1" *) "Outflow1" : 
+         OutSewTerminal := {: causality <- "COUT" :};
+    OBJ Outflow2 (* terminal = "out_2" *) "Outflow2" : 
+         OutSewTerminal := {: causality <- "COUT" :};
+   };
+
+  parameters <-
+   {
+     OBJ V_Max "Maximum volume of the tank" : Volume := {: group <- "Tank characteristics"; value <- 10 :};
+     OBJ V_Min "Minimum volume of the tank" : Volume := {: group <- "Tank characteristics"; value <- 1 :};
+	 OBJ D_Max "Maximum depth of the tank" : Length := {: group <- "Tank characteristics"; value <- 1 :};
+	 OBJ Cd "Overflow = Cd*(g^1/2)*B*(Du^3/2)" : Real := {: group <- "Tank characteristics"; value <- 0.85 :};
+	 OBJ B "Overflow = Cd*(g^1/2)*B*(Du^3/2)" : Length := {: group <- "Tank characteristics"; value <- 20 :};
+	 OBJ Surf "Surface of the tank" : Area := {: group <- "Tank characteristics" :};
+   };
+   
+   initial <-
+   {
+     parameters.Surf = parameters.V_Max / parameters.D_Max;
+   };
+
+  state <-
+   {
+ //    OBJ Q_Out "Actual effluent flow rate" : FlowRate ;
+	 OBJ Q_over "Overflow Rate" : FlowRate;
+	 OBJ Du "Height above weir crest" : Length;
+   };
+
+  equations <-
+   {
+   
+    state.Du = (state.V-parameters.V_Max) / parameters.Surf;
+   
+    interface.Outflow1[H2O_sew] = - state.Q_Out / 0.000001 ; 
+	interface.Outflow2[H2O_sew] = - state.Q_over / 0.000001 ;
+    state.V = state.SewM[H2O_sew] *0.000001;
+					
+	state.Q_over = IF (state.V <= parameters.V_Max)
+				   THEN 0
+				   ELSE parameters.Cd * pow(9.81,0.5) * parameters.B * pow(state.Du,1.5) * 3600 * 24;
+
+    {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+     		  state.SewC[s_comp_index] = IF (state.V == 0)
+			   			       		   	 THEN 0 
+							  			 ELSE state.SewM[s_comp_index] / state.V ;};
+										    	 
+	 {FOREACH s_comp_index IN {2 .. NrOfSewComponents}:
+      interface.Outflow1[s_comp_index] = 
+      		- state.SewC[s_comp_index] * state.Q_Out;};
+	  
+	 {FOREACH s_comp_index IN {2 .. NrOfSewComponents}:
+      interface.Outflow2[s_comp_index] = 
+	  		- state.SewC[s_comp_index] * state.Q_over ;};
+			
+	   //DERIV(state.Q_over_int,[independent.t])= state.Q_over;		
+   };
+   
+ :};
+			 
+CLASS SewRetentionVolume_P
+ (* class = "retention_basin"; category = "" *)
+ "Retention volume of the system, pumped outflow + overflow"
+ EXTENDS SewRetentionVolume WITH
+ {:
+
+  parameters <-
+   {
+     OBJ Q_Pump "Maximum effluent flow rate" : FlowRate := {: group <- "Tank characteristics" :};
+	 OBJ f_on "Fraction of volume above which Qout=Qpump" : Fraction := {: group <- "Tank characteristics"; value <- 0.01 :};
+	 OBJ energy_cost "Energy cost, in EUR/kWh" : Real := {: value <- 0.12 ; group <- "Power consumption" :};
+	 OBJ energy_pumpingvol "Energy for pumping, in kWh/m3" : Real := {: value <- 0.09 ; group <- "Power consumption" :};
+   };
+
+  state <-
+   {
+	 OBJ Q_Out_int "Integral of Q_Out" : Volume;
+	 OBJ energy_pumping "Energy consumption for pumping, integral" : ElectricalEnergy := {: group <- "Power consumption" :};
+	 OBJ cost_pumping "Cost for pumping in EUR, integral" : Real := {: group <- "Power consumption" :};
+   };
+
+  equations <-
+   {
+    state.Q_Out = IF (state.V < parameters.V_Min) 
+                THEN 0
+                ELSE  
+                  IF ((state.Q_i > parameters.Q_Pump) || (state.V >= parameters.V_Max * parameters.f_on))
+                  THEN parameters.Q_Pump
+                  ELSE state.Q_i ;    
+			
+	    DERIV(state.Q_Out_int,[independent.t])= state.Q_Out;
+		state.energy_pumping = state.Q_Out_int * parameters.energy_pumpingvol;
+		state.cost_pumping = state.energy_pumping * parameters.energy_cost;
+		
+   };
+	 
+	 :};
+	 
+CLASS SewRetentionVolume_FF
+ (* class = "retention_basin"; category = "" *)
+ "Retention volume of the system, free flow outflow"
+ EXTENDS SewRetentionVolume WITH
+ {:
+
+  parameters <-
+   {
+	 OBJ PipeDiameter "diameter of the connected (circular) pipe downstream" : Length :=
+  	  {: value <- 0.6 ; group <- "Tank characteristics" :};
+     OBJ c_o "throttle coefficient (1=total cross-section)" : Real := {: value <- 1 ; group <- "Tank characteristics" :};
+	 OBJ Q_max "Max outflow" : FlowRate := {: group <- "Tank characteristics" :};
+   };
+
+  state <-
+   {
+	 OBJ Q_Out_help (*hidden = "1" *) "Actual effluent flow rate" : FlowRate ;
+	// OBJ WaterLevel "Water level" : Length;
+   };
+
+  equations <-
+   { 
+	state.WaterLevel = state.V / parameters.Surf;
+    state.Q_Out_help = IF (state.V < parameters.V_Min) 
+                       THEN 0
+                       ELSE IF (state.WaterLevel >= parameters.PipeDiameter)
+					        THEN sqrt(2 * state.WaterLevel * 9.81) * 86400 * 0.785 *
+					  	         parameters.PipeDiameter * parameters.PipeDiameter	* parameters.c_o
+					        ELSE sqrt(2 * state.WaterLevel * 9.81) * 86400  * 0.785 *
+					  	         parameters.PipeDiameter * state.WaterLevel * parameters.c_o;    
+						  
+	state.Q_Out = IF (state.Q_Out_help < parameters.Q_max) 
+                  THEN state.Q_Out_help
+                  ELSE parameters.Q_max;	    
+   };
+   
+ :};
+			 
+CLASS  TwoTankCascade_runoff
+ (* class = "pipe" *)
+ SPECIALISES CoupledModelType :=
+ {:
+  interface <-
+  {
+   OBJ Inflow1 (* terminal = "in_1" *) "Inflow1" : InSewTerminal := {:causality <- CIN:},
+   OBJ Outflow1 (* terminal = "out_1" *) "Outflow1" : OutSewTerminal := {:causality <- COUT:},
+  };
+ 
+  parameters <-
+  {
+  OBJ k "linear reservoir constant" : Time := {: value <- 0.005787; group <- "" :};
+  OBJ m "exponent (1 corresponds to linearity)" : Real := {:value <- 1; group <- "":};
+  //OBJ Q_max (* hidden ="1" *) : FlowRate;
+  };
+ 
+  sub_models <-
+  {
+   OBJ Tank1 : KosimTank_runoff,
+   OBJ Tank2 : KosimTank_runoff,
+  };
+ 
+  coupling <-
+  {
+  // parameter coupling
+  sub_models.Tank1.parameters.k.value := parameters.k.value,
+  sub_models.Tank2.parameters.k.value := parameters.k.value,
+  sub_models.Tank1.parameters.m.value := parameters.m.value,
+  sub_models.Tank2.parameters.m.value := parameters.m.value,
+  // sub-model coupling
+   connect(interface.Inflow1, sub_models.Tank1.interface.Inflow),
+   connect(sub_models.Tank1.interface.Outflow, sub_models.Tank2.interface.Inflow),
+   connect(sub_models.Tank2.interface.Outflow, interface.Outflow1),
+  };
+ :};
+			 
+  CLASS  ThreeTankCascade_runoff
+ (* class = "pipe" *)
+ EXTENDS TwoTankCascade_runoff WITH
+ {:
+ 
+  interface <-
+  {
+   OBJ Outflow2 (* terminal = "out_1" *) "Outflow1" : OutSewTerminal := {:causality <- COUT:},
+  };
+ 
+  sub_models <-
+  {
+   OBJ Tank3 : KosimTank_runoff,
+  };
+ 
+  coupling <-
+  {
+   sub_models.Tank1.parameters.k.value := parameters.k.value,
+   sub_models.Tank2.parameters.k.value := parameters.k.value,
+   sub_models.Tank3.parameters.k.value := parameters.k.value,
+   sub_models.Tank1.parameters.m.value := parameters.m.value,
+   sub_models.Tank2.parameters.m.value := parameters.m.value,
+   sub_models.Tank3.parameters.m.value := parameters.m.value,
+   connect(sub_models.Tank2.interface.Outflow, sub_models.Tank3.interface.Inflow),
+   connect(sub_models.Tank3.interface.Outflow, interface.Outflow2),
+  };
+ :};
+
+CLASS LoopBreaker_sew
+(* icon = "loop_breaker" *)
+"An Explicit Implicit Algebraic Loop Breaker using previous"
+
+SPECIALISES PhysicalDAEModelType :=
+{:
+  comments <- "A model for a loopbreaker with previous functions";
+  interface <-
+  {
+   OBJ Inflow (* terminal = "in_1" *) "Inflow" :
+        InSewTerminal := {: causality <- "CIN" ; group <- "Influent" :};
+   OBJ Outflow (* terminal = "out_1" *) "Outflow" :
+        OutSewTerminal := {: causality <- "COUT" ; group <- "Effluent" :};
+  };
+
+  independent <- 
+  { 
+   OBJ t "Time" : Time := {: group <- "Time" :}; 
+  };
+
+ parameters <-
+ {
+  //OBJ InitialFluxPerSewComponent "Vector containing initial flux for all components" : SewMassFluxVector := {: group <- "Miscellaneous" :};
+ };
+
+ state <-
+ {
+  OBJ InFluxPerSewComponent (* hidden = "1" *) "Vector containing incoming fluxes for all components" : SewMassFluxVector;
+ };
+
+ initial <-
+ {
+   { FOREACH s_comp_index IN {IndexOfSolvent .. NrOfSewComponents}:
+      state.InFluxPerSewComponent[s_comp_index] = 0;
+       //parameters.InitialFluxPerSewComponent[s_comp_index];
+   };
+ };
+
+ equations <-
+ {
+   { FOREACH s_comp_index IN {IndexOfSolvent .. NrOfSewComponents}:
+      state.InFluxPerSewComponent[s_comp_index] =
+       SUMOVER In_Terminal IN {SelectByType(interface,InSewTerminal)}:
+       (In_Terminal[s_comp_index]);
+   };
+
+  { FOREACH s_comp_index IN {IndexOfSolvent .. NrOfSewComponents}:
+     interface.Outflow[s_comp_index] =
+       - previous(state.InFluxPerSewComponent[s_comp_index]);
+  };
+
+ };
+
+:};
+   
+#endif // SEWER_BASE
+
+// ***********************************************************************
+
+
+
+

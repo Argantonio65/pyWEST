@@ -1,0 +1,109 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 5. september 2011 16:01:10$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_DEFINITIONSASM3P_EAWAG
+#define WWTP_DEFINITIONSASM3P_EAWAG
+
+#ifdef ASM3P_EAWAG
+TYPE Components
+"The biological components considered in the WWTP models"
+  = ENUM {H2O, 
+    S_I, 
+    S_S, 
+    S_N2, 
+    S_NH,
+    S_NO, 
+    S_O, 
+    S_PO, 
+    S_ALK, 
+    X_I, 
+    X_S, 
+    X_A, 
+    X_H, 
+    X_PAO, 
+    X_PHA, 
+    X_STO, 
+    X_PP, 
+    X_TSS, 
+    };
+    
+#endif // ASM3P_EAWAG
+
+#ifdef ASM3P_EAWAG
+TYPE Reactions
+"The reactions between biological components considered in the WWTP models"
+
+    = ENUM { 
+    P01_Hydrolysis, 
+    P02_AerStorageOfXSTO, 
+    P03_AnoxStorageOfXSTO, 
+    P04_AerGrowthOfXH, 
+    P05_AnoxGrowthOfXH, 
+    P06_AerEndogRespOfXH, 
+    P07_AnoxEndogRespOfXH, 
+    P08_AerRespOfXSTO, 
+    P09_AnoxRespOfXSTO, 
+    P10_Nitrification, 
+    P11_AerEndogRespOfXA, 
+    P12_AnoxEndogRespOfXA, 
+    PP01_StorageOfXPHA, 
+    PP02_AerStorageOfXPP, 
+    PP03_AnoxStorageOfXPP, 
+    PP04_AerGrowthOfXPAO, 
+    PP05_AnoxGrowthOfXPAO, 
+    PP06_AerEndogRespOfXPAO, 
+    PP07_AnoxEndogRespOfXPAO, 
+    PP08_AerLysisOfXPP, 
+    PP09_AnoxLysisOfXPP, 
+    PP10_AerRespOfXPHA, 
+    PP11_AnoxRespOfXPHA,
+    Aeration, };
+#endif // ASM3P_EAWAG
+
+#ifdef ASM3P_EAWAG
+
+#define StandardCategoryModels
+ OBJ IndexOfSolvent 
+  "Index of the solvent (water) in the component vector" 
+  : Integer := 1;
+
+#define SolublesPresent
+ OBJ IndexOfFirstSolubleComponent
+  "Index of the first soluble component in the component vector"
+  : Integer := 2;
+
+ OBJ IndexOfLastSolubleComponent
+  "Index of the last soluble component in the component vector"
+  : Integer := 9;
+
+#define ParticulatesPresent  
+ OBJ IndexOfFirstParticulateComponent
+  "Index of the first particulate component in the component vector"
+  : Integer := 10;
+
+ OBJ IndexOfLastParticulateComponent
+  "Index of the last particulate component in the component vector"
+  : Integer := 18;
+
+#define UseTSSComponent 
+ OBJ IndexOfTSSComponent
+  "Index of TSS in the component vector"
+  : Integer := 18;
+
+  
+#endif // ASM3P_EAWAG
+
+#endif //WWTP_DEFINITIONSASM3P_EAWAG

@@ -1,0 +1,89 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$ EURE
+ * $Date: 19. april 2012 10:17:55$
+ *
+ ******************************************************************************/
+ 
+//  The model has been implemented as defined in Rieger et al. (2003). Further information can be also found in Alex et al. (2009)
+//  References:
+//  Rieger L., Alex J., Winkler S., Boehler M., Thomann M. and Siegrist H. (2003). Progress in sensor technology - progress in process control? Part I: Sensor property investigation and classification. Water Sci. Technol., 47(2), 103-112.
+//  Alex, J., Rieger, L., Corominas, L. and Winkler, S. (2009). Models of Sensors and Actuators. Scientific Technical Report of the IWA Task Group on Benchmarking control strategies. IWA publishing, London, UK.
+
+#ifndef WWTP_BASE_DATATREATMENT_RESPONSETIME
+#define WWTP_BASE_DATATREATMENT_RESPONSETIME
+
+CLASS Response_Time
+  (* icon = "data_treatment" ; is_default = "true" *)
+  "Data Treatment"
+  EXTENDS DataTreatment WITH 
+  {:
+    comments <- "A model for adding response time to a signal";
+    parameters <-
+    {
+		OBJ T90 "Response time" : Time := {: value <- 0.00694444444444444 ; group <- "System" :};
+		OBJ n "Order for the response time (2-8)" : Integer := {: value <- 2 ; group <- "System" :};
+    };
+    state <-
+    {
+		OBJ signal_response1 (* hidden = "1" *) "variable for 1st order response time output": Real ;
+		OBJ signal_response2 (* hidden = "1" *) "variable for 2nd order response time output": Real ;
+		OBJ signal_response3 (* hidden = "1" *) "variable for 3rd order response time output": Real ;
+		OBJ signal_response4 (* hidden = "1" *) "variable for 4th order response time output": Real ;
+		OBJ signal_response5 (* hidden = "1" *) "variable for 5th order response time output": Real ;
+		OBJ signal_response6 (* hidden = "1" *) "variable for 6th order response time output": Real ;
+		OBJ signal_response7 (* hidden = "1" *) "variable for 7th order response time output": Real ;
+		OBJ signal_response8 (* hidden = "1" *) "variable for 8th order response time output": Real ;
+		//this variable is for defining the response time depending on T90
+ 		OBJ Tau "Time constant" : Time := {: value <- 0.00006944444444 ; group <- "System" :};  
+    };
+    initial <-
+    {
+		// Tau = T90 /3.89. This value (3.89) was calculated numerically by simulating the transfer function
+		//for input step signal and a given value for Tau. The step response was analysed for the resulting
+		//response time tr and the ratio was finally calculated.
+		state.Tau = IF (parameters.n==1) THEN parameters.T90/2.3247
+			ELSE IF (parameters.n==2) THEN parameters.T90/3.89
+				 ELSE IF (parameters.n==3) THEN parameters.T90/5.3336
+				 	  ELSE IF (parameters.n==4) THEN parameters.T90/6.6902
+					  	   ELSE IF (parameters.n==5) THEN parameters.T90/8.0031
+						   		ELSE IF (parameters.n==6) THEN parameters.T90/9.2680
+									 ELSE IF (parameters.n==7) THEN parameters.T90/10.5357
+									 	  ELSE parameters.T90/11.7724;
+		//Tau = T90 /11.7724. This value (11.7724) was calculated numerically by simulating the transfer function
+		//for input step signal and a given value for Tau. The step response was analysed for the resulting
+		//response time tr and the ratio was finally calculated.
+    };
+    equations <-
+    {
+		//implementation of series of laplace transfer functions. 
+		DERIV(state.signal_response1,[independent.t]) = -(1/state.Tau)*(state.signal_response1 - state.signal);
+		DERIV(state.signal_response2,[independent.t]) = -(1/state.Tau)*(state.signal_response2 - state.signal_response1);
+		DERIV(state.signal_response3,[independent.t]) = -(1/state.Tau)*(state.signal_response3 - state.signal_response2);
+		DERIV(state.signal_response4,[independent.t]) = -(1/state.Tau)*(state.signal_response4 - state.signal_response3);
+		DERIV(state.signal_response5,[independent.t]) = -(1/state.Tau)*(state.signal_response5 - state.signal_response4);
+		DERIV(state.signal_response6,[independent.t]) = -(1/state.Tau)*(state.signal_response6 - state.signal_response5);
+		DERIV(state.signal_response7,[independent.t]) = -(1/state.Tau)*(state.signal_response7 - state.signal_response6);
+		DERIV(state.signal_response8,[independent.t]) = -(1/state.Tau)*(state.signal_response8 - state.signal_response7);
+		
+		interface.y_M = IF (parameters.n==1) THEN state.signal_response1
+			ELSE IF (parameters.n==2) THEN state.signal_response2
+				 ELSE IF (parameters.n==3) THEN state.signal_response3
+				 	  ELSE IF (parameters.n==4)	THEN state.signal_response4
+					  	   ELSE IF (parameters.n==5) THEN state.signal_response5
+						   		ELSE IF (parameters.n==6) THEN state.signal_response6
+									 ELSE IF (parameters.n==7) THEN state.signal_response7
+									 	  ELSE state.signal_response8;
+    };
+  :};
+  
+#endif // WWTP_BASE_DATATREATMENT_RESPONSETIME

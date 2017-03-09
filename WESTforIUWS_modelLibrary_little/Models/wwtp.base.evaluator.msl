@@ -1,0 +1,268 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 5. september 2011 16:01:08$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_BASE_EVALUATOR
+#define WWTP_BASE_EVALUATOR
+
+CLASS OperationalCost
+  (* icon = "cost" ; is_default = "true" *)
+  "Calculation of the operational cost of the plant"
+
+// References
+// Copp, J.B. (1999). Respirometry in Control of the Activated Sludge Process.
+// http://www.spb.wau.nl/mt/iawqstrproject (March 19, 1999).
+//
+// Debusscher, D. (1999). Een procedure voor evaluatie van op respirometrie
+// gebaseerde controlestrategieën voor actiefslibsystemen. M.Sc. thesis, Gent,
+// Faculty of Agricultural and Applied Biological Sciences, 125p.
+//
+// Debusscher, D., Vanhooren, H. and Vanrolleghem, P. (1999). Benchmarking two
+// biomass loading control strategies for activated sludge WWTPs. Med. Fac.
+// Landbouww. Univ. Gent, 64(5a), 127-132.
+
+  SPECIALISES
+  PhysicalDAEModelType :=
+  {:
+    interface <-
+    {
+  // 1) AERATION ENERGY + COST (through KLa)
+    OBJ AerationEnergy1 (* terminal = "in_1" *) "AerationEnergy unit 1" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Aeration" :};
+    OBJ AerationEnergy2 (* terminal = "in_1" *) "AerationEnergy unit 2" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Aeration" :};
+    OBJ AerationEnergy3 (* terminal = "in_1" *) "AerationEnergy unit 3" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Aeration" :};
+    OBJ AerationEnergy4 (* terminal = "in_1" *) "AerationEnergy unit 4" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Aeration" :};
+    OBJ AerationEnergy5 (* terminal = "in_1" *) "AerationEnergy unit 5" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Aeration" :};
+    OBJ AerationEnergy6 (* terminal = "in_1" *) "AerationEnergy unit 6" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Aeration" :};
+    OBJ AerationEnergy7 (* terminal = "in_1" *) "AerationEnergy unit 7" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Aeration" :};
+    OBJ AerationEnergy8 (* terminal = "in_1" *) "AerationEnergy unit 8" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Aeration" :};
+    OBJ AerationEnergy9 (* terminal = "in_1" *) "AerationEnergy unit 9" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Aeration" :};
+    OBJ AerationEnergy10 (* terminal = "in_1" *) "AerationEnergy unit 10" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Aeration" :};
+  //
+  // 2) PUMPING ENERGY + COST
+    OBJ PumpingEnergy1 (* terminal = "in_1" *) "PumpingEnergy 1" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Pumping" :};
+    OBJ PumpingEnergy2 (* terminal = "in_1" *) "PumpingEnergy 2" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Pumping" :};
+    OBJ PumpingEnergy3 (* terminal = "in_1" *) "PumpingEnergy 3" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Pumping" :};
+    OBJ PumpingEnergy4 (* terminal = "in_1" *) "PumpingEnergy 4" : ElectricalEnergy:= {: causality <- "CIN" ; group <- "Pumping" :};
+    OBJ PumpingEnergy5 (* terminal = "in_1" *) "PumpingEnergy 5" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Pumping" :};
+    OBJ PumpingEnergy6 (* terminal = "in_1" *) "PumpingEnergy 6" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Pumping" :};
+    OBJ PumpingEnergy7 (* terminal = "in_1" *) "PumpingEnergy 7" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Pumping" :};
+    OBJ PumpingEnergy8 (* terminal = "in_1" *) "PumpingEnergy 8" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Pumping" :};
+    OBJ PumpingEnergy9 (* terminal = "in_1" *) "PumpingEnergy 9" : ElectricalEnergy:= {: causality <- "CIN" ; group <- "Pumping" :};
+    OBJ PumpingEnergy10 (* terminal = "in_1" *) "PumpingEnergy 10" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Pumping" :};
+    OBJ PumpingEnergy11 (* terminal = "in_1" *) "PumpingEnergy 11" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Pumping" :};
+    OBJ PumpingEnergy12 (* terminal = "in_1" *) "PumpingEnergy 12" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Pumping" :};
+    OBJ PumpingEnergy13 (* terminal = "in_1" *) "PumpingEnergy 13" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Pumping" :};
+    OBJ PumpingEnergy14 (* terminal = "in_1" *) "PumpingEnergy 14" : ElectricalEnergy:= {: causality <- "CIN" ; group <- "Pumping" :};
+    OBJ PumpingEnergy15 (* terminal = "in_1" *) "PumpingEnergy 15" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Pumping" :};
+    OBJ PumpingEnergy16 (* terminal = "in_1" *) "PumpingEnergy 16" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Pumping" :};
+    OBJ PumpingEnergy17 (* terminal = "in_1" *) "PumpingEnergy 17" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Pumping" :};
+    OBJ PumpingEnergy18 (* terminal = "in_1" *) "PumpingEnergy 18" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Pumping" :};
+    OBJ PumpingEnergy19 (* terminal = "in_1" *) "PumpingEnergy 19" : ElectricalEnergy:= {: causality <- "CIN" ; group <- "Pumping" :};
+    OBJ PumpingEnergy20 (* terminal = "in_1" *) "PumpingEnergy 20" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Pumping" :};
+  //
+  // 3) MIXING ENERGY + COST
+    OBJ MixingEnergy1 (* terminal = "in_1" *) "MixingEnergy 1" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Mixing" :};
+    OBJ MixingEnergy2 (* terminal = "in_1" *) "MixingEnergy 2" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Mixing" :};
+    OBJ MixingEnergy3 (* terminal = "in_1" *) "MixingEnergy 3" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Mixing" :};
+    OBJ MixingEnergy4 (* terminal = "in_1" *) "MixingEnergy 4" : ElectricalEnergy:= {: causality <- "CIN" ; group <- "Mixing" :};
+    OBJ MixingEnergy5 (* terminal = "in_1" *) "MixingEnergy 5" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Mixing" :};
+    OBJ MixingEnergy6 (* terminal = "in_1" *) "MixingEnergy 6" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Mixing" :};
+    OBJ MixingEnergy7 (* terminal = "in_1" *) "MixingEnergy 7" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Mixing" :};
+    OBJ MixingEnergy8 (* terminal = "in_1" *) "MixingEnergy 8" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Mixing" :};
+    OBJ MixingEnergy9 (* terminal = "in_1" *) "MixingEnergy 9" : ElectricalEnergy:= {: causality <- "CIN" ; group <- "Mixing" :};
+    OBJ MixingEnergy10 (* terminal = "in_1" *) "MixingEnergy 10" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Mixing" :};
+    OBJ MixingEnergy11 (* terminal = "in_1" *) "MixingEnergy 11" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Mixing" :};
+    OBJ MixingEnergy12 (* terminal = "in_1" *) "MixingEnergy 12" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Mixing" :};
+    OBJ MixingEnergy13 (* terminal = "in_1" *) "MixingEnergy 13" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Mixing" :};
+    OBJ MixingEnergy14 (* terminal = "in_1" *) "MixingEnergy 14" : ElectricalEnergy:= {: causality <- "CIN" ; group <- "Mixing" :};
+    OBJ MixingEnergy15 (* terminal = "in_1" *) "MixingEnergy 15" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Mixing" :};
+    OBJ MixingEnergy16 (* terminal = "in_1" *) "MixingEnergy 16" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Mixing" :};
+    OBJ MixingEnergy17 (* terminal = "in_1" *) "MixingEnergy 17" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Mixing" :};
+    OBJ MixingEnergy18 (* terminal = "in_1" *) "MixingEnergy 18" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Mixing" :};
+    OBJ MixingEnergy19 (* terminal = "in_1" *) "MixingEnergy 19" : ElectricalEnergy:= {: causality <- "CIN" ; group <- "Mixing" :};
+    OBJ MixingEnergy20 (* terminal = "in_1" *) "MixingEnergy 20" : ElectricalEnergy := {: causality <- "CIN" ; group <- "Mixing" :};
+  //
+  // 4) SLUDGE WASTAGE + COST
+    OBJ TSS1 (* terminal = "in_1" *) "TSS1" : Concentration := {: causality <- "CIN" ; group <- "TSS concentration in the wastage flow 1" :};
+    OBJ TSS2 (* terminal = "in_1" *) "TSS2" : Concentration := {: causality <- "CIN" ; group <- "TSS concentration in the wastage flow 2" :};
+    OBJ Q_Pump_Waste1 (* terminal = "in_1" *) "Q_Pump sludge wastage 1" : FlowRate := {: causality <- "CIN" ; group <- "Measurement data" :};
+    OBJ Q_Pump_Waste2 (* terminal = "in_1" *) "Q_Pump sludge wastage 2" : FlowRate := {: causality <- "CIN" ; group <- "Measurement data" :};
+  //
+  // 5) ADDITION OF CHEMICALS
+    OBJ Q1_COD (* terminal = "in_1" *) "External COD dosed (unit 1)" : FlowRate := {: causality <- "CIN" ; group <- "Chemicals" :};
+    OBJ Q1_MeOH (* terminal = "in_1" *) "Metal dosed (unit 1)" : FlowRate := {: causality <- "CIN" ; group <- "Chemicals" :};
+    OBJ Q2_COD (* terminal = "in_1" *) "External COD dosed (unit 2)" : FlowRate := {: causality <- "CIN" ; group <- "Chemicals" :};
+    OBJ Q2_MeOH (* terminal = "in_1" *) "Metal dosed (unit 2)" : FlowRate := {: causality <- "CIN" ; group <- "Chemicals" :};
+    OBJ Q3_COD (* terminal = "in_1" *) "External COD dosed (unit 3)" : FlowRate := {: causality <- "CIN" ; group <- "Chemicals" :};
+    OBJ Q3_MeOH (* terminal = "in_1" *) "Metal dosed (unit 3)" : FlowRate := {: causality <- "CIN" ; group <- "Chemicals" :};
+    };
+
+    parameters <-
+    {
+    OBJ F_AC "Aeration cost factor (Euro/kW)" : Ratio := {: value <- 0.07 ; group <- "Cost" :};
+    OBJ F_PC "Pumping cost factor (Euro/kW)" : Ratio := {: value <- 0.07 ; group <- "Cost" :};
+    OBJ F_MC "Mixing cost factor (Euro/kW)" : Ratio := {: value <- 0.07 ; group <- "Cost" :};
+    OBJ F_SC "Sludge cost factor (Euro/kg)" : Ratio := {: value <- 0.58 ; group <- "Cost" :};
+  OBJ C1_COD "COD cost factor (unit 1) (Euro/m3)" : Ratio := {: value <- 0.5 ; group <- "Chemicals" :};
+    OBJ C1_MeOH "Metal hydroxide cost factor (unit 1) (Euro/m3)" : Ratio := {: value <- 0.5 ; group <- "Chemicals" :};
+    OBJ C2_COD "COD cost factor (unit 2) (Euro/m3)" : Ratio := {: value <- 0.5 ; group <- "Chemicals" :};
+    OBJ C2_MeOH "Metal hydroxide cost factor (unit 2) (Euro/m3)" : Ratio := {: value <- 0.5 ; group <- "Chemicals" :};
+    OBJ C3_COD "COD cost factor (unit 3) (Euro/m3)" : Ratio := {: value <- 0.5 ; group <- "Chemicals" :};
+    OBJ C3_MeOH "Metal hydroxide cost factor (unit 3) (Euro/m3)" : Ratio := {: value <- 0.5 ; group <- "Chemicals" :};
+    OBJ Period "Period over which the costs are calculated" : Time := {: value <- 1 ; group <- "Miscellaneous":};
+    };
+
+    independent <- 
+    { 
+    OBJ t "Time" : Time := {: group <- "Time" :}; 
+    };
+
+    state <-
+    {
+  // 1) AERATION ENERGY (through KLa)
+    OBJ TotalAerationEnergy "Aeration energy" : ElectricalEnergy := {: group <- "Energy" :};
+  // 2) PUMPING ENERGY
+    OBJ TotalPumpingEnergy "Pumping energy" : ElectricalEnergy := {: group <- "Energy" :};
+  // 3) MIXING ENERGY
+    OBJ TotalMixingEnergy "Mixing energy" : ElectricalEnergy := {: group <- "Energy" :};
+  // 4) SLUDGE WASTAGE
+//    OBJ Sum_Pump_Wastage (* hidden = "1" *)"Sum of pumping flowrates for sludge wasting" : FlowRate ;
+    OBJ SludgeProduction "Sludge production" : Mass := {: group <- "Sludge" :};
+    OBJ Integ_SP (* hidden = "1" *)"Integral sludge production" : Mass ;
+  // 5) ADDITION OF CHEMICALS
+  OBJ CODdosed "External COD dosed" : Volume := {: group <- "Chemicals" :};
+  OBJ MeOHdosed "Metal hydroxide dosed" : Volume := {: group <- "Chemicals" :};
+    OBJ Integ_COD (* hidden = "1" *) "Integral ext.COD addition" : Volume ;
+    OBJ Integ_MeOH (* hidden = "1" *) "Integral MeOH addition" : Volume ;
+    OBJ Integ_ChemicalCost (* hidden = "1" *) "Integral cost of chemicals" : Euro ;
+  // 6) COSTS
+    OBJ AerationCost "Aeration cost" : Euro := {: group <- "Cost" :};
+    OBJ PumpingCost "Pumping cost" : Euro := {: group <- "Cost" :};
+    OBJ MixingCost "Mixing cost" : Euro := {: group <- "Cost" :};
+    OBJ SludgeCost "Sludge cost" : Euro := {: group <- "Cost" :};
+    OBJ ChemicalCost "Cost of chemicals" : Euro := {: group <- "Chemicals" :};
+    OBJ TotalCost "Total cost" : Euro := {: group <- "Cost" :};
+    OBJ Prev_t (* hidden = "1" *) "Help variable for time" : Time ;
+    OBJ Prev_TotalAerationEnergy (* hidden = "1" *) "Help variable to calculate the Periodical aeration cost" : ElectricalEnergy ;
+    OBJ Prev_TotalPumpingEnergy (* hidden = "1" *) "Help variable to calculate the Periodical pumping cost" : ElectricalEnergy ;
+    OBJ Prev_TotalMixingEnergy (* hidden = "1" *) "Help variable to calculate the Periodical mixing cost" : ElectricalEnergy ;
+    OBJ Prev_Integ_SP (* hidden = "1" *) "Help variable to calculate the Periodical sludge cost" : Mass ;
+    OBJ Prev_Integ_ChemicalCost (* hidden = "1" *) "Help variable to calculate the Periodical chemical cost (carbon addition)" : Euro ;
+    OBJ AC_Period "Periodical aeration cost" : Euro := {: group <- "Cost" :};
+    OBJ PC_Period "Periodical Pumping cost" : Euro := {: group <- "Cost" :};
+    OBJ MC_Period "Periodical Mixing cost" : Euro := {: group <- "Cost" :};
+    OBJ SC_Period "Periodical sludge cost" : Euro := {: group <- "Cost" :};
+    OBJ CC_Period "Periodical cost of COD addition" : Euro := {: group <- "Cost" :};
+    OBJ TC_Period "Periodical total cost" : Euro := {: group <- "Cost" :};
+    };
+
+    equations <-
+    {
+  // 1) AERATION ENERGY (through KLa) for 10 tanks
+  //
+  state.TotalAerationEnergy = interface.AerationEnergy1 + interface.AerationEnergy2 + interface.AerationEnergy3
+                    + interface.AerationEnergy4 + interface.AerationEnergy5+ interface.AerationEnergy6 
+                + interface.AerationEnergy7 + interface.AerationEnergy8 + interface.AerationEnergy9 
+                + interface.AerationEnergy10;
+  //
+  // 2) PUMPING ENERGY for 10 pumps and 2 sludge wastage pumps
+  // Remark: it has been decided that the contribution of the dosing pumps to this
+  // term would be comparatively very small, hence we are neglecting it here.
+  //
+  state.TotalPumpingEnergy = interface.PumpingEnergy1 + interface.PumpingEnergy2 + interface.PumpingEnergy3 + interface.PumpingEnergy4 
+                 + interface.PumpingEnergy5 + interface.PumpingEnergy6  + interface.PumpingEnergy7 + interface.PumpingEnergy8 
+                 + interface.PumpingEnergy9 + interface.PumpingEnergy10 + interface.PumpingEnergy11 + interface.PumpingEnergy12 
+                 + interface.PumpingEnergy13 + interface.PumpingEnergy14 + interface.PumpingEnergy15+ interface.PumpingEnergy16 
+                 + interface.PumpingEnergy17 + interface.PumpingEnergy18 + interface.PumpingEnergy19 + interface.PumpingEnergy20;
+  //
+  // 3) MIXING ENERGY for 10 tanks
+  state.TotalMixingEnergy = interface.MixingEnergy1 + interface.MixingEnergy2 + interface.MixingEnergy3 + interface.MixingEnergy4 
+                + interface.MixingEnergy5 + interface.MixingEnergy6 + interface.MixingEnergy7 + interface.MixingEnergy8 
+                + interface.MixingEnergy9 + interface.MixingEnergy10 + interface.MixingEnergy11 + interface.MixingEnergy12 
+                + interface.MixingEnergy13 + interface.MixingEnergy14 + interface.MixingEnergy15+ interface.MixingEnergy16 
+                + interface.MixingEnergy17 + interface.MixingEnergy18 + interface.MixingEnergy19 + interface.MixingEnergy20;
+  //
+  // 4) SLUDGE WASTAGE for 2 sludge wastage flows
+  DERIV(state.Integ_SP,[independent.t])= interface.TSS1 * interface.Q_Pump_Waste1 + interface.TSS2 * interface.Q_Pump_Waste2;
+  state.SludgeProduction = state.Integ_SP ;
+  //
+  // 5) ADDITION OF CHEMICALS
+  DERIV(state.Integ_COD,[independent.t]) = interface.Q1_COD + interface.Q2_COD + interface.Q3_COD;
+  DERIV(state.Integ_MeOH,[independent.t]) = interface.Q1_MeOH + interface.Q2_MeOH + interface.Q3_MeOH;
+  state.CODdosed = state.Integ_COD;
+  state.MeOHdosed = state.Integ_MeOH;
+  // state.ChemicalCost in next section
+  //
+  // 6) COSTS
+  state.AerationCost = state.TotalAerationEnergy * parameters.F_AC;
+  state.PumpingCost = state.TotalPumpingEnergy * parameters.F_PC;
+  state.SludgeCost = state.SludgeProduction * parameters.F_SC / 1000.0;
+  state.MixingCost = state.TotalMixingEnergy * parameters.F_MC;
+  DERIV(state.Integ_ChemicalCost,[independent.t]) =
+      interface.Q1_COD * parameters.C1_COD + interface.Q2_COD  * parameters.C2_COD
+      + interface.Q3_COD * parameters.C3_COD + interface.Q1_MeOH * parameters.C1_MeOH
+      + interface.Q2_MeOH * parameters.C2_MeOH + interface.Q3_MeOH * parameters.C3_MeOH ;
+  state.ChemicalCost = state.Integ_ChemicalCost;
+  state.TotalCost = state.AerationCost + state.PumpingCost + state.SludgeCost + state.MixingCost + state.ChemicalCost;
+  //
+    state.Prev_t =  IF (independent.t < previous(state.Prev_t))
+          THEN 0
+          ELSE
+            IF  (independent.t - previous(state.Prev_t) < parameters.Period)
+            THEN  previous(state.Prev_t)
+            ELSE  independent.t;
+  state.Prev_TotalAerationEnergy = IF (independent.t < previous(state.Prev_t))
+                THEN 0
+                ELSE
+                IF (independent.t - previous(state.Prev_t) < parameters.Period)
+              THEN previous(state.Prev_TotalAerationEnergy)
+              ELSE state.TotalAerationEnergy;
+  state.Prev_TotalPumpingEnergy = IF (independent.t < previous(state.Prev_t))
+                THEN 0
+                ELSE
+                IF (independent.t - previous(state.Prev_t) < parameters.Period)
+                THEN previous(state.Prev_TotalPumpingEnergy)
+                ELSE state.TotalPumpingEnergy;
+  state.Prev_TotalMixingEnergy = IF (independent.t < previous(state.Prev_t))
+                THEN 0
+                ELSE
+                IF (independent.t - previous(state.Prev_t) < parameters.Period)
+                THEN previous(state.Prev_TotalMixingEnergy)
+                ELSE state.TotalMixingEnergy;
+  state.Prev_Integ_SP = IF (independent.t < previous(state.Prev_t))
+                THEN 0
+                ELSE
+                IF (independent.t - previous(state.Prev_t) < parameters.Period)
+                THEN previous(state.Prev_Integ_SP)
+                ELSE state.Integ_SP;
+  state.Prev_Integ_ChemicalCost = IF (independent.t < previous(state.Prev_t))
+                THEN 0
+                ELSE
+                IF (independent.t - previous(state.Prev_t) < parameters.Period)
+                THEN previous(state.Integ_ChemicalCost)
+                ELSE state.Integ_ChemicalCost;
+    //
+  state.AC_Period = parameters.F_AC * (state.TotalAerationEnergy - state.Prev_TotalAerationEnergy);
+  state.PC_Period = parameters.F_PC * (state.TotalPumpingEnergy - state.Prev_TotalPumpingEnergy);
+  state.MC_Period = parameters.F_MC * (state.TotalMixingEnergy - state.Prev_TotalMixingEnergy);
+  state.SC_Period = parameters.F_SC * (state.Integ_SP - state.Prev_Integ_SP) / 1000.0 ;
+  state.CC_Period = state.Integ_ChemicalCost - state.Prev_Integ_ChemicalCost;
+  state.TC_Period = state.AC_Period + state.PC_Period + state.SC_Period + state.CC_Period + state.MC_Period;
+    };
+  :};
+
+  
+  
+#endif // WWTP_BASE_EVALUATOR

@@ -1,0 +1,52 @@
+// -----------------------------------------------------------------------
+//  HEMMIS - Ghent University, BIOMATH
+//  Implementation:Tolessa Deksissa and Peter A.Vanrolleghem.
+//  Description: MSL-USER/WWTP/General definitions
+//               extending generic modules, category definitions and 
+//               vector (matrix) definitions.
+// -----------------------------------------------------------------------
+
+#ifndef RIVER_DEFINITIONS
+#define RIVER_DEFINITIONS
+
+TYPE RivComponents 
+
+  = ENUM  {rH2O, rO2, rBOD1, rBOD2, rNH4, rBOD1p, rBOD2p, rBODs};
+
+OBJ RivNrOfComponents
+  "The number of biological components considered in the WWTP models"
+  : Integer := Cardinality(RivComponents);
+  
+  // Terminal for Fluxes
+
+ CLASS RivTerminal
+
+ = MassFlux[RivNrOfComponents;]; 
+
+ CLASS InRivTerminal SPECIALISES RivTerminal; //used to indicate inflow
+ CLASS OutRivTerminal SPECIALISES RivTerminal; //used to indicage outflow
+
+
+// Terminals for Concentrations
+
+ CLASS RivConcTerminal 
+
+  = Concentration[RivNrOfComponents;]; 
+
+ CLASS InRivConcTerminal SPECIALISES RivConcTerminal; //used to indicate inflow concentrations
+ CLASS OutRivConcTerminal SPECIALISES RivConcTerminal; //used to indicate outflow concentrations
+ 
+ //OBJ RiverTerminal "Temporary iteration variable" : RivTerminal;
+ OBJ In_RivTerminal "Temporary iteration variable" : RivTerminal;
+ OBJ Out_RivTerminal "Temporary iteration variable" : RivTerminal;
+ 
+CLASS RivMassVector = Mass[RivNrOfComponents;];
+CLASS RivMassFluxVector = MassFlux[RivNrOfComponents;];
+CLASS RivConcentrationVector = Concentration[RivNrOfComponents;];
+CLASS RivSpecificVolumeVector = SpecificVolume[RivNrOfComponents;];
+
+//================================================================
+//==========================end of defining comp & react==========
+//================================================================
+
+#endif // RIVER_DEFINITIONS

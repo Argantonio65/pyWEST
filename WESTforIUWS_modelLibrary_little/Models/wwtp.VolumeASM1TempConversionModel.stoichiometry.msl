@@ -1,0 +1,49 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 5. september 2011 16:01:11$
+ *
+ ******************************************************************************/
+
+#ifdef ASM1Temp
+  parameters.Stoichiometry[AerGrowthHetero][S_S] :=  - 1 / (parameters.Y_H);
+  parameters.Stoichiometry[AerGrowthHetero][S_O] :=  - (1 - parameters.Y_H) / parameters.Y_H;
+  parameters.Stoichiometry[AerGrowthHetero][S_NH] :=  - parameters.i_X_B;
+  parameters.Stoichiometry[AerGrowthHetero][S_ALK] :=  - parameters.i_X_B / 14;
+  parameters.Stoichiometry[AerGrowthHetero][X_BH] := 1;
+  parameters.Stoichiometry[AnGrowthHetero][S_S] :=  - 1 / parameters.Y_H;
+  parameters.Stoichiometry[AnGrowthHetero][S_NO] :=  - (1 - parameters.Y_H) / (2.86 * parameters.Y_H);
+  parameters.Stoichiometry[AnGrowthHetero][S_NH] :=  - parameters.i_X_B;
+  parameters.Stoichiometry[AnGrowthHetero][S_ALK] := ((1 - parameters.Y_H) / (14 * 2.86 * parameters.Y_H)) - (parameters.i_X_B / 14);
+  parameters.Stoichiometry[AnGrowthHetero][X_BH] := 1;
+  parameters.Stoichiometry[AerGrowthAuto][S_O] :=  - (4.57 - parameters.Y_A) / parameters.Y_A;
+  parameters.Stoichiometry[AerGrowthAuto][S_NO] := 1 / parameters.Y_A;
+  parameters.Stoichiometry[AerGrowthAuto][S_NH] :=  - parameters.i_X_B - 1 / parameters.Y_A;
+  parameters.Stoichiometry[AerGrowthAuto][S_ALK] :=  - (parameters.i_X_B / 14) - (1 / (7 * parameters.Y_A));
+  parameters.Stoichiometry[AerGrowthAuto][X_BA] := 1;
+  parameters.Stoichiometry[DecayOfHetero][X_S] := 1 - parameters.f_P;
+  parameters.Stoichiometry[DecayOfHetero][X_BH] :=  - 1;
+  parameters.Stoichiometry[DecayOfHetero][X_P] := parameters.f_P;
+  parameters.Stoichiometry[DecayOfHetero][X_ND] := parameters.i_X_B - parameters.f_P * parameters.i_X_P;
+  parameters.Stoichiometry[DecayOfAuto][X_S] := 1 - parameters.f_P;
+  parameters.Stoichiometry[DecayOfAuto][X_BA] :=  - 1;
+  parameters.Stoichiometry[DecayOfAuto][X_P] := parameters.f_P;
+  parameters.Stoichiometry[DecayOfAuto][X_ND] := parameters.i_X_B - parameters.f_P * parameters.i_X_P;
+  parameters.Stoichiometry[AmmonOfSolOrgN][S_ND] :=  - 1;
+  parameters.Stoichiometry[AmmonOfSolOrgN][S_NH] := 1;
+  parameters.Stoichiometry[AmmonOfSolOrgN][S_ALK] := 1.0 / 14.0;
+  parameters.Stoichiometry[HydrolOfEntrOrg][S_S] := 1;
+  parameters.Stoichiometry[HydrolOfEntrOrg][X_S] :=  - 1;
+  parameters.Stoichiometry[HydrolOfEntrOrgN][S_ND] := 1;
+  parameters.Stoichiometry[HydrolOfEntrOrgN][X_ND] :=  - 1;
+  parameters.Stoichiometry[Aeration][S_O] ::= 1;
+#endif // ASM1Temp

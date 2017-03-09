@@ -1,0 +1,58 @@
+// ------------------------------------------------------------------------
+//  MOSTforWATER - Ghent University, BIOMATH
+//  Implementation: Code generator Petersen's Matrix
+//  Description: MSL-USER/WWTP/VolumeASM2dModTempConversionModel state variables
+// ------------------------------------------------------------------------
+
+#ifdef ASM2dModTemp
+	OBJ S_O_Saturation	"Oxygen saturation concentration"
+	: Concentration := {: group <- "Kinetic" :}; 
+	OBJ k_h_Temp	"k_h at the system temperature"
+	: Real := {: group <- "Kinetic" :}; 
+	OBJ K_X_Temp	"K_X at the system temperature"
+	: Real := {: group <- "Kinetic" :}; 
+	OBJ mu_H_Temp	"mu_H at the system temperature"
+	: Real := {: group <- "Kinetic" :}; 
+	OBJ Q_fe_Temp	"Q_fe at the system temperature"
+	: Real := {: group <- "Kinetic" :}; 
+	OBJ b_H_Temp	"b_H at the system temperature"
+	: Real := {: group <- "Kinetic" :}; 
+	OBJ Q_PHA_Temp	"Q_PHA at the system temperature"
+	: Real := {: group <- "Kinetic" :}; 
+	OBJ Q_PP_Temp	"Q_PP at the system temperature"
+	: Real := {: group <- "Kinetic" :}; 
+	OBJ mu_PAO_Temp	"mu_PAO at the system temperature"
+	: Real := {: group <- "Kinetic" :}; 
+	OBJ b_PAO_Temp	"b_PAO at the system temperature"
+	: Real := {: group <- "Kinetic" :}; 
+	OBJ b_PP_Temp	"b_PP at the system temperature"
+	: Real := {: group <- "Kinetic" :}; 
+	OBJ b_PHA_Temp	"b_PHA at the system temperature"
+	: Real := {: group <- "Kinetic" :}; 
+	OBJ mu_AUT_Temp	"mu_AUT at the system temperature"
+	: Real := {: group <- "Kinetic" :}; 
+	OBJ b_AUT_Temp	"b_AUT at the system temperature"
+	: Real := {: group <- "Kinetic" :}; 
+	OBJ S_O_MonodTerm	(*  hidden = "1" *) "Monod terms for oxygen"
+	: MonodTerm;
+	OBJ S_NO_MonodTerm	(*  hidden = "1" *) "Monod terms for S_NO"
+	: MonodTerm;
+	OBJ S_NH_MonodTerm	(*  hidden = "1" *) "Monod terms for ammonium"
+	: MonodTerm;
+	OBJ S_PO_MonodTerm	(*  hidden = "1" *) "Monod terms for S_PO"
+	: MonodTerm;
+	OBJ S_ALK_MonodTerm	(*  hidden = "1" *) "Monod terms for alkalinity"
+	: MonodTerm;
+	OBJ S_A_MonodTerm	(*  hidden = "1" *) "Monod terms for S_A"
+	: MonodTerm;
+	OBJ S_F_MonodTerm	(*  hidden = "1" *) "Monod terms for S_F"
+	: MonodTerm;
+	OBJ X_PHA_MonodTerm	(*  hidden = "1" *) "Monod terms for X_PHA"
+	: MonodTerm;
+	OBJ X_S_MonodTerm	(*  hidden = "1" *) "Monod terms for X_S"
+	: MonodTerm;
+	OBJ S_O_InhibitionTerm	(*  hidden = "1" *) "The inhibition term for oxygen"
+	: InhibitionTerm;
+	OBJ S_NO_InhibitionTerm	(*  hidden = "1" *) "The inhibition term for S_NO"
+	: InhibitionTerm;
+#endif // ASM2dModTemp

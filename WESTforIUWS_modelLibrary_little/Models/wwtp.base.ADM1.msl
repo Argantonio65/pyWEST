@@ -1,0 +1,19 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 5. september 2011 16:01:08$
+ *
+ ******************************************************************************/
+
+#include "wwtp.definitionsADM1.msl"
+#include "wwtp.ADM1.msl"
+#include "wwtp.transformers.ADM1.msl"

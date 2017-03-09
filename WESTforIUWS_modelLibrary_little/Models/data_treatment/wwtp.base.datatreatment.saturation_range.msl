@@ -1,0 +1,44 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$ EURE
+ * $Date: 19. april 2012 10:17:55$
+ *
+ ******************************************************************************/
+ 
+//  The model has been implemented as defined in Rieger et al. (2003). Further information can be also found in Alex et al. (2009)
+//  References:
+//  Rieger L., Alex J., Winkler S., Boehler M., Thomann M. and Siegrist H. (2003). Progress in sensor technology - progress in process control? Part I: Sensor property investigation and classification. Water Sci. Technol., 47(2), 103-112.
+//  Alex, J., Rieger, L., Corominas, L. and Winkler, S. (2009). Models of Sensors and Actuators. Scientific Technical Report of the IWA Task Group on Benchmarking control strategies. IWA publishing, London, UK.
+
+#ifndef WWTP_BASE_DATATREATMENT_SATURATIONRANGE
+#define WWTP_BASE_DATATREATMENT_SATURATIONRANGE
+
+CLASS Saturation_Range
+  (* icon = "data_treatment" *)
+  "Data Treatment"
+  EXTENDS DataTreatment WITH 
+  {:
+    comments <- "A model for adding saturation to the signal";
+    parameters <-
+    {
+		OBJ uMin "Minimum level for the signal" : Real := {: value <- 0 ; group <- "System" :};
+		OBJ uMax "Minimum level for the signal" : Real := {: value <- 10 ; group <- "System" :};
+    };
+    equations <-
+    {
+		interface.u = IF (state.signal < parameters.uMin) THEN parameters.uMin
+			ELSE IF (state.signal > parameters.uMax) THEN parameters.uMax
+				 ELSE state.signal ;
+    };
+  :};
+  
+#endif // WWTP_BASE_DATATREATMENT_SATURATIONRANGE

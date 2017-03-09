@@ -1,0 +1,84 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 26. juni 2012 15:01:08$
+ *
+ ******************************************************************************/
+
+#ifdef ASMG1
+
+	// Concentrations
+	OBJ S_NOx	"Concentration of Total Nitrogen"	: Concentration := {: group <- "Concentration" :}; 
+	OBJ S_FNA	"Concentration of Free Nitric Acid"	: Concentration := {: group <- "Concentration" :}; 
+	OBJ S_FA	"Concentration of Free Ammonia"	: Concentration := {: group <- "Concentration" :}; 
+	OBJ X_TSS	"Total Suspended Solids"	: Concentration := {: group <- "Concentration" :}; 
+	OBJ S_O_Saturation	"DO saturation concentration at the given temperature"	: Concentration := {: group <- "Concentration" :}; 
+	//
+	// Rate expressions
+	OBJ rate01	"Aerobic growth of heterotrophs"	: ProcessRate := {: group <- "Rate" :}; 
+	OBJ rate02	"Anoxic growth of heterotrophs by reducing NO3 to NO2"	: ProcessRate := {: group <- "Rate" :}; 
+	OBJ rate03	"Anoxic growth of heterotrophs by reducing NO2 to NO"	: ProcessRate := {: group <- "Rate" :}; 
+	OBJ rate04	"Anoxic growth of heterotrophs by reducing NO to N2O"	: ProcessRate := {: group <- "Rate" :}; 
+	OBJ rate05	"Anoxic growth of heterotrophs by reducing N2O to N2"	: ProcessRate := {: group <- "Rate" :}; 
+	OBJ rate07	"Aerobic growth of AOB"	: ProcessRate := {: group <- "Rate" :}; 
+	OBJ rate08	"Aerobic growth of NOB"	: ProcessRate := {: group <- "Rate" :}; 
+	OBJ rate09	"Decay of AOB"	: ProcessRate := {: group <- "Rate" :}; 
+	OBJ rate10	"Decay of NOB"	: ProcessRate := {: group <- "Rate" :}; 
+	//
+	// Kinetic factors
+	OBJ mu_H_Temp	"Max specific growth rate for Heterotrophs at the given temperature"	: ProcessRate := {: group <- "Kinetic" :}; 
+	OBJ mu_A1_Temp	"Max specific growth rate for AOB at the given temperature"	: ProcessRate := {: group <- "Kinetic" :}; 
+	OBJ mu_A2_Temp	"Max specific growth rate for NOB at the given temperature"	: ProcessRate := {: group <- "Kinetic" :}; 
+	OBJ b_H_Temp	"Decay coefficient for heterotrophs at the given temperature"	: ProcessRate := {: group <- "Kinetic" :}; 
+	OBJ b_A1_Temp	"Decay coefficient for AOB at the given temperature"	: ProcessRate := {: group <- "Kinetic" :}; 
+	OBJ b_A2_Temp	"Decay coefficient for NOB at the given temperature"	: ProcessRate := {: group <- "Kinetic" :}; 
+	OBJ k_h_Temp	"Hydrolosis rate at the given temperature"	: ProcessRate := {: group <- "Kinetic" :}; 
+	OBJ k_a_Temp	"Ammonification rate at the given temperature"	: ProcessRate := {: group <- "Kinetic" :}; 
+	OBJ Kla_Actual_Temp	"Kla at the given temperature"	: ProcessRate := {: group <- "Kinetic" :}; 
+	//
+	// Monod terms
+	OBJ Monod_NO3	"NO3 Monod term for Anoxic Growth of Heterotrophs"	: MonodTerm := {: group <- "Kinetic" :}; 
+	OBJ Monod_NO2	"NO2 Monod term for Anoxic Growth of Heterotrophs"	: MonodTerm := {: group <- "Kinetic" :}; 
+	OBJ Monod_NO	"NO Monod term for Anoxic Growth of Heterotrophs"	: MonodTerm := {: group <- "Kinetic" :}; 
+	OBJ Monod_N2O	"N2O Monod term for Anoxic Growth of Heterotrophs"	: MonodTerm := {: group <- "Kinetic" :}; 
+	OBJ Monod_SS2	"Substrate Monod term for Anoxic Growth of Heterotrophs"	: MonodTerm := {: group <- "Kinetic" :}; 
+	OBJ Monod_SS3	"Substrate Monod term for Anoxic Growth of Heterotrophs"	: MonodTerm := {: group <- "Kinetic" :}; 
+	OBJ Monod_SS4	"Substrate Monod term for Anoxic Growth of Heterotrophs"	: MonodTerm := {: group <- "Kinetic" :}; 
+	OBJ Monod_SS5	"Substrate Monod term for Anoxic Growth of Heterotrophs"	: MonodTerm := {: group <- "Kinetic" :}; 
+	OBJ Monod_OA1	"Oxygen Monod term for Autotrophic Growth of AOB"	: MonodTerm := {: group <- "Kinetic" :}; 
+	OBJ Monod_OA2	"Oxygen Monod term for Autotrophic Growth of NOB"	: MonodTerm := {: group <- "Kinetic" :}; 
+	//
+	// Inhibition terms
+	OBJ OH2_inhi	"Inhibition of Oxygen on Heterotrophic Growth"	: InhibitionTerm := {: group <- "Kinetic" :}; 
+	OBJ OH3_inhi	"Inhibition of Oxygen on Heterotrophic Growth"	: InhibitionTerm := {: group <- "Kinetic" :}; 
+	OBJ OH4_inhi	"Inhibition of Oxygen on Heterotrophic Growth"	: InhibitionTerm := {: group <- "Kinetic" :}; 
+	OBJ OH5_inhi	"Inhibition of Oxygen on Heterotrophic Growth"	: InhibitionTerm := {: group <- "Kinetic" :}; 
+	OBJ NO_inhi3	"Inhibition of Nitric Oxide on Heterotrophic Growth"	: InhibitionTerm := {: group <- "Kinetic" :}; 
+	OBJ NO_inhi5	"Inhibition of Nitric Oxide on Heterotrophic Growth"	: InhibitionTerm := {: group <- "Kinetic" :}; 
+	OBJ FA_inhibi9	"Inhibition of Free Ammonia on Autotrophic Growth of AOB"	: InhibitionTerm := {: group <- "Kinetic" :}; 
+	OBJ FNA_inhi9	"Inhibition of Free Nitric Acid on Autotrophic Growth of AOB"	: InhibitionTerm := {: group <- "Kinetic" :}; 
+	OBJ FNA_inhi10	"Inhibition of Free Nitric Acid on Autotrophic Growth of NOB"	: InhibitionTerm := {: group <- "Kinetic" :}; 
+	OBJ FA_inhi10	"Inhibition of Free Ammonia on Autotrophic Growth of NOB"	: InhibitionTerm := {: group <- "Kinetic" :}; 
+	OBJ SO_Comp_AOBden1 "Competitive inhibition factor of DO on AOB denitrifying Nitrite to NO"	: InhibitionTerm := {: group <- "Kinetic" :}; 
+	OBJ SO_Comp_AOBden2 "Competitive inhibition factor of DO on AOB denitrifying NO to N2O"	: InhibitionTerm := {: group <- "Kinetic" :}; 	
+	//
+	OBJ K_A	"Factor to calculate FNA"	: Real := {: group <- "Kinetic" :}; 
+	OBJ Kb_Kw	"Factor to calculate FA"	: Real := {: group <- "Kinetic" :}; 
+	OBJ Kla_N2O	"Nitrous Oxide transfer coefficient"	: Real := {: group <- "Operational" :}; 
+	OBJ Kla_NO	"Nitric Oxide transfer Coefficient"	: Real := {: group <- "Operational" :}; 
+	OBJ Kla_N2	"Nitrogen Transfer Coefficient"	: Real := {: group <- "Operational" :}; 
+	OBJ FluxN2O_gas	"Flow Rate of N2O gas going into the air"	: MassFlux := {: group <- "Kinetic" :}; 
+	OBJ FluxN2_gas	"Flow Rate of N2 gas going into the air"	: MassFlux := {: group <- "Kinetic" :}; 
+	OBJ FluxNO_gas	"Flow Rate of NO gas going into the air"	: MassFlux := {: group <- "Kinetic" :}; 
+	OBJ FluxO2_gas	"Flow Rate of O2 gas going into the air"	: MassFlux := {: group <- "Kinetic" :}; 
+
+#endif

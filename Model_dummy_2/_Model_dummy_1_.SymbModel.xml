@@ -1,0 +1,1353 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Tornado>
+<Model Version="1.0">
+<Props>
+<Prop Name="TornadoVersion" Value="2016 "/>
+<Prop Name="Author" Value="TUD278183\localadmin"/>
+<Prop Name="Date" Value="Tue Mar 07 22:08:52 2017"/>
+<Prop Name="FileName" Value="./_Model_dummy_1_.SymbModel.xml"/>
+</Props>
+<Exec FileName="_Model_dummy_1_"/>
+<Symb>
+<Model Name="" Desc="">
+<Params>
+</Params>
+<IndepVars>
+<IndepVar Name="t" Desc="Time" Unit="d" DefaultValue="0" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="true" Manip="false" IsFavorite="false"/>
+</IndepVars>
+<InputVars>
+<InputVar Name="Rural_baseflow" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<InputVar Name="Urban_CSO_flow" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<InputVar Name="Temperature_water" Desc="" Unit="degC" DefaultValue="0.000000" LowerBound="-273.15" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<InputVar Name="Solar_Radiation" Desc="" Unit="W/m2" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+</InputVars>
+<OutputVars>
+</OutputVars>
+<AlgVars>
+</AlgVars>
+<DerVars>
+</DerVars>
+<Models>
+<Model Name="River_2" Desc="Model for a bulk water unit with a variable volume">
+<Params>
+<Param Name="T_conv" Desc="Time conversion factor from days to second" Unit="" DefaultValue="86400.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="slp" Desc="Average channel slope along channel length" Unit="dUnit/dUnit" DefaultValue="0.0005" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="n" Desc="Manning's 'n' value for channel" Unit="" DefaultValue="0.035" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="W_b" Desc="Width of channel at bottom of bank" Unit="m" DefaultValue="10.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="L" Desc="Length of channel" Unit="m" DefaultValue="2000.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="z" Desc="Banks slope" Unit="" DefaultValue="0.5" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="d_min" Desc="Minimum depth of water" Unit="m" DefaultValue="0.01" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Vol_min" Desc="Minimum volume of water" Unit="m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Vol_init" Desc="Initial volume of water as ratio on minimum" Unit="" DefaultValue="1.5" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Q_initial" Desc="Initial Flow in m3/s" Unit="" DefaultValue="5.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="alpha" Desc="Alpha factor for artificial aeration" Unit="" DefaultValue="0.85" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="pH" Desc="pH" Unit="" DefaultValue="7.5" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="KLmin" Desc="Minimum mass transfer constant reaeration" Unit="m/d" DefaultValue="0.1" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="TKL" Desc="Temperature coefficient mass transfer" Unit="" DefaultValue="1.02" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Kd1" Desc="Decay rate BOD1" Unit="1/d" DefaultValue="0.4" LowerBound="0.000000" UpperBound="100.000000" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Kd2" Desc="Decay rate BOD2" Unit="1/d" DefaultValue="0.3" LowerBound="0.000000" UpperBound="100.000000" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="KBODs" Desc="Decay rate temporary sediment BOD" Unit="1/d" DefaultValue="0.7" LowerBound="0.000000" UpperBound="100.000000" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Vs1" Desc="Sedimentation rate particulate BOD1" Unit="m/d" DefaultValue="10.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Vs2" Desc="Sedimentation rate particulate BOD2" Unit="m/d" DefaultValue="50.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="KO2" Desc="Monod constant O2 on BOD decay" Unit="mg/l" DefaultValue="2.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="TKd" Desc="Temperature coefficient DOD decay" Unit="" DefaultValue="1.05" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="TKp" Desc="Temperature coefficient plant growth/decay" Unit="" DefaultValue="1.03" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Knit" Desc="Nitrification rate" Unit="1/d" DefaultValue="0.2" LowerBound="0.000000" UpperBound="100.000000" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="TKnit" Desc="Temperature coefficient nitrification" Unit="" DefaultValue="1.06" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="KNO2" Desc="Monod constant O2 on nitrification" Unit="mg/l" DefaultValue="3.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="KSO2" Desc="Monod constant O2 on sediment oxygen demand" Unit="mg/l" DefaultValue="2.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="ProdM" Desc="Oxygen production Macrophyte Biomass (gO2/gM)/(W/m2)/day" Unit="" DefaultValue="0.0002" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="ResM" Desc="Oxygen respiration Macrophyte Biomass (gO2/gM)/day" Unit="1/d" DefaultValue="0.04" LowerBound="0.000000" UpperBound="100.000000" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="TSOD" Desc="Temperature coefficient SOD" Unit="" DefaultValue="1.08" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="SBOD1" Desc="Diffuse source BOD1, sediment (g/m2/day)" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="Inputs" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="SBOD2" Desc="Diffuse source BOD2, sediment (g/m2/day)" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="Inputs" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="SNH4" Desc="Diffuse source NH4, sediment (g/m2/day)" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="Inputs" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="SOD" Desc="Sediment Oxygen Demand (g/m2/day)" Unit="" DefaultValue="5.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="Inputs" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="VKL" Desc="Velocity reaeration coefficient" Unit="" DefaultValue="3.2" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="MB" Desc="Macrophyte biomass" Unit="g/m2" DefaultValue="50.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="Inputs" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="T_ref" Desc="Air/water T conversion: T_wat=T_air+(T_ref-T_air)/T_par" Unit="degC" DefaultValue="15.000000" LowerBound="-273.15" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="T_par" Desc="Air/water T conversion: T_wat=T_air+(T_ref-T_air)/T_par" Unit="" DefaultValue="3.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+</Params>
+<IndepVars>
+<IndepVar Name="t" Desc="Time" Unit="d" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+</IndepVars>
+<InputVars>
+<InputVar Name="Inflow1" Desc="Inflow" Unit="g/d" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<InputVar Name="Inflow2" Desc="Inflow" Unit="g/d" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<InputVar Name="T" Desc="Air temperature" Unit="degC" DefaultValue="0.000000" LowerBound="-273.15" UpperBound="+INF" PDF="" Group="Input" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<InputVar Name="I0" Desc="Radiation at water surface" Unit="W/m2" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="Input" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<InputVar Name="kLa" Desc="kLa from external aeration (1/d)" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="true" IsFavorite="false"/>
+</InputVars>
+<OutputVars>
+<OutputVar Name="Outflow" Desc="Outflow" Unit="g/d" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<OutputVar Name="DO" Desc="DO" Unit="g/m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="Measured variable" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<OutputVar Name="NH4" Desc="NH4" Unit="g/m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="Measured variable" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<OutputVar Name="Q" Desc="Q" Unit="m3/d" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="Measured variable" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+</OutputVars>
+<AlgVars>
+<AlgVar Name="FluxPerComponent" Desc="Vector containing fluxes for all the components, the sum of all incoming and outgoing fluxes" Unit="g/d" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="true" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<AlgVar Name="InFluxPerComponent" Desc="Vector containing incoming fluxes for all the components" Unit="g/d" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="true" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<AlgVar Name="ConversionTermPerComponent" Desc="Vector containing conversionterms for all the components" Unit="g/d" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="true" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<AlgVar Name="Q_In" Desc="Influent flow rate" Unit="m3/d" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="Q_Out" Desc="Effluent flow rate" Unit="m3/d" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="V" Desc="Volume" Unit="m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="C" Desc="Vector containing concentrations for all the components" Unit="g/m3" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<AlgVar Name="P" Desc="Wetted perimeter" Unit="m" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="R" Desc="Hydraulic radius" Unit="m" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="A" Desc="Cross-sectional area bulk water tank" Unit="m2" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="A_man" Desc="Cross-sectional area bulk water tank, reduced fr Manning equation, due to d_min" Unit="m2" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="d" Desc="Depth of water in channel" Unit="m" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="vel_water" Desc="Velocity of water" Unit="m/d" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="V_help" Desc="Help volume" Unit="m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="true" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="CS" Desc="saturation conc Oxygen" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="DO_sat_perc" Desc="saturation percentage Oxygen" Unit="-" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="1.000000" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="UIamm" Desc="unionised ammonia" Unit="g/m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="UIamm_corr" Desc="unionised ammonia, corrected for DO" Unit="g/m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="DO_corr" Desc="DO, corrected fro UIamm" Unit="g/m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="KL20" Desc="mass transfer at 20oC calculated form velocity and depth" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="KLT" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="PO2M" Desc="net oxygen production/consumption Macrophytesn" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="SedO2" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="REAR" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="Nitrif" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="BODox" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="SODT" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="BOD" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="T_wat" Desc="Water temperature" Unit="degC" DefaultValue="0.000000" LowerBound="-273.15" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="KL20_help" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="true" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="T_wat_help" Desc="Water temperature" Unit="degC" DefaultValue="0.000000" LowerBound="-273.15" UpperBound="+INF" PDF="" Group="" Hidden="true" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="OTR" Desc="Actual oxygen transfer rate" Unit="g/d" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="SOTR" Desc="Standard oxygen transfer rate" Unit="g/d" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+</AlgVars>
+<DerVars>
+<DerVar Name="M" Desc="Vector containing masses for all the components" Unit="g" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+</DerVars>
+<Models>
+</Models>
+</Model><Model Name="River_3" Desc="Model for a bulk water unit with a variable volume">
+<Params>
+<Param Name="T_conv" Desc="Time conversion factor from days to second" Unit="" DefaultValue="86400.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="slp" Desc="Average channel slope along channel length" Unit="dUnit/dUnit" DefaultValue="0.0005" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="n" Desc="Manning's 'n' value for channel" Unit="" DefaultValue="0.035" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="W_b" Desc="Width of channel at bottom of bank" Unit="m" DefaultValue="10.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="L" Desc="Length of channel" Unit="m" DefaultValue="2000.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="z" Desc="Banks slope" Unit="" DefaultValue="0.5" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="d_min" Desc="Minimum depth of water" Unit="m" DefaultValue="0.01" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Vol_min" Desc="Minimum volume of water" Unit="m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Vol_init" Desc="Initial volume of water as ratio on minimum" Unit="" DefaultValue="1.5" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Q_initial" Desc="Initial Flow in m3/s" Unit="" DefaultValue="5.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="alpha" Desc="Alpha factor for artificial aeration" Unit="" DefaultValue="0.85" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="pH" Desc="pH" Unit="" DefaultValue="7.5" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="KLmin" Desc="Minimum mass transfer constant reaeration" Unit="m/d" DefaultValue="0.1" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="TKL" Desc="Temperature coefficient mass transfer" Unit="" DefaultValue="1.02" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Kd1" Desc="Decay rate BOD1" Unit="1/d" DefaultValue="0.4" LowerBound="0.000000" UpperBound="100.000000" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Kd2" Desc="Decay rate BOD2" Unit="1/d" DefaultValue="0.3" LowerBound="0.000000" UpperBound="100.000000" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="KBODs" Desc="Decay rate temporary sediment BOD" Unit="1/d" DefaultValue="0.7" LowerBound="0.000000" UpperBound="100.000000" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Vs1" Desc="Sedimentation rate particulate BOD1" Unit="m/d" DefaultValue="10.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Vs2" Desc="Sedimentation rate particulate BOD2" Unit="m/d" DefaultValue="50.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="KO2" Desc="Monod constant O2 on BOD decay" Unit="mg/l" DefaultValue="2.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="TKd" Desc="Temperature coefficient DOD decay" Unit="" DefaultValue="1.05" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="TKp" Desc="Temperature coefficient plant growth/decay" Unit="" DefaultValue="1.03" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Knit" Desc="Nitrification rate" Unit="1/d" DefaultValue="0.2" LowerBound="0.000000" UpperBound="100.000000" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="TKnit" Desc="Temperature coefficient nitrification" Unit="" DefaultValue="1.06" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="KNO2" Desc="Monod constant O2 on nitrification" Unit="mg/l" DefaultValue="3.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="KSO2" Desc="Monod constant O2 on sediment oxygen demand" Unit="mg/l" DefaultValue="2.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="ProdM" Desc="Oxygen production Macrophyte Biomass (gO2/gM)/(W/m2)/day" Unit="" DefaultValue="0.0002" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="ResM" Desc="Oxygen respiration Macrophyte Biomass (gO2/gM)/day" Unit="1/d" DefaultValue="0.04" LowerBound="0.000000" UpperBound="100.000000" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="TSOD" Desc="Temperature coefficient SOD" Unit="" DefaultValue="1.08" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="SBOD1" Desc="Diffuse source BOD1, sediment (g/m2/day)" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="Inputs" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="SBOD2" Desc="Diffuse source BOD2, sediment (g/m2/day)" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="Inputs" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="SNH4" Desc="Diffuse source NH4, sediment (g/m2/day)" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="Inputs" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="SOD" Desc="Sediment Oxygen Demand (g/m2/day)" Unit="" DefaultValue="5.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="Inputs" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="VKL" Desc="Velocity reaeration coefficient" Unit="" DefaultValue="3.2" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="MB" Desc="Macrophyte biomass" Unit="g/m2" DefaultValue="50.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="Inputs" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="T_ref" Desc="Air/water T conversion: T_wat=T_air+(T_ref-T_air)/T_par" Unit="degC" DefaultValue="15.000000" LowerBound="-273.15" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="T_par" Desc="Air/water T conversion: T_wat=T_air+(T_ref-T_air)/T_par" Unit="" DefaultValue="3.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+</Params>
+<IndepVars>
+<IndepVar Name="t" Desc="Time" Unit="d" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+</IndepVars>
+<InputVars>
+<InputVar Name="Inflow1" Desc="Inflow" Unit="g/d" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<InputVar Name="Inflow2" Desc="Inflow" Unit="g/d" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<InputVar Name="T" Desc="Air temperature" Unit="degC" DefaultValue="0.000000" LowerBound="-273.15" UpperBound="+INF" PDF="" Group="Input" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<InputVar Name="I0" Desc="Radiation at water surface" Unit="W/m2" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="Input" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<InputVar Name="kLa" Desc="kLa from external aeration (1/d)" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="true" IsFavorite="false"/>
+</InputVars>
+<OutputVars>
+<OutputVar Name="Outflow" Desc="Outflow" Unit="g/d" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<OutputVar Name="DO" Desc="DO" Unit="g/m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="Measured variable" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<OutputVar Name="NH4" Desc="NH4" Unit="g/m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="Measured variable" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<OutputVar Name="Q" Desc="Q" Unit="m3/d" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="Measured variable" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+</OutputVars>
+<AlgVars>
+<AlgVar Name="FluxPerComponent" Desc="Vector containing fluxes for all the components, the sum of all incoming and outgoing fluxes" Unit="g/d" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="true" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<AlgVar Name="InFluxPerComponent" Desc="Vector containing incoming fluxes for all the components" Unit="g/d" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="true" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<AlgVar Name="ConversionTermPerComponent" Desc="Vector containing conversionterms for all the components" Unit="g/d" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="true" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<AlgVar Name="Q_In" Desc="Influent flow rate" Unit="m3/d" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="Q_Out" Desc="Effluent flow rate" Unit="m3/d" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="V" Desc="Volume" Unit="m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="C" Desc="Vector containing concentrations for all the components" Unit="g/m3" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<AlgVar Name="P" Desc="Wetted perimeter" Unit="m" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="R" Desc="Hydraulic radius" Unit="m" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="A" Desc="Cross-sectional area bulk water tank" Unit="m2" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="A_man" Desc="Cross-sectional area bulk water tank, reduced fr Manning equation, due to d_min" Unit="m2" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="d" Desc="Depth of water in channel" Unit="m" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="vel_water" Desc="Velocity of water" Unit="m/d" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="V_help" Desc="Help volume" Unit="m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="true" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="CS" Desc="saturation conc Oxygen" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="DO_sat_perc" Desc="saturation percentage Oxygen" Unit="-" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="1.000000" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="UIamm" Desc="unionised ammonia" Unit="g/m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="UIamm_corr" Desc="unionised ammonia, corrected for DO" Unit="g/m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="DO_corr" Desc="DO, corrected fro UIamm" Unit="g/m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="KL20" Desc="mass transfer at 20oC calculated form velocity and depth" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="KLT" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="PO2M" Desc="net oxygen production/consumption Macrophytesn" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="SedO2" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="REAR" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="Nitrif" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="BODox" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="SODT" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="BOD" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="T_wat" Desc="Water temperature" Unit="degC" DefaultValue="0.000000" LowerBound="-273.15" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="KL20_help" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="true" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="T_wat_help" Desc="Water temperature" Unit="degC" DefaultValue="0.000000" LowerBound="-273.15" UpperBound="+INF" PDF="" Group="" Hidden="true" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="OTR" Desc="Actual oxygen transfer rate" Unit="g/d" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="SOTR" Desc="Standard oxygen transfer rate" Unit="g/d" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+</AlgVars>
+<DerVars>
+<DerVar Name="M" Desc="Vector containing masses for all the components" Unit="g" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+</DerVars>
+<Models>
+</Models>
+</Model><Model Name="River_4" Desc="Model for a bulk water unit with a variable volume">
+<Params>
+<Param Name="T_conv" Desc="Time conversion factor from days to second" Unit="" DefaultValue="86400.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="slp" Desc="Average channel slope along channel length" Unit="dUnit/dUnit" DefaultValue="0.0005" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="n" Desc="Manning's 'n' value for channel" Unit="" DefaultValue="0.035" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="W_b" Desc="Width of channel at bottom of bank" Unit="m" DefaultValue="10.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="L" Desc="Length of channel" Unit="m" DefaultValue="2000.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="z" Desc="Banks slope" Unit="" DefaultValue="0.5" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="d_min" Desc="Minimum depth of water" Unit="m" DefaultValue="0.01" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Vol_min" Desc="Minimum volume of water" Unit="m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Vol_init" Desc="Initial volume of water as ratio on minimum" Unit="" DefaultValue="1.5" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Q_initial" Desc="Initial Flow in m3/s" Unit="" DefaultValue="5.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="alpha" Desc="Alpha factor for artificial aeration" Unit="" DefaultValue="0.85" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="pH" Desc="pH" Unit="" DefaultValue="7.5" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="KLmin" Desc="Minimum mass transfer constant reaeration" Unit="m/d" DefaultValue="0.1" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="TKL" Desc="Temperature coefficient mass transfer" Unit="" DefaultValue="1.02" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Kd1" Desc="Decay rate BOD1" Unit="1/d" DefaultValue="0.4" LowerBound="0.000000" UpperBound="100.000000" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Kd2" Desc="Decay rate BOD2" Unit="1/d" DefaultValue="0.3" LowerBound="0.000000" UpperBound="100.000000" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="KBODs" Desc="Decay rate temporary sediment BOD" Unit="1/d" DefaultValue="0.7" LowerBound="0.000000" UpperBound="100.000000" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Vs1" Desc="Sedimentation rate particulate BOD1" Unit="m/d" DefaultValue="10.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Vs2" Desc="Sedimentation rate particulate BOD2" Unit="m/d" DefaultValue="50.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="KO2" Desc="Monod constant O2 on BOD decay" Unit="mg/l" DefaultValue="2.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="TKd" Desc="Temperature coefficient DOD decay" Unit="" DefaultValue="1.05" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="TKp" Desc="Temperature coefficient plant growth/decay" Unit="" DefaultValue="1.03" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Knit" Desc="Nitrification rate" Unit="1/d" DefaultValue="0.2" LowerBound="0.000000" UpperBound="100.000000" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="TKnit" Desc="Temperature coefficient nitrification" Unit="" DefaultValue="1.06" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="KNO2" Desc="Monod constant O2 on nitrification" Unit="mg/l" DefaultValue="3.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="KSO2" Desc="Monod constant O2 on sediment oxygen demand" Unit="mg/l" DefaultValue="2.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="ProdM" Desc="Oxygen production Macrophyte Biomass (gO2/gM)/(W/m2)/day" Unit="" DefaultValue="0.0002" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="ResM" Desc="Oxygen respiration Macrophyte Biomass (gO2/gM)/day" Unit="1/d" DefaultValue="0.04" LowerBound="0.000000" UpperBound="100.000000" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="TSOD" Desc="Temperature coefficient SOD" Unit="" DefaultValue="1.08" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="SBOD1" Desc="Diffuse source BOD1, sediment (g/m2/day)" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="Inputs" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="SBOD2" Desc="Diffuse source BOD2, sediment (g/m2/day)" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="Inputs" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="SNH4" Desc="Diffuse source NH4, sediment (g/m2/day)" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="Inputs" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="SOD" Desc="Sediment Oxygen Demand (g/m2/day)" Unit="" DefaultValue="5.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="Inputs" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="VKL" Desc="Velocity reaeration coefficient" Unit="" DefaultValue="3.2" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="MB" Desc="Macrophyte biomass" Unit="g/m2" DefaultValue="50.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="Inputs" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="T_ref" Desc="Air/water T conversion: T_wat=T_air+(T_ref-T_air)/T_par" Unit="degC" DefaultValue="15.000000" LowerBound="-273.15" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="T_par" Desc="Air/water T conversion: T_wat=T_air+(T_ref-T_air)/T_par" Unit="" DefaultValue="3.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+</Params>
+<IndepVars>
+<IndepVar Name="t" Desc="Time" Unit="d" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+</IndepVars>
+<InputVars>
+<InputVar Name="Inflow1" Desc="Inflow" Unit="g/d" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<InputVar Name="Inflow2" Desc="Inflow" Unit="g/d" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<InputVar Name="T" Desc="Air temperature" Unit="degC" DefaultValue="0.000000" LowerBound="-273.15" UpperBound="+INF" PDF="" Group="Input" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<InputVar Name="I0" Desc="Radiation at water surface" Unit="W/m2" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="Input" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<InputVar Name="kLa" Desc="kLa from external aeration (1/d)" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="true" IsFavorite="false"/>
+</InputVars>
+<OutputVars>
+<OutputVar Name="Outflow" Desc="Outflow" Unit="g/d" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<OutputVar Name="DO" Desc="DO" Unit="g/m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="Measured variable" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<OutputVar Name="NH4" Desc="NH4" Unit="g/m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="Measured variable" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<OutputVar Name="Q" Desc="Q" Unit="m3/d" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="Measured variable" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+</OutputVars>
+<AlgVars>
+<AlgVar Name="FluxPerComponent" Desc="Vector containing fluxes for all the components, the sum of all incoming and outgoing fluxes" Unit="g/d" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="true" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<AlgVar Name="InFluxPerComponent" Desc="Vector containing incoming fluxes for all the components" Unit="g/d" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="true" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<AlgVar Name="ConversionTermPerComponent" Desc="Vector containing conversionterms for all the components" Unit="g/d" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="true" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<AlgVar Name="Q_In" Desc="Influent flow rate" Unit="m3/d" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="Q_Out" Desc="Effluent flow rate" Unit="m3/d" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="V" Desc="Volume" Unit="m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="C" Desc="Vector containing concentrations for all the components" Unit="g/m3" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<AlgVar Name="P" Desc="Wetted perimeter" Unit="m" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="R" Desc="Hydraulic radius" Unit="m" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="A" Desc="Cross-sectional area bulk water tank" Unit="m2" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="A_man" Desc="Cross-sectional area bulk water tank, reduced fr Manning equation, due to d_min" Unit="m2" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="d" Desc="Depth of water in channel" Unit="m" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="vel_water" Desc="Velocity of water" Unit="m/d" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="V_help" Desc="Help volume" Unit="m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="true" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="CS" Desc="saturation conc Oxygen" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="DO_sat_perc" Desc="saturation percentage Oxygen" Unit="-" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="1.000000" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="UIamm" Desc="unionised ammonia" Unit="g/m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="UIamm_corr" Desc="unionised ammonia, corrected for DO" Unit="g/m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="DO_corr" Desc="DO, corrected fro UIamm" Unit="g/m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="KL20" Desc="mass transfer at 20oC calculated form velocity and depth" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="KLT" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="PO2M" Desc="net oxygen production/consumption Macrophytesn" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="SedO2" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="REAR" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="Nitrif" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="BODox" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="SODT" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="BOD" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="T_wat" Desc="Water temperature" Unit="degC" DefaultValue="0.000000" LowerBound="-273.15" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="KL20_help" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="true" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="T_wat_help" Desc="Water temperature" Unit="degC" DefaultValue="0.000000" LowerBound="-273.15" UpperBound="+INF" PDF="" Group="" Hidden="true" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="OTR" Desc="Actual oxygen transfer rate" Unit="g/d" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="SOTR" Desc="Standard oxygen transfer rate" Unit="g/d" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+</AlgVars>
+<DerVars>
+<DerVar Name="M" Desc="Vector containing masses for all the components" Unit="g" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+</DerVars>
+<Models>
+</Models>
+</Model><Model Name="River_5" Desc="Model for a bulk water unit with a variable volume">
+<Params>
+<Param Name="T_conv" Desc="Time conversion factor from days to second" Unit="" DefaultValue="86400.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="slp" Desc="Average channel slope along channel length" Unit="dUnit/dUnit" DefaultValue="0.0005" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="n" Desc="Manning's 'n' value for channel" Unit="" DefaultValue="0.035" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="W_b" Desc="Width of channel at bottom of bank" Unit="m" DefaultValue="10.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="L" Desc="Length of channel" Unit="m" DefaultValue="2000.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="z" Desc="Banks slope" Unit="" DefaultValue="0.5" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="d_min" Desc="Minimum depth of water" Unit="m" DefaultValue="0.01" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Vol_min" Desc="Minimum volume of water" Unit="m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Vol_init" Desc="Initial volume of water as ratio on minimum" Unit="" DefaultValue="1.5" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Q_initial" Desc="Initial Flow in m3/s" Unit="" DefaultValue="5.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="alpha" Desc="Alpha factor for artificial aeration" Unit="" DefaultValue="0.85" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="pH" Desc="pH" Unit="" DefaultValue="7.5" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="KLmin" Desc="Minimum mass transfer constant reaeration" Unit="m/d" DefaultValue="0.1" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="TKL" Desc="Temperature coefficient mass transfer" Unit="" DefaultValue="1.02" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Kd1" Desc="Decay rate BOD1" Unit="1/d" DefaultValue="0.4" LowerBound="0.000000" UpperBound="100.000000" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Kd2" Desc="Decay rate BOD2" Unit="1/d" DefaultValue="0.3" LowerBound="0.000000" UpperBound="100.000000" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="KBODs" Desc="Decay rate temporary sediment BOD" Unit="1/d" DefaultValue="0.7" LowerBound="0.000000" UpperBound="100.000000" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Vs1" Desc="Sedimentation rate particulate BOD1" Unit="m/d" DefaultValue="10.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Vs2" Desc="Sedimentation rate particulate BOD2" Unit="m/d" DefaultValue="50.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="KO2" Desc="Monod constant O2 on BOD decay" Unit="mg/l" DefaultValue="2.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="TKd" Desc="Temperature coefficient DOD decay" Unit="" DefaultValue="1.05" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="TKp" Desc="Temperature coefficient plant growth/decay" Unit="" DefaultValue="1.03" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Knit" Desc="Nitrification rate" Unit="1/d" DefaultValue="0.2" LowerBound="0.000000" UpperBound="100.000000" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="TKnit" Desc="Temperature coefficient nitrification" Unit="" DefaultValue="1.06" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="KNO2" Desc="Monod constant O2 on nitrification" Unit="mg/l" DefaultValue="3.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="KSO2" Desc="Monod constant O2 on sediment oxygen demand" Unit="mg/l" DefaultValue="2.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="ProdM" Desc="Oxygen production Macrophyte Biomass (gO2/gM)/(W/m2)/day" Unit="" DefaultValue="0.0002" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="ResM" Desc="Oxygen respiration Macrophyte Biomass (gO2/gM)/day" Unit="1/d" DefaultValue="0.04" LowerBound="0.000000" UpperBound="100.000000" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="TSOD" Desc="Temperature coefficient SOD" Unit="" DefaultValue="1.08" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="SBOD1" Desc="Diffuse source BOD1, sediment (g/m2/day)" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="Inputs" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="SBOD2" Desc="Diffuse source BOD2, sediment (g/m2/day)" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="Inputs" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="SNH4" Desc="Diffuse source NH4, sediment (g/m2/day)" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="Inputs" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="SOD" Desc="Sediment Oxygen Demand (g/m2/day)" Unit="" DefaultValue="5.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="Inputs" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="VKL" Desc="Velocity reaeration coefficient" Unit="" DefaultValue="3.2" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="MB" Desc="Macrophyte biomass" Unit="g/m2" DefaultValue="50.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="Inputs" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="T_ref" Desc="Air/water T conversion: T_wat=T_air+(T_ref-T_air)/T_par" Unit="degC" DefaultValue="15.000000" LowerBound="-273.15" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="T_par" Desc="Air/water T conversion: T_wat=T_air+(T_ref-T_air)/T_par" Unit="" DefaultValue="3.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+</Params>
+<IndepVars>
+<IndepVar Name="t" Desc="Time" Unit="d" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+</IndepVars>
+<InputVars>
+<InputVar Name="Inflow1" Desc="Inflow" Unit="g/d" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<InputVar Name="Inflow2" Desc="Inflow" Unit="g/d" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<InputVar Name="T" Desc="Air temperature" Unit="degC" DefaultValue="0.000000" LowerBound="-273.15" UpperBound="+INF" PDF="" Group="Input" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<InputVar Name="I0" Desc="Radiation at water surface" Unit="W/m2" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="Input" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<InputVar Name="kLa" Desc="kLa from external aeration (1/d)" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="true" IsFavorite="false"/>
+</InputVars>
+<OutputVars>
+<OutputVar Name="Outflow" Desc="Outflow" Unit="g/d" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<OutputVar Name="DO" Desc="DO" Unit="g/m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="Measured variable" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<OutputVar Name="NH4" Desc="NH4" Unit="g/m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="Measured variable" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<OutputVar Name="Q" Desc="Q" Unit="m3/d" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="Measured variable" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+</OutputVars>
+<AlgVars>
+<AlgVar Name="FluxPerComponent" Desc="Vector containing fluxes for all the components, the sum of all incoming and outgoing fluxes" Unit="g/d" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="true" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<AlgVar Name="InFluxPerComponent" Desc="Vector containing incoming fluxes for all the components" Unit="g/d" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="true" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<AlgVar Name="ConversionTermPerComponent" Desc="Vector containing conversionterms for all the components" Unit="g/d" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="true" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<AlgVar Name="Q_In" Desc="Influent flow rate" Unit="m3/d" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="Q_Out" Desc="Effluent flow rate" Unit="m3/d" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="V" Desc="Volume" Unit="m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="C" Desc="Vector containing concentrations for all the components" Unit="g/m3" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<AlgVar Name="P" Desc="Wetted perimeter" Unit="m" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="R" Desc="Hydraulic radius" Unit="m" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="A" Desc="Cross-sectional area bulk water tank" Unit="m2" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="A_man" Desc="Cross-sectional area bulk water tank, reduced fr Manning equation, due to d_min" Unit="m2" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="d" Desc="Depth of water in channel" Unit="m" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="vel_water" Desc="Velocity of water" Unit="m/d" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="V_help" Desc="Help volume" Unit="m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="true" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="CS" Desc="saturation conc Oxygen" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="DO_sat_perc" Desc="saturation percentage Oxygen" Unit="-" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="1.000000" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="UIamm" Desc="unionised ammonia" Unit="g/m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="UIamm_corr" Desc="unionised ammonia, corrected for DO" Unit="g/m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="DO_corr" Desc="DO, corrected fro UIamm" Unit="g/m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="KL20" Desc="mass transfer at 20oC calculated form velocity and depth" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="KLT" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="PO2M" Desc="net oxygen production/consumption Macrophytesn" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="SedO2" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="REAR" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="Nitrif" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="BODox" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="SODT" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="BOD" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="T_wat" Desc="Water temperature" Unit="degC" DefaultValue="0.000000" LowerBound="-273.15" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="KL20_help" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="true" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="T_wat_help" Desc="Water temperature" Unit="degC" DefaultValue="0.000000" LowerBound="-273.15" UpperBound="+INF" PDF="" Group="" Hidden="true" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="OTR" Desc="Actual oxygen transfer rate" Unit="g/d" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="SOTR" Desc="Standard oxygen transfer rate" Unit="g/d" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+</AlgVars>
+<DerVars>
+<DerVar Name="M" Desc="Vector containing masses for all the components" Unit="g" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+</DerVars>
+<Models>
+</Models>
+</Model><Model Name="Urban_InputEmulator" Desc="">
+<Params>
+<Param Name="FactorEffluent" Desc="" Unit="m2" DefaultValue="1.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="fBOD1_BOD" Desc="Fraction of BODfast in BOD" Unit="-" DefaultValue="0.85" LowerBound="0.000000" UpperBound="1.000000" PDF="" Group="Fractionation" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="fBOD2_CODmBOD" Desc="Fraction of BODslow in COD minus BOD" Unit="-" DefaultValue="0.4" LowerBound="0.000000" UpperBound="1.000000" PDF="" Group="Fractionation" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="fBOD1p_BODf" Desc="Fraction of BOD1p in BODfast" Unit="-" DefaultValue="0.3" LowerBound="0.000000" UpperBound="1.000000" PDF="" Group="Fractionation" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="fBOD2p_BODs" Desc="Fraction of BOD2p in BODslow" Unit="-" DefaultValue="0.5" LowerBound="0.000000" UpperBound="1.000000" PDF="" Group="Fractionation" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="settling" Desc="Settling efficiency for BOD2" Unit="-" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="1.000000" PDF="" Group="Fractionation" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="yesno" Desc="0 for no CSO effluent, 1 for 100 percent CSO effluent" Unit="" DefaultValue="1.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Mult_O2" Desc="Multiplier for O2 input concentration" Unit="" DefaultValue="1.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Mult_COD" Desc="Multiplier for COD input concentration" Unit="" DefaultValue="1.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Mult_BOD" Desc="Multiplier for BOD input concentration" Unit="" DefaultValue="1.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Mult_NH4" Desc="Multiplier for NH4 input concentration" Unit="" DefaultValue="1.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+</Params>
+<IndepVars>
+<IndepVar Name="t" Desc="Time" Unit="d" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+</IndepVars>
+<InputVars>
+<InputVar Name="rainfall" Desc="Rainfall" Unit="m/d" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<InputVar Name="U_BOD_in" Desc="BOD" Unit="g/m3" DefaultValue="42.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="true" IsFavorite="false"/>
+<InputVar Name="U_COD_in" Desc="COD" Unit="g/m3" DefaultValue="150.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="true" IsFavorite="false"/>
+<InputVar Name="U_NH4_in" Desc="NH4" Unit="g/m3" DefaultValue="0.05" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="true" IsFavorite="false"/>
+<InputVar Name="U_O2_in" Desc="O2" Unit="g/m3" DefaultValue="7.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="true" IsFavorite="false"/>
+</InputVars>
+<OutputVars>
+<OutputVar Name="Outflow" Desc="Outflow" Unit="g/d" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+</OutputVars>
+<AlgVars>
+<AlgVar Name="Q" Desc="Flow" Unit="m3/d" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+</AlgVars>
+<DerVars>
+</DerVars>
+<Models>
+</Models>
+</Model><Model Name="River_1" Desc="Model for a bulk water unit with a variable volume">
+<Params>
+<Param Name="T_conv" Desc="Time conversion factor from days to second" Unit="" DefaultValue="86400.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="slp" Desc="Average channel slope along channel length" Unit="dUnit/dUnit" DefaultValue="0.0005" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="n" Desc="Manning's 'n' value for channel" Unit="" DefaultValue="0.035" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="W_b" Desc="Width of channel at bottom of bank" Unit="m" DefaultValue="10.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="L" Desc="Length of channel" Unit="m" DefaultValue="2000.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="z" Desc="Banks slope" Unit="" DefaultValue="0.5" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="d_min" Desc="Minimum depth of water" Unit="m" DefaultValue="0.01" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Vol_min" Desc="Minimum volume of water" Unit="m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Vol_init" Desc="Initial volume of water as ratio on minimum" Unit="" DefaultValue="1.5" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Q_initial" Desc="Initial Flow in m3/s" Unit="" DefaultValue="5.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="alpha" Desc="Alpha factor for artificial aeration" Unit="" DefaultValue="0.85" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="pH" Desc="pH" Unit="" DefaultValue="7.5" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="KLmin" Desc="Minimum mass transfer constant reaeration" Unit="m/d" DefaultValue="0.1" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="TKL" Desc="Temperature coefficient mass transfer" Unit="" DefaultValue="1.02" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Kd1" Desc="Decay rate BOD1" Unit="1/d" DefaultValue="0.4" LowerBound="0.000000" UpperBound="100.000000" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Kd2" Desc="Decay rate BOD2" Unit="1/d" DefaultValue="0.3" LowerBound="0.000000" UpperBound="100.000000" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="KBODs" Desc="Decay rate temporary sediment BOD" Unit="1/d" DefaultValue="0.7" LowerBound="0.000000" UpperBound="100.000000" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Vs1" Desc="Sedimentation rate particulate BOD1" Unit="m/d" DefaultValue="10.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Vs2" Desc="Sedimentation rate particulate BOD2" Unit="m/d" DefaultValue="50.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="KO2" Desc="Monod constant O2 on BOD decay" Unit="mg/l" DefaultValue="2.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="TKd" Desc="Temperature coefficient DOD decay" Unit="" DefaultValue="1.05" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="TKp" Desc="Temperature coefficient plant growth/decay" Unit="" DefaultValue="1.03" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="Knit" Desc="Nitrification rate" Unit="1/d" DefaultValue="0.2" LowerBound="0.000000" UpperBound="100.000000" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="TKnit" Desc="Temperature coefficient nitrification" Unit="" DefaultValue="1.06" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="KNO2" Desc="Monod constant O2 on nitrification" Unit="mg/l" DefaultValue="3.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="KSO2" Desc="Monod constant O2 on sediment oxygen demand" Unit="mg/l" DefaultValue="2.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="ProdM" Desc="Oxygen production Macrophyte Biomass (gO2/gM)/(W/m2)/day" Unit="" DefaultValue="0.0002" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="ResM" Desc="Oxygen respiration Macrophyte Biomass (gO2/gM)/day" Unit="1/d" DefaultValue="0.04" LowerBound="0.000000" UpperBound="100.000000" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="TSOD" Desc="Temperature coefficient SOD" Unit="" DefaultValue="1.08" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="SBOD1" Desc="Diffuse source BOD1, sediment (g/m2/day)" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="Inputs" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="SBOD2" Desc="Diffuse source BOD2, sediment (g/m2/day)" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="Inputs" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="SNH4" Desc="Diffuse source NH4, sediment (g/m2/day)" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="Inputs" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="SOD" Desc="Sediment Oxygen Demand (g/m2/day)" Unit="" DefaultValue="5.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="Inputs" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="VKL" Desc="Velocity reaeration coefficient" Unit="" DefaultValue="3.2" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="MB" Desc="Macrophyte biomass" Unit="g/m2" DefaultValue="50.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="Inputs" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="T_ref" Desc="Air/water T conversion: T_wat=T_air+(T_ref-T_air)/T_par" Unit="degC" DefaultValue="15.000000" LowerBound="-273.15" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="T_par" Desc="Air/water T conversion: T_wat=T_air+(T_ref-T_air)/T_par" Unit="" DefaultValue="3.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+</Params>
+<IndepVars>
+<IndepVar Name="t" Desc="Time" Unit="d" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+</IndepVars>
+<InputVars>
+<InputVar Name="Inflow1" Desc="Inflow" Unit="g/d" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<InputVar Name="Inflow2" Desc="Inflow" Unit="g/d" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<InputVar Name="T" Desc="Air temperature" Unit="degC" DefaultValue="0.000000" LowerBound="-273.15" UpperBound="+INF" PDF="" Group="Input" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<InputVar Name="I0" Desc="Radiation at water surface" Unit="W/m2" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="Input" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<InputVar Name="kLa" Desc="kLa from external aeration (1/d)" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="true" IsFavorite="false"/>
+</InputVars>
+<OutputVars>
+<OutputVar Name="Outflow" Desc="Outflow" Unit="g/d" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<OutputVar Name="DO" Desc="DO" Unit="g/m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="Measured variable" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<OutputVar Name="NH4" Desc="NH4" Unit="g/m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="Measured variable" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<OutputVar Name="Q" Desc="Q" Unit="m3/d" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="Measured variable" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+</OutputVars>
+<AlgVars>
+<AlgVar Name="FluxPerComponent" Desc="Vector containing fluxes for all the components, the sum of all incoming and outgoing fluxes" Unit="g/d" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="true" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<AlgVar Name="InFluxPerComponent" Desc="Vector containing incoming fluxes for all the components" Unit="g/d" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="true" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<AlgVar Name="ConversionTermPerComponent" Desc="Vector containing conversionterms for all the components" Unit="g/d" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="true" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<AlgVar Name="Q_In" Desc="Influent flow rate" Unit="m3/d" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="Q_Out" Desc="Effluent flow rate" Unit="m3/d" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="V" Desc="Volume" Unit="m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="C" Desc="Vector containing concentrations for all the components" Unit="g/m3" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+<AlgVar Name="P" Desc="Wetted perimeter" Unit="m" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="R" Desc="Hydraulic radius" Unit="m" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="A" Desc="Cross-sectional area bulk water tank" Unit="m2" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="A_man" Desc="Cross-sectional area bulk water tank, reduced fr Manning equation, due to d_min" Unit="m2" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="d" Desc="Depth of water in channel" Unit="m" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="vel_water" Desc="Velocity of water" Unit="m/d" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="V_help" Desc="Help volume" Unit="m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="River characteristics" Hidden="true" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="CS" Desc="saturation conc Oxygen" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="DO_sat_perc" Desc="saturation percentage Oxygen" Unit="-" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="1.000000" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="UIamm" Desc="unionised ammonia" Unit="g/m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="UIamm_corr" Desc="unionised ammonia, corrected for DO" Unit="g/m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="DO_corr" Desc="DO, corrected fro UIamm" Unit="g/m3" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="KL20" Desc="mass transfer at 20oC calculated form velocity and depth" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="KLT" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="PO2M" Desc="net oxygen production/consumption Macrophytesn" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="SedO2" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="REAR" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="Nitrif" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="BODox" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="SODT" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="BOD" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="T_wat" Desc="Water temperature" Unit="degC" DefaultValue="0.000000" LowerBound="-273.15" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="KL20_help" Desc="" Unit="" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="true" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="T_wat_help" Desc="Water temperature" Unit="degC" DefaultValue="0.000000" LowerBound="-273.15" UpperBound="+INF" PDF="" Group="" Hidden="true" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="OTR" Desc="Actual oxygen transfer rate" Unit="g/d" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<AlgVar Name="SOTR" Desc="Standard oxygen transfer rate" Unit="g/d" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+</AlgVars>
+<DerVars>
+<DerVar Name="M" Desc="Vector containing masses for all the components" Unit="g" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+</DerVars>
+<Models>
+</Models>
+</Model><Model Name="Rural_inflow" Desc="">
+<Params>
+<Param Name="surface" Desc="" Unit="m2" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="BOD1_in" Desc="" Unit="g/m3" DefaultValue="3.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="BOD2_in" Desc="" Unit="g/m3" DefaultValue="1.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="O2_in" Desc="" Unit="g/m3" DefaultValue="9.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="BOD1p_in" Desc="" Unit="g/m3" DefaultValue="0.01" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="BOD2p_in" Desc="" Unit="g/m3" DefaultValue="0.01" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<Param Name="BODs_in" Desc="" Unit="g/m3" DefaultValue="0.01" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+</Params>
+<IndepVars>
+<IndepVar Name="t" Desc="Time" Unit="d" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+</IndepVars>
+<InputVars>
+<InputVar Name="rainfall" Desc="Rainfall" Unit="m/d" DefaultValue="0.000000" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+<InputVar Name="NH4_in" Desc="NH4" Unit="g/m3" DefaultValue="0.05" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="true" IsFavorite="false"/>
+</InputVars>
+<OutputVars>
+<OutputVar Name="Outflow" Desc="Outflow" Unit="g/d" DefaultValue="0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;" LowerBound="-INF" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false" Elems="rH2O,rO2,rBOD1,rBOD2,rNH4,rBOD1p,rBOD2p,rBODs"/>
+</OutputVars>
+<AlgVars>
+<AlgVar Name="Q" Desc="Flow" Unit="m3/d" DefaultValue="0.000000" LowerBound="0.000000" UpperBound="+INF" PDF="" Group="" Hidden="false" Fixed="false" Manip="false" IsFavorite="false"/>
+</AlgVars>
+<DerVars>
+</DerVars>
+<Models>
+</Models>
+</Model></Models>
+</Model>
+</Symb>
+<Links>
+<Link Name=".t" ValueType="IndepVars" ValueIndex="0"/>
+<Link Name=".River_2.T_conv" ValueType="Params" ValueIndex="0"/>
+<Link Name=".River_2.slp" ValueType="Params" ValueIndex="1"/>
+<Link Name=".River_2.n" ValueType="Params" ValueIndex="2"/>
+<Link Name=".River_2.W_b" ValueType="Params" ValueIndex="3"/>
+<Link Name=".River_2.L" ValueType="Params" ValueIndex="4"/>
+<Link Name=".River_2.z" ValueType="Params" ValueIndex="5"/>
+<Link Name=".River_2.d_min" ValueType="Params" ValueIndex="6"/>
+<Link Name=".River_2.Vol_min" ValueType="Params" ValueIndex="7"/>
+<Link Name=".River_2.Vol_init" ValueType="Params" ValueIndex="8"/>
+<Link Name=".River_2.Q_initial" ValueType="Params" ValueIndex="9"/>
+<Link Name=".River_2.alpha" ValueType="Params" ValueIndex="10"/>
+<Link Name=".River_2.pH" ValueType="Params" ValueIndex="11"/>
+<Link Name=".River_2.KLmin" ValueType="Params" ValueIndex="12"/>
+<Link Name=".River_2.TKL" ValueType="Params" ValueIndex="13"/>
+<Link Name=".River_2.Kd1" ValueType="Params" ValueIndex="14"/>
+<Link Name=".River_2.Kd2" ValueType="Params" ValueIndex="15"/>
+<Link Name=".River_2.KBODs" ValueType="Params" ValueIndex="16"/>
+<Link Name=".River_2.Vs1" ValueType="Params" ValueIndex="17"/>
+<Link Name=".River_2.Vs2" ValueType="Params" ValueIndex="18"/>
+<Link Name=".River_2.KO2" ValueType="Params" ValueIndex="19"/>
+<Link Name=".River_2.TKd" ValueType="Params" ValueIndex="20"/>
+<Link Name=".River_2.TKp" ValueType="Params" ValueIndex="21"/>
+<Link Name=".River_2.Knit" ValueType="Params" ValueIndex="22"/>
+<Link Name=".River_2.TKnit" ValueType="Params" ValueIndex="23"/>
+<Link Name=".River_2.KNO2" ValueType="Params" ValueIndex="24"/>
+<Link Name=".River_2.KSO2" ValueType="Params" ValueIndex="25"/>
+<Link Name=".River_2.ProdM" ValueType="Params" ValueIndex="26"/>
+<Link Name=".River_2.ResM" ValueType="Params" ValueIndex="27"/>
+<Link Name=".River_2.TSOD" ValueType="Params" ValueIndex="28"/>
+<Link Name=".River_2.SBOD1" ValueType="Params" ValueIndex="29"/>
+<Link Name=".River_2.SBOD2" ValueType="Params" ValueIndex="30"/>
+<Link Name=".River_2.SNH4" ValueType="Params" ValueIndex="31"/>
+<Link Name=".River_2.SOD" ValueType="Params" ValueIndex="32"/>
+<Link Name=".River_2.VKL" ValueType="Params" ValueIndex="33"/>
+<Link Name=".River_2.MB" ValueType="Params" ValueIndex="34"/>
+<Link Name=".River_2.T_ref" ValueType="Params" ValueIndex="35"/>
+<Link Name=".River_2.T_par" ValueType="Params" ValueIndex="36"/>
+<Link Name=".River_3.T_conv" ValueType="Params" ValueIndex="37"/>
+<Link Name=".River_3.slp" ValueType="Params" ValueIndex="38"/>
+<Link Name=".River_3.n" ValueType="Params" ValueIndex="39"/>
+<Link Name=".River_3.W_b" ValueType="Params" ValueIndex="40"/>
+<Link Name=".River_3.L" ValueType="Params" ValueIndex="41"/>
+<Link Name=".River_3.z" ValueType="Params" ValueIndex="42"/>
+<Link Name=".River_3.d_min" ValueType="Params" ValueIndex="43"/>
+<Link Name=".River_3.Vol_min" ValueType="Params" ValueIndex="44"/>
+<Link Name=".River_3.Vol_init" ValueType="Params" ValueIndex="45"/>
+<Link Name=".River_3.Q_initial" ValueType="Params" ValueIndex="46"/>
+<Link Name=".River_3.alpha" ValueType="Params" ValueIndex="47"/>
+<Link Name=".River_3.pH" ValueType="Params" ValueIndex="48"/>
+<Link Name=".River_3.KLmin" ValueType="Params" ValueIndex="49"/>
+<Link Name=".River_3.TKL" ValueType="Params" ValueIndex="50"/>
+<Link Name=".River_3.Kd1" ValueType="Params" ValueIndex="51"/>
+<Link Name=".River_3.Kd2" ValueType="Params" ValueIndex="52"/>
+<Link Name=".River_3.KBODs" ValueType="Params" ValueIndex="53"/>
+<Link Name=".River_3.Vs1" ValueType="Params" ValueIndex="54"/>
+<Link Name=".River_3.Vs2" ValueType="Params" ValueIndex="55"/>
+<Link Name=".River_3.KO2" ValueType="Params" ValueIndex="56"/>
+<Link Name=".River_3.TKd" ValueType="Params" ValueIndex="57"/>
+<Link Name=".River_3.TKp" ValueType="Params" ValueIndex="58"/>
+<Link Name=".River_3.Knit" ValueType="Params" ValueIndex="59"/>
+<Link Name=".River_3.TKnit" ValueType="Params" ValueIndex="60"/>
+<Link Name=".River_3.KNO2" ValueType="Params" ValueIndex="61"/>
+<Link Name=".River_3.KSO2" ValueType="Params" ValueIndex="62"/>
+<Link Name=".River_3.ProdM" ValueType="Params" ValueIndex="63"/>
+<Link Name=".River_3.ResM" ValueType="Params" ValueIndex="64"/>
+<Link Name=".River_3.TSOD" ValueType="Params" ValueIndex="65"/>
+<Link Name=".River_3.SBOD1" ValueType="Params" ValueIndex="66"/>
+<Link Name=".River_3.SBOD2" ValueType="Params" ValueIndex="67"/>
+<Link Name=".River_3.SNH4" ValueType="Params" ValueIndex="68"/>
+<Link Name=".River_3.SOD" ValueType="Params" ValueIndex="69"/>
+<Link Name=".River_3.VKL" ValueType="Params" ValueIndex="70"/>
+<Link Name=".River_3.MB" ValueType="Params" ValueIndex="71"/>
+<Link Name=".River_3.T_ref" ValueType="Params" ValueIndex="72"/>
+<Link Name=".River_3.T_par" ValueType="Params" ValueIndex="73"/>
+<Link Name=".River_4.T_conv" ValueType="Params" ValueIndex="74"/>
+<Link Name=".River_4.slp" ValueType="Params" ValueIndex="75"/>
+<Link Name=".River_4.n" ValueType="Params" ValueIndex="76"/>
+<Link Name=".River_4.W_b" ValueType="Params" ValueIndex="77"/>
+<Link Name=".River_4.L" ValueType="Params" ValueIndex="78"/>
+<Link Name=".River_4.z" ValueType="Params" ValueIndex="79"/>
+<Link Name=".River_4.d_min" ValueType="Params" ValueIndex="80"/>
+<Link Name=".River_4.Vol_min" ValueType="Params" ValueIndex="81"/>
+<Link Name=".River_4.Vol_init" ValueType="Params" ValueIndex="82"/>
+<Link Name=".River_4.Q_initial" ValueType="Params" ValueIndex="83"/>
+<Link Name=".River_4.alpha" ValueType="Params" ValueIndex="84"/>
+<Link Name=".River_4.pH" ValueType="Params" ValueIndex="85"/>
+<Link Name=".River_4.KLmin" ValueType="Params" ValueIndex="86"/>
+<Link Name=".River_4.TKL" ValueType="Params" ValueIndex="87"/>
+<Link Name=".River_4.Kd1" ValueType="Params" ValueIndex="88"/>
+<Link Name=".River_4.Kd2" ValueType="Params" ValueIndex="89"/>
+<Link Name=".River_4.KBODs" ValueType="Params" ValueIndex="90"/>
+<Link Name=".River_4.Vs1" ValueType="Params" ValueIndex="91"/>
+<Link Name=".River_4.Vs2" ValueType="Params" ValueIndex="92"/>
+<Link Name=".River_4.KO2" ValueType="Params" ValueIndex="93"/>
+<Link Name=".River_4.TKd" ValueType="Params" ValueIndex="94"/>
+<Link Name=".River_4.TKp" ValueType="Params" ValueIndex="95"/>
+<Link Name=".River_4.Knit" ValueType="Params" ValueIndex="96"/>
+<Link Name=".River_4.TKnit" ValueType="Params" ValueIndex="97"/>
+<Link Name=".River_4.KNO2" ValueType="Params" ValueIndex="98"/>
+<Link Name=".River_4.KSO2" ValueType="Params" ValueIndex="99"/>
+<Link Name=".River_4.ProdM" ValueType="Params" ValueIndex="100"/>
+<Link Name=".River_4.ResM" ValueType="Params" ValueIndex="101"/>
+<Link Name=".River_4.TSOD" ValueType="Params" ValueIndex="102"/>
+<Link Name=".River_4.SBOD1" ValueType="Params" ValueIndex="103"/>
+<Link Name=".River_4.SBOD2" ValueType="Params" ValueIndex="104"/>
+<Link Name=".River_4.SNH4" ValueType="Params" ValueIndex="105"/>
+<Link Name=".River_4.SOD" ValueType="Params" ValueIndex="106"/>
+<Link Name=".River_4.VKL" ValueType="Params" ValueIndex="107"/>
+<Link Name=".River_4.MB" ValueType="Params" ValueIndex="108"/>
+<Link Name=".River_4.T_ref" ValueType="Params" ValueIndex="109"/>
+<Link Name=".River_4.T_par" ValueType="Params" ValueIndex="110"/>
+<Link Name=".River_5.T_conv" ValueType="Params" ValueIndex="111"/>
+<Link Name=".River_5.slp" ValueType="Params" ValueIndex="112"/>
+<Link Name=".River_5.n" ValueType="Params" ValueIndex="113"/>
+<Link Name=".River_5.W_b" ValueType="Params" ValueIndex="114"/>
+<Link Name=".River_5.L" ValueType="Params" ValueIndex="115"/>
+<Link Name=".River_5.z" ValueType="Params" ValueIndex="116"/>
+<Link Name=".River_5.d_min" ValueType="Params" ValueIndex="117"/>
+<Link Name=".River_5.Vol_min" ValueType="Params" ValueIndex="118"/>
+<Link Name=".River_5.Vol_init" ValueType="Params" ValueIndex="119"/>
+<Link Name=".River_5.Q_initial" ValueType="Params" ValueIndex="120"/>
+<Link Name=".River_5.alpha" ValueType="Params" ValueIndex="121"/>
+<Link Name=".River_5.pH" ValueType="Params" ValueIndex="122"/>
+<Link Name=".River_5.KLmin" ValueType="Params" ValueIndex="123"/>
+<Link Name=".River_5.TKL" ValueType="Params" ValueIndex="124"/>
+<Link Name=".River_5.Kd1" ValueType="Params" ValueIndex="125"/>
+<Link Name=".River_5.Kd2" ValueType="Params" ValueIndex="126"/>
+<Link Name=".River_5.KBODs" ValueType="Params" ValueIndex="127"/>
+<Link Name=".River_5.Vs1" ValueType="Params" ValueIndex="128"/>
+<Link Name=".River_5.Vs2" ValueType="Params" ValueIndex="129"/>
+<Link Name=".River_5.KO2" ValueType="Params" ValueIndex="130"/>
+<Link Name=".River_5.TKd" ValueType="Params" ValueIndex="131"/>
+<Link Name=".River_5.TKp" ValueType="Params" ValueIndex="132"/>
+<Link Name=".River_5.Knit" ValueType="Params" ValueIndex="133"/>
+<Link Name=".River_5.TKnit" ValueType="Params" ValueIndex="134"/>
+<Link Name=".River_5.KNO2" ValueType="Params" ValueIndex="135"/>
+<Link Name=".River_5.KSO2" ValueType="Params" ValueIndex="136"/>
+<Link Name=".River_5.ProdM" ValueType="Params" ValueIndex="137"/>
+<Link Name=".River_5.ResM" ValueType="Params" ValueIndex="138"/>
+<Link Name=".River_5.TSOD" ValueType="Params" ValueIndex="139"/>
+<Link Name=".River_5.SBOD1" ValueType="Params" ValueIndex="140"/>
+<Link Name=".River_5.SBOD2" ValueType="Params" ValueIndex="141"/>
+<Link Name=".River_5.SNH4" ValueType="Params" ValueIndex="142"/>
+<Link Name=".River_5.SOD" ValueType="Params" ValueIndex="143"/>
+<Link Name=".River_5.VKL" ValueType="Params" ValueIndex="144"/>
+<Link Name=".River_5.MB" ValueType="Params" ValueIndex="145"/>
+<Link Name=".River_5.T_ref" ValueType="Params" ValueIndex="146"/>
+<Link Name=".River_5.T_par" ValueType="Params" ValueIndex="147"/>
+<Link Name=".Urban_InputEmulator.FactorEffluent" ValueType="Params" ValueIndex="148"/>
+<Link Name=".Urban_InputEmulator.fBOD1_BOD" ValueType="Params" ValueIndex="149"/>
+<Link Name=".Urban_InputEmulator.fBOD2_CODmBOD" ValueType="Params" ValueIndex="150"/>
+<Link Name=".Urban_InputEmulator.fBOD1p_BODf" ValueType="Params" ValueIndex="151"/>
+<Link Name=".Urban_InputEmulator.fBOD2p_BODs" ValueType="Params" ValueIndex="152"/>
+<Link Name=".Urban_InputEmulator.settling" ValueType="Params" ValueIndex="153"/>
+<Link Name=".Urban_InputEmulator.yesno" ValueType="Params" ValueIndex="154"/>
+<Link Name=".Urban_InputEmulator.Mult_O2" ValueType="Params" ValueIndex="155"/>
+<Link Name=".Urban_InputEmulator.Mult_COD" ValueType="Params" ValueIndex="156"/>
+<Link Name=".Urban_InputEmulator.Mult_BOD" ValueType="Params" ValueIndex="157"/>
+<Link Name=".Urban_InputEmulator.Mult_NH4" ValueType="Params" ValueIndex="158"/>
+<Link Name=".River_1.T_conv" ValueType="Params" ValueIndex="159"/>
+<Link Name=".River_1.slp" ValueType="Params" ValueIndex="160"/>
+<Link Name=".River_1.n" ValueType="Params" ValueIndex="161"/>
+<Link Name=".River_1.W_b" ValueType="Params" ValueIndex="162"/>
+<Link Name=".River_1.L" ValueType="Params" ValueIndex="163"/>
+<Link Name=".River_1.z" ValueType="Params" ValueIndex="164"/>
+<Link Name=".River_1.d_min" ValueType="Params" ValueIndex="165"/>
+<Link Name=".River_1.Vol_min" ValueType="Params" ValueIndex="166"/>
+<Link Name=".River_1.Vol_init" ValueType="Params" ValueIndex="167"/>
+<Link Name=".River_1.Q_initial" ValueType="Params" ValueIndex="168"/>
+<Link Name=".River_1.alpha" ValueType="Params" ValueIndex="169"/>
+<Link Name=".River_1.pH" ValueType="Params" ValueIndex="170"/>
+<Link Name=".River_1.KLmin" ValueType="Params" ValueIndex="171"/>
+<Link Name=".River_1.TKL" ValueType="Params" ValueIndex="172"/>
+<Link Name=".River_1.Kd1" ValueType="Params" ValueIndex="173"/>
+<Link Name=".River_1.Kd2" ValueType="Params" ValueIndex="174"/>
+<Link Name=".River_1.KBODs" ValueType="Params" ValueIndex="175"/>
+<Link Name=".River_1.Vs1" ValueType="Params" ValueIndex="176"/>
+<Link Name=".River_1.Vs2" ValueType="Params" ValueIndex="177"/>
+<Link Name=".River_1.KO2" ValueType="Params" ValueIndex="178"/>
+<Link Name=".River_1.TKd" ValueType="Params" ValueIndex="179"/>
+<Link Name=".River_1.TKp" ValueType="Params" ValueIndex="180"/>
+<Link Name=".River_1.Knit" ValueType="Params" ValueIndex="181"/>
+<Link Name=".River_1.TKnit" ValueType="Params" ValueIndex="182"/>
+<Link Name=".River_1.KNO2" ValueType="Params" ValueIndex="183"/>
+<Link Name=".River_1.KSO2" ValueType="Params" ValueIndex="184"/>
+<Link Name=".River_1.ProdM" ValueType="Params" ValueIndex="185"/>
+<Link Name=".River_1.ResM" ValueType="Params" ValueIndex="186"/>
+<Link Name=".River_1.TSOD" ValueType="Params" ValueIndex="187"/>
+<Link Name=".River_1.SBOD1" ValueType="Params" ValueIndex="188"/>
+<Link Name=".River_1.SBOD2" ValueType="Params" ValueIndex="189"/>
+<Link Name=".River_1.SNH4" ValueType="Params" ValueIndex="190"/>
+<Link Name=".River_1.SOD" ValueType="Params" ValueIndex="191"/>
+<Link Name=".River_1.VKL" ValueType="Params" ValueIndex="192"/>
+<Link Name=".River_1.MB" ValueType="Params" ValueIndex="193"/>
+<Link Name=".River_1.T_ref" ValueType="Params" ValueIndex="194"/>
+<Link Name=".River_1.T_par" ValueType="Params" ValueIndex="195"/>
+<Link Name=".Rural_inflow.surface" ValueType="Params" ValueIndex="196"/>
+<Link Name=".Rural_inflow.BOD1_in" ValueType="Params" ValueIndex="197"/>
+<Link Name=".Rural_inflow.BOD2_in" ValueType="Params" ValueIndex="198"/>
+<Link Name=".Rural_inflow.O2_in" ValueType="Params" ValueIndex="199"/>
+<Link Name=".Rural_inflow.BOD1p_in" ValueType="Params" ValueIndex="200"/>
+<Link Name=".Rural_inflow.BOD2p_in" ValueType="Params" ValueIndex="201"/>
+<Link Name=".Rural_inflow.BODs_in" ValueType="Params" ValueIndex="202"/>
+<Link Name=".River_1.t" ValueType="IndepVars" ValueIndex="0"/>
+<Link Name=".River_2.t" ValueType="IndepVars" ValueIndex="0"/>
+<Link Name=".River_3.t" ValueType="IndepVars" ValueIndex="0"/>
+<Link Name=".River_4.t" ValueType="IndepVars" ValueIndex="0"/>
+<Link Name=".River_5.t" ValueType="IndepVars" ValueIndex="0"/>
+<Link Name=".Rural_inflow.t" ValueType="IndepVars" ValueIndex="0"/>
+<Link Name=".Urban_InputEmulator.t" ValueType="IndepVars" ValueIndex="0"/>
+<Link Name=".Urban_CSO_flow" ValueType="InputVars" ValueIndex="0"/>
+<Link Name=".Temperature_water" ValueType="InputVars" ValueIndex="1"/>
+<Link Name=".Solar_Radiation" ValueType="InputVars" ValueIndex="2"/>
+<Link Name=".Rural_baseflow" ValueType="InputVars" ValueIndex="3"/>
+<Link Name=".River_1.V_help" ValueType="AlgVars" ValueIndex="0"/>
+<Link Name=".River_1.V" ValueType="AlgVars" ValueIndex="1"/>
+<Link Name=".River_1.C(rH2O)" ValueType="AlgVars" ValueIndex="2"/>
+<Link Name=".River_1.C(rO2)" ValueType="AlgVars" ValueIndex="3"/>
+<Link Name=".River_1.C(rBOD1)" ValueType="AlgVars" ValueIndex="4"/>
+<Link Name=".River_1.C(rBOD2)" ValueType="AlgVars" ValueIndex="5"/>
+<Link Name=".River_1.C(rNH4)" ValueType="AlgVars" ValueIndex="6"/>
+<Link Name=".River_1.C(rBOD1p)" ValueType="AlgVars" ValueIndex="7"/>
+<Link Name=".River_1.C(rBOD2p)" ValueType="AlgVars" ValueIndex="8"/>
+<Link Name=".River_1.C(rBODs)" ValueType="AlgVars" ValueIndex="9"/>
+<Link Name=".River_1.A_man" ValueType="AlgVars" ValueIndex="10"/>
+<Link Name=".River_1.A" ValueType="AlgVars" ValueIndex="11"/>
+<Link Name=".River_1.d" ValueType="AlgVars" ValueIndex="12"/>
+<Link Name=".River_1.P" ValueType="AlgVars" ValueIndex="13"/>
+<Link Name=".River_1.R" ValueType="AlgVars" ValueIndex="14"/>
+<Link Name=".River_1.Q_Out" ValueType="AlgVars" ValueIndex="15"/>
+<Link Name=".River_1.Outflow(rH2O)" ValueType="AlgVars" ValueIndex="16"/>
+<Link Name=".River_1.Outflow(rO2)" ValueType="AlgVars" ValueIndex="17"/>
+<Link Name=".River_1.Outflow(rBOD1)" ValueType="AlgVars" ValueIndex="18"/>
+<Link Name=".River_1.Outflow(rBOD2)" ValueType="AlgVars" ValueIndex="19"/>
+<Link Name=".River_1.Outflow(rNH4)" ValueType="AlgVars" ValueIndex="20"/>
+<Link Name=".River_1.Outflow(rBOD1p)" ValueType="AlgVars" ValueIndex="21"/>
+<Link Name=".River_1.Outflow(rBOD2p)" ValueType="AlgVars" ValueIndex="22"/>
+<Link Name=".River_1.Outflow(rBODs)" ValueType="AlgVars" ValueIndex="23"/>
+<Link Name=".River_2.Inflow1(rH2O)" ValueType="AlgVars" ValueIndex="24"/>
+<Link Name=".River_2.Inflow1(rO2)" ValueType="AlgVars" ValueIndex="25"/>
+<Link Name=".River_2.Inflow1(rBOD1)" ValueType="AlgVars" ValueIndex="26"/>
+<Link Name=".River_2.Inflow1(rBOD2)" ValueType="AlgVars" ValueIndex="27"/>
+<Link Name=".River_2.Inflow1(rNH4)" ValueType="AlgVars" ValueIndex="28"/>
+<Link Name=".River_2.Inflow1(rBOD1p)" ValueType="AlgVars" ValueIndex="29"/>
+<Link Name=".River_2.Inflow1(rBOD2p)" ValueType="AlgVars" ValueIndex="30"/>
+<Link Name=".River_2.Inflow1(rBODs)" ValueType="AlgVars" ValueIndex="31"/>
+<Link Name=".Urban_InputEmulator.rainfall" ValueType="AlgVars" ValueIndex="32"/>
+<Link Name=".Urban_InputEmulator.Outflow(rH2O)" ValueType="AlgVars" ValueIndex="33"/>
+<Link Name=".Urban_InputEmulator.Outflow(rO2)" ValueType="AlgVars" ValueIndex="34"/>
+<Link Name=".Urban_InputEmulator.Outflow(rBOD1)" ValueType="AlgVars" ValueIndex="35"/>
+<Link Name=".Urban_InputEmulator.Outflow(rBOD2)" ValueType="AlgVars" ValueIndex="36"/>
+<Link Name=".Urban_InputEmulator.Outflow(rNH4)" ValueType="AlgVars" ValueIndex="37"/>
+<Link Name=".Urban_InputEmulator.Outflow(rBOD1p)" ValueType="AlgVars" ValueIndex="38"/>
+<Link Name=".Urban_InputEmulator.Outflow(rBOD2p)" ValueType="AlgVars" ValueIndex="39"/>
+<Link Name=".Urban_InputEmulator.Outflow(rBODs)" ValueType="AlgVars" ValueIndex="40"/>
+<Link Name=".River_2.Inflow2(rH2O)" ValueType="AlgVars" ValueIndex="41"/>
+<Link Name=".River_2.Inflow2(rO2)" ValueType="AlgVars" ValueIndex="42"/>
+<Link Name=".River_2.Inflow2(rBOD1)" ValueType="AlgVars" ValueIndex="43"/>
+<Link Name=".River_2.Inflow2(rBOD2)" ValueType="AlgVars" ValueIndex="44"/>
+<Link Name=".River_2.Inflow2(rNH4)" ValueType="AlgVars" ValueIndex="45"/>
+<Link Name=".River_2.Inflow2(rBOD1p)" ValueType="AlgVars" ValueIndex="46"/>
+<Link Name=".River_2.Inflow2(rBOD2p)" ValueType="AlgVars" ValueIndex="47"/>
+<Link Name=".River_2.Inflow2(rBODs)" ValueType="AlgVars" ValueIndex="48"/>
+<Link Name=".River_2.V_help" ValueType="AlgVars" ValueIndex="49"/>
+<Link Name=".River_2.V" ValueType="AlgVars" ValueIndex="50"/>
+<Link Name=".River_2.C(rH2O)" ValueType="AlgVars" ValueIndex="51"/>
+<Link Name=".River_2.C(rO2)" ValueType="AlgVars" ValueIndex="52"/>
+<Link Name=".River_2.C(rBOD1)" ValueType="AlgVars" ValueIndex="53"/>
+<Link Name=".River_2.C(rBOD2)" ValueType="AlgVars" ValueIndex="54"/>
+<Link Name=".River_2.C(rNH4)" ValueType="AlgVars" ValueIndex="55"/>
+<Link Name=".River_2.C(rBOD1p)" ValueType="AlgVars" ValueIndex="56"/>
+<Link Name=".River_2.C(rBOD2p)" ValueType="AlgVars" ValueIndex="57"/>
+<Link Name=".River_2.C(rBODs)" ValueType="AlgVars" ValueIndex="58"/>
+<Link Name=".River_2.A_man" ValueType="AlgVars" ValueIndex="59"/>
+<Link Name=".River_2.A" ValueType="AlgVars" ValueIndex="60"/>
+<Link Name=".River_2.d" ValueType="AlgVars" ValueIndex="61"/>
+<Link Name=".River_2.P" ValueType="AlgVars" ValueIndex="62"/>
+<Link Name=".River_2.R" ValueType="AlgVars" ValueIndex="63"/>
+<Link Name=".River_2.Q_Out" ValueType="AlgVars" ValueIndex="64"/>
+<Link Name=".River_2.Outflow(rH2O)" ValueType="AlgVars" ValueIndex="65"/>
+<Link Name=".River_2.Outflow(rO2)" ValueType="AlgVars" ValueIndex="66"/>
+<Link Name=".River_2.Outflow(rBOD1)" ValueType="AlgVars" ValueIndex="67"/>
+<Link Name=".River_2.Outflow(rBOD2)" ValueType="AlgVars" ValueIndex="68"/>
+<Link Name=".River_2.Outflow(rNH4)" ValueType="AlgVars" ValueIndex="69"/>
+<Link Name=".River_2.Outflow(rBOD1p)" ValueType="AlgVars" ValueIndex="70"/>
+<Link Name=".River_2.Outflow(rBOD2p)" ValueType="AlgVars" ValueIndex="71"/>
+<Link Name=".River_2.Outflow(rBODs)" ValueType="AlgVars" ValueIndex="72"/>
+<Link Name=".River_2.FluxPerComponent(rH2O)" ValueType="AlgVars" ValueIndex="73"/>
+<Link Name=".River_2.FluxPerComponent(rO2)" ValueType="AlgVars" ValueIndex="74"/>
+<Link Name=".River_2.FluxPerComponent(rBOD1)" ValueType="AlgVars" ValueIndex="75"/>
+<Link Name=".River_2.FluxPerComponent(rBOD2)" ValueType="AlgVars" ValueIndex="76"/>
+<Link Name=".River_2.FluxPerComponent(rNH4)" ValueType="AlgVars" ValueIndex="77"/>
+<Link Name=".River_2.FluxPerComponent(rBOD1p)" ValueType="AlgVars" ValueIndex="78"/>
+<Link Name=".River_2.FluxPerComponent(rBOD2p)" ValueType="AlgVars" ValueIndex="79"/>
+<Link Name=".River_2.FluxPerComponent(rBODs)" ValueType="AlgVars" ValueIndex="80"/>
+<Link Name=".Urban_InputEmulator.Q" ValueType="AlgVars" ValueIndex="81"/>
+<Link Name=".Urban_InputEmulator.U_O2_in" ValueType="AlgVars" ValueIndex="82"/>
+<Link Name=".Urban_InputEmulator.U_BOD_in" ValueType="AlgVars" ValueIndex="83"/>
+<Link Name=".Urban_InputEmulator.U_COD_in" ValueType="AlgVars" ValueIndex="84"/>
+<Link Name=".Urban_InputEmulator.U_NH4_in" ValueType="AlgVars" ValueIndex="85"/>
+<Link Name=".River_2.InFluxPerComponent(rH2O)" ValueType="AlgVars" ValueIndex="86"/>
+<Link Name=".River_2.InFluxPerComponent(rO2)" ValueType="AlgVars" ValueIndex="87"/>
+<Link Name=".River_2.InFluxPerComponent(rBOD1)" ValueType="AlgVars" ValueIndex="88"/>
+<Link Name=".River_2.InFluxPerComponent(rBOD2)" ValueType="AlgVars" ValueIndex="89"/>
+<Link Name=".River_2.InFluxPerComponent(rNH4)" ValueType="AlgVars" ValueIndex="90"/>
+<Link Name=".River_2.InFluxPerComponent(rBOD1p)" ValueType="AlgVars" ValueIndex="91"/>
+<Link Name=".River_2.InFluxPerComponent(rBOD2p)" ValueType="AlgVars" ValueIndex="92"/>
+<Link Name=".River_2.InFluxPerComponent(rBODs)" ValueType="AlgVars" ValueIndex="93"/>
+<Link Name=".River_2.Q_In" ValueType="AlgVars" ValueIndex="94"/>
+<Link Name=".River_2.T" ValueType="AlgVars" ValueIndex="95"/>
+<Link Name=".River_2.T_wat_help" ValueType="AlgVars" ValueIndex="96"/>
+<Link Name=".River_2.T_wat" ValueType="AlgVars" ValueIndex="97"/>
+<Link Name=".River_2.CS" ValueType="AlgVars" ValueIndex="98"/>
+<Link Name=".River_2.OTR" ValueType="AlgVars" ValueIndex="99"/>
+<Link Name=".River_2.kLa" ValueType="AlgVars" ValueIndex="100"/>
+<Link Name=".River_2.SOTR" ValueType="AlgVars" ValueIndex="101"/>
+<Link Name=".River_2.BOD" ValueType="AlgVars" ValueIndex="102"/>
+<Link Name=".River_2.vel_water" ValueType="AlgVars" ValueIndex="103"/>
+<Link Name=".River_2.KL20_help" ValueType="AlgVars" ValueIndex="104"/>
+<Link Name=".River_2.KL20" ValueType="AlgVars" ValueIndex="105"/>
+<Link Name=".River_2.KLT" ValueType="AlgVars" ValueIndex="106"/>
+<Link Name=".River_2.REAR" ValueType="AlgVars" ValueIndex="107"/>
+<Link Name=".River_2.I0" ValueType="AlgVars" ValueIndex="108"/>
+<Link Name=".River_2.PO2M" ValueType="AlgVars" ValueIndex="109"/>
+<Link Name=".River_2.SedO2" ValueType="AlgVars" ValueIndex="110"/>
+<Link Name=".River_2.BODox" ValueType="AlgVars" ValueIndex="111"/>
+<Link Name=".River_2.Nitrif" ValueType="AlgVars" ValueIndex="112"/>
+<Link Name=".River_2.SODT" ValueType="AlgVars" ValueIndex="113"/>
+<Link Name=".River_2.ConversionTermPerComponent(rH2O)" ValueType="AlgVars" ValueIndex="114"/>
+<Link Name=".River_2.ConversionTermPerComponent(rO2)" ValueType="AlgVars" ValueIndex="115"/>
+<Link Name=".River_2.ConversionTermPerComponent(rBOD1)" ValueType="AlgVars" ValueIndex="116"/>
+<Link Name=".River_2.ConversionTermPerComponent(rBOD2)" ValueType="AlgVars" ValueIndex="117"/>
+<Link Name=".River_2.ConversionTermPerComponent(rNH4)" ValueType="AlgVars" ValueIndex="118"/>
+<Link Name=".River_2.ConversionTermPerComponent(rBOD1p)" ValueType="AlgVars" ValueIndex="119"/>
+<Link Name=".River_2.ConversionTermPerComponent(rBOD2p)" ValueType="AlgVars" ValueIndex="120"/>
+<Link Name=".River_2.ConversionTermPerComponent(rBODs)" ValueType="AlgVars" ValueIndex="121"/>
+<Link Name=".River_2.DO" ValueType="AlgVars" ValueIndex="122"/>
+<Link Name=".River_2.NH4" ValueType="AlgVars" ValueIndex="123"/>
+<Link Name=".River_2.Q" ValueType="AlgVars" ValueIndex="124"/>
+<Link Name=".River_2.DO_sat_perc" ValueType="AlgVars" ValueIndex="125"/>
+<Link Name=".River_2.UIamm" ValueType="AlgVars" ValueIndex="126"/>
+<Link Name=".River_2.UIamm_corr" ValueType="AlgVars" ValueIndex="127"/>
+<Link Name=".River_2.DO_corr" ValueType="AlgVars" ValueIndex="128"/>
+<Link Name=".River_3.Inflow1(rH2O)" ValueType="AlgVars" ValueIndex="129"/>
+<Link Name=".River_3.Inflow1(rO2)" ValueType="AlgVars" ValueIndex="130"/>
+<Link Name=".River_3.Inflow1(rBOD1)" ValueType="AlgVars" ValueIndex="131"/>
+<Link Name=".River_3.Inflow1(rBOD2)" ValueType="AlgVars" ValueIndex="132"/>
+<Link Name=".River_3.Inflow1(rNH4)" ValueType="AlgVars" ValueIndex="133"/>
+<Link Name=".River_3.Inflow1(rBOD1p)" ValueType="AlgVars" ValueIndex="134"/>
+<Link Name=".River_3.Inflow1(rBOD2p)" ValueType="AlgVars" ValueIndex="135"/>
+<Link Name=".River_3.Inflow1(rBODs)" ValueType="AlgVars" ValueIndex="136"/>
+<Link Name=".River_3.V_help" ValueType="AlgVars" ValueIndex="137"/>
+<Link Name=".River_3.V" ValueType="AlgVars" ValueIndex="138"/>
+<Link Name=".River_3.C(rH2O)" ValueType="AlgVars" ValueIndex="139"/>
+<Link Name=".River_3.C(rO2)" ValueType="AlgVars" ValueIndex="140"/>
+<Link Name=".River_3.C(rBOD1)" ValueType="AlgVars" ValueIndex="141"/>
+<Link Name=".River_3.C(rBOD2)" ValueType="AlgVars" ValueIndex="142"/>
+<Link Name=".River_3.C(rNH4)" ValueType="AlgVars" ValueIndex="143"/>
+<Link Name=".River_3.C(rBOD1p)" ValueType="AlgVars" ValueIndex="144"/>
+<Link Name=".River_3.C(rBOD2p)" ValueType="AlgVars" ValueIndex="145"/>
+<Link Name=".River_3.C(rBODs)" ValueType="AlgVars" ValueIndex="146"/>
+<Link Name=".River_3.A_man" ValueType="AlgVars" ValueIndex="147"/>
+<Link Name=".River_3.A" ValueType="AlgVars" ValueIndex="148"/>
+<Link Name=".River_3.d" ValueType="AlgVars" ValueIndex="149"/>
+<Link Name=".River_3.P" ValueType="AlgVars" ValueIndex="150"/>
+<Link Name=".River_3.R" ValueType="AlgVars" ValueIndex="151"/>
+<Link Name=".River_3.Q_Out" ValueType="AlgVars" ValueIndex="152"/>
+<Link Name=".River_3.Outflow(rH2O)" ValueType="AlgVars" ValueIndex="153"/>
+<Link Name=".River_3.Outflow(rO2)" ValueType="AlgVars" ValueIndex="154"/>
+<Link Name=".River_3.Outflow(rBOD1)" ValueType="AlgVars" ValueIndex="155"/>
+<Link Name=".River_3.Outflow(rBOD2)" ValueType="AlgVars" ValueIndex="156"/>
+<Link Name=".River_3.Outflow(rNH4)" ValueType="AlgVars" ValueIndex="157"/>
+<Link Name=".River_3.Outflow(rBOD1p)" ValueType="AlgVars" ValueIndex="158"/>
+<Link Name=".River_3.Outflow(rBOD2p)" ValueType="AlgVars" ValueIndex="159"/>
+<Link Name=".River_3.Outflow(rBODs)" ValueType="AlgVars" ValueIndex="160"/>
+<Link Name=".River_3.FluxPerComponent(rH2O)" ValueType="AlgVars" ValueIndex="161"/>
+<Link Name=".River_3.FluxPerComponent(rO2)" ValueType="AlgVars" ValueIndex="162"/>
+<Link Name=".River_3.FluxPerComponent(rBOD1)" ValueType="AlgVars" ValueIndex="163"/>
+<Link Name=".River_3.FluxPerComponent(rBOD2)" ValueType="AlgVars" ValueIndex="164"/>
+<Link Name=".River_3.FluxPerComponent(rNH4)" ValueType="AlgVars" ValueIndex="165"/>
+<Link Name=".River_3.FluxPerComponent(rBOD1p)" ValueType="AlgVars" ValueIndex="166"/>
+<Link Name=".River_3.FluxPerComponent(rBOD2p)" ValueType="AlgVars" ValueIndex="167"/>
+<Link Name=".River_3.FluxPerComponent(rBODs)" ValueType="AlgVars" ValueIndex="168"/>
+<Link Name=".River_3.Inflow2(rH2O)" ValueType="AlgVars" ValueIndex="169"/>
+<Link Name=".River_3.Inflow2(rO2)" ValueType="AlgVars" ValueIndex="170"/>
+<Link Name=".River_3.Inflow2(rBOD1)" ValueType="AlgVars" ValueIndex="171"/>
+<Link Name=".River_3.Inflow2(rBOD2)" ValueType="AlgVars" ValueIndex="172"/>
+<Link Name=".River_3.Inflow2(rNH4)" ValueType="AlgVars" ValueIndex="173"/>
+<Link Name=".River_3.Inflow2(rBOD1p)" ValueType="AlgVars" ValueIndex="174"/>
+<Link Name=".River_3.Inflow2(rBOD2p)" ValueType="AlgVars" ValueIndex="175"/>
+<Link Name=".River_3.Inflow2(rBODs)" ValueType="AlgVars" ValueIndex="176"/>
+<Link Name=".River_3.InFluxPerComponent(rH2O)" ValueType="AlgVars" ValueIndex="177"/>
+<Link Name=".River_3.InFluxPerComponent(rO2)" ValueType="AlgVars" ValueIndex="178"/>
+<Link Name=".River_3.InFluxPerComponent(rBOD1)" ValueType="AlgVars" ValueIndex="179"/>
+<Link Name=".River_3.InFluxPerComponent(rBOD2)" ValueType="AlgVars" ValueIndex="180"/>
+<Link Name=".River_3.InFluxPerComponent(rNH4)" ValueType="AlgVars" ValueIndex="181"/>
+<Link Name=".River_3.InFluxPerComponent(rBOD1p)" ValueType="AlgVars" ValueIndex="182"/>
+<Link Name=".River_3.InFluxPerComponent(rBOD2p)" ValueType="AlgVars" ValueIndex="183"/>
+<Link Name=".River_3.InFluxPerComponent(rBODs)" ValueType="AlgVars" ValueIndex="184"/>
+<Link Name=".River_3.Q_In" ValueType="AlgVars" ValueIndex="185"/>
+<Link Name=".River_3.T" ValueType="AlgVars" ValueIndex="186"/>
+<Link Name=".River_3.T_wat_help" ValueType="AlgVars" ValueIndex="187"/>
+<Link Name=".River_3.T_wat" ValueType="AlgVars" ValueIndex="188"/>
+<Link Name=".River_3.CS" ValueType="AlgVars" ValueIndex="189"/>
+<Link Name=".River_3.OTR" ValueType="AlgVars" ValueIndex="190"/>
+<Link Name=".River_3.kLa" ValueType="AlgVars" ValueIndex="191"/>
+<Link Name=".River_3.SOTR" ValueType="AlgVars" ValueIndex="192"/>
+<Link Name=".River_3.BOD" ValueType="AlgVars" ValueIndex="193"/>
+<Link Name=".River_3.vel_water" ValueType="AlgVars" ValueIndex="194"/>
+<Link Name=".River_3.KL20_help" ValueType="AlgVars" ValueIndex="195"/>
+<Link Name=".River_3.KL20" ValueType="AlgVars" ValueIndex="196"/>
+<Link Name=".River_3.KLT" ValueType="AlgVars" ValueIndex="197"/>
+<Link Name=".River_3.REAR" ValueType="AlgVars" ValueIndex="198"/>
+<Link Name=".River_3.I0" ValueType="AlgVars" ValueIndex="199"/>
+<Link Name=".River_3.PO2M" ValueType="AlgVars" ValueIndex="200"/>
+<Link Name=".River_3.SedO2" ValueType="AlgVars" ValueIndex="201"/>
+<Link Name=".River_3.BODox" ValueType="AlgVars" ValueIndex="202"/>
+<Link Name=".River_3.Nitrif" ValueType="AlgVars" ValueIndex="203"/>
+<Link Name=".River_3.SODT" ValueType="AlgVars" ValueIndex="204"/>
+<Link Name=".River_3.ConversionTermPerComponent(rH2O)" ValueType="AlgVars" ValueIndex="205"/>
+<Link Name=".River_3.ConversionTermPerComponent(rO2)" ValueType="AlgVars" ValueIndex="206"/>
+<Link Name=".River_3.ConversionTermPerComponent(rBOD1)" ValueType="AlgVars" ValueIndex="207"/>
+<Link Name=".River_3.ConversionTermPerComponent(rBOD2)" ValueType="AlgVars" ValueIndex="208"/>
+<Link Name=".River_3.ConversionTermPerComponent(rNH4)" ValueType="AlgVars" ValueIndex="209"/>
+<Link Name=".River_3.ConversionTermPerComponent(rBOD1p)" ValueType="AlgVars" ValueIndex="210"/>
+<Link Name=".River_3.ConversionTermPerComponent(rBOD2p)" ValueType="AlgVars" ValueIndex="211"/>
+<Link Name=".River_3.ConversionTermPerComponent(rBODs)" ValueType="AlgVars" ValueIndex="212"/>
+<Link Name=".River_3.DO" ValueType="AlgVars" ValueIndex="213"/>
+<Link Name=".River_3.NH4" ValueType="AlgVars" ValueIndex="214"/>
+<Link Name=".River_3.Q" ValueType="AlgVars" ValueIndex="215"/>
+<Link Name=".River_3.DO_sat_perc" ValueType="AlgVars" ValueIndex="216"/>
+<Link Name=".River_3.UIamm" ValueType="AlgVars" ValueIndex="217"/>
+<Link Name=".River_3.UIamm_corr" ValueType="AlgVars" ValueIndex="218"/>
+<Link Name=".River_3.DO_corr" ValueType="AlgVars" ValueIndex="219"/>
+<Link Name=".River_4.Inflow1(rH2O)" ValueType="AlgVars" ValueIndex="220"/>
+<Link Name=".River_4.Inflow1(rO2)" ValueType="AlgVars" ValueIndex="221"/>
+<Link Name=".River_4.Inflow1(rBOD1)" ValueType="AlgVars" ValueIndex="222"/>
+<Link Name=".River_4.Inflow1(rBOD2)" ValueType="AlgVars" ValueIndex="223"/>
+<Link Name=".River_4.Inflow1(rNH4)" ValueType="AlgVars" ValueIndex="224"/>
+<Link Name=".River_4.Inflow1(rBOD1p)" ValueType="AlgVars" ValueIndex="225"/>
+<Link Name=".River_4.Inflow1(rBOD2p)" ValueType="AlgVars" ValueIndex="226"/>
+<Link Name=".River_4.Inflow1(rBODs)" ValueType="AlgVars" ValueIndex="227"/>
+<Link Name=".River_4.V_help" ValueType="AlgVars" ValueIndex="228"/>
+<Link Name=".River_4.V" ValueType="AlgVars" ValueIndex="229"/>
+<Link Name=".River_4.C(rH2O)" ValueType="AlgVars" ValueIndex="230"/>
+<Link Name=".River_4.C(rO2)" ValueType="AlgVars" ValueIndex="231"/>
+<Link Name=".River_4.C(rBOD1)" ValueType="AlgVars" ValueIndex="232"/>
+<Link Name=".River_4.C(rBOD2)" ValueType="AlgVars" ValueIndex="233"/>
+<Link Name=".River_4.C(rNH4)" ValueType="AlgVars" ValueIndex="234"/>
+<Link Name=".River_4.C(rBOD1p)" ValueType="AlgVars" ValueIndex="235"/>
+<Link Name=".River_4.C(rBOD2p)" ValueType="AlgVars" ValueIndex="236"/>
+<Link Name=".River_4.C(rBODs)" ValueType="AlgVars" ValueIndex="237"/>
+<Link Name=".River_4.A_man" ValueType="AlgVars" ValueIndex="238"/>
+<Link Name=".River_4.A" ValueType="AlgVars" ValueIndex="239"/>
+<Link Name=".River_4.d" ValueType="AlgVars" ValueIndex="240"/>
+<Link Name=".River_4.P" ValueType="AlgVars" ValueIndex="241"/>
+<Link Name=".River_4.R" ValueType="AlgVars" ValueIndex="242"/>
+<Link Name=".River_4.Q_Out" ValueType="AlgVars" ValueIndex="243"/>
+<Link Name=".River_4.Outflow(rH2O)" ValueType="AlgVars" ValueIndex="244"/>
+<Link Name=".River_4.Outflow(rO2)" ValueType="AlgVars" ValueIndex="245"/>
+<Link Name=".River_4.Outflow(rBOD1)" ValueType="AlgVars" ValueIndex="246"/>
+<Link Name=".River_4.Outflow(rBOD2)" ValueType="AlgVars" ValueIndex="247"/>
+<Link Name=".River_4.Outflow(rNH4)" ValueType="AlgVars" ValueIndex="248"/>
+<Link Name=".River_4.Outflow(rBOD1p)" ValueType="AlgVars" ValueIndex="249"/>
+<Link Name=".River_4.Outflow(rBOD2p)" ValueType="AlgVars" ValueIndex="250"/>
+<Link Name=".River_4.Outflow(rBODs)" ValueType="AlgVars" ValueIndex="251"/>
+<Link Name=".River_4.FluxPerComponent(rH2O)" ValueType="AlgVars" ValueIndex="252"/>
+<Link Name=".River_4.FluxPerComponent(rO2)" ValueType="AlgVars" ValueIndex="253"/>
+<Link Name=".River_4.FluxPerComponent(rBOD1)" ValueType="AlgVars" ValueIndex="254"/>
+<Link Name=".River_4.FluxPerComponent(rBOD2)" ValueType="AlgVars" ValueIndex="255"/>
+<Link Name=".River_4.FluxPerComponent(rNH4)" ValueType="AlgVars" ValueIndex="256"/>
+<Link Name=".River_4.FluxPerComponent(rBOD1p)" ValueType="AlgVars" ValueIndex="257"/>
+<Link Name=".River_4.FluxPerComponent(rBOD2p)" ValueType="AlgVars" ValueIndex="258"/>
+<Link Name=".River_4.FluxPerComponent(rBODs)" ValueType="AlgVars" ValueIndex="259"/>
+<Link Name=".River_4.Inflow2(rH2O)" ValueType="AlgVars" ValueIndex="260"/>
+<Link Name=".River_4.Inflow2(rO2)" ValueType="AlgVars" ValueIndex="261"/>
+<Link Name=".River_4.Inflow2(rBOD1)" ValueType="AlgVars" ValueIndex="262"/>
+<Link Name=".River_4.Inflow2(rBOD2)" ValueType="AlgVars" ValueIndex="263"/>
+<Link Name=".River_4.Inflow2(rNH4)" ValueType="AlgVars" ValueIndex="264"/>
+<Link Name=".River_4.Inflow2(rBOD1p)" ValueType="AlgVars" ValueIndex="265"/>
+<Link Name=".River_4.Inflow2(rBOD2p)" ValueType="AlgVars" ValueIndex="266"/>
+<Link Name=".River_4.Inflow2(rBODs)" ValueType="AlgVars" ValueIndex="267"/>
+<Link Name=".River_4.InFluxPerComponent(rH2O)" ValueType="AlgVars" ValueIndex="268"/>
+<Link Name=".River_4.InFluxPerComponent(rO2)" ValueType="AlgVars" ValueIndex="269"/>
+<Link Name=".River_4.InFluxPerComponent(rBOD1)" ValueType="AlgVars" ValueIndex="270"/>
+<Link Name=".River_4.InFluxPerComponent(rBOD2)" ValueType="AlgVars" ValueIndex="271"/>
+<Link Name=".River_4.InFluxPerComponent(rNH4)" ValueType="AlgVars" ValueIndex="272"/>
+<Link Name=".River_4.InFluxPerComponent(rBOD1p)" ValueType="AlgVars" ValueIndex="273"/>
+<Link Name=".River_4.InFluxPerComponent(rBOD2p)" ValueType="AlgVars" ValueIndex="274"/>
+<Link Name=".River_4.InFluxPerComponent(rBODs)" ValueType="AlgVars" ValueIndex="275"/>
+<Link Name=".River_4.Q_In" ValueType="AlgVars" ValueIndex="276"/>
+<Link Name=".River_4.T" ValueType="AlgVars" ValueIndex="277"/>
+<Link Name=".River_4.T_wat_help" ValueType="AlgVars" ValueIndex="278"/>
+<Link Name=".River_4.T_wat" ValueType="AlgVars" ValueIndex="279"/>
+<Link Name=".River_4.CS" ValueType="AlgVars" ValueIndex="280"/>
+<Link Name=".River_4.OTR" ValueType="AlgVars" ValueIndex="281"/>
+<Link Name=".River_4.kLa" ValueType="AlgVars" ValueIndex="282"/>
+<Link Name=".River_4.SOTR" ValueType="AlgVars" ValueIndex="283"/>
+<Link Name=".River_4.BOD" ValueType="AlgVars" ValueIndex="284"/>
+<Link Name=".River_4.vel_water" ValueType="AlgVars" ValueIndex="285"/>
+<Link Name=".River_4.KL20_help" ValueType="AlgVars" ValueIndex="286"/>
+<Link Name=".River_4.KL20" ValueType="AlgVars" ValueIndex="287"/>
+<Link Name=".River_4.KLT" ValueType="AlgVars" ValueIndex="288"/>
+<Link Name=".River_4.REAR" ValueType="AlgVars" ValueIndex="289"/>
+<Link Name=".River_4.I0" ValueType="AlgVars" ValueIndex="290"/>
+<Link Name=".River_4.PO2M" ValueType="AlgVars" ValueIndex="291"/>
+<Link Name=".River_4.SedO2" ValueType="AlgVars" ValueIndex="292"/>
+<Link Name=".River_4.BODox" ValueType="AlgVars" ValueIndex="293"/>
+<Link Name=".River_4.Nitrif" ValueType="AlgVars" ValueIndex="294"/>
+<Link Name=".River_4.SODT" ValueType="AlgVars" ValueIndex="295"/>
+<Link Name=".River_4.ConversionTermPerComponent(rH2O)" ValueType="AlgVars" ValueIndex="296"/>
+<Link Name=".River_4.ConversionTermPerComponent(rO2)" ValueType="AlgVars" ValueIndex="297"/>
+<Link Name=".River_4.ConversionTermPerComponent(rBOD1)" ValueType="AlgVars" ValueIndex="298"/>
+<Link Name=".River_4.ConversionTermPerComponent(rBOD2)" ValueType="AlgVars" ValueIndex="299"/>
+<Link Name=".River_4.ConversionTermPerComponent(rNH4)" ValueType="AlgVars" ValueIndex="300"/>
+<Link Name=".River_4.ConversionTermPerComponent(rBOD1p)" ValueType="AlgVars" ValueIndex="301"/>
+<Link Name=".River_4.ConversionTermPerComponent(rBOD2p)" ValueType="AlgVars" ValueIndex="302"/>
+<Link Name=".River_4.ConversionTermPerComponent(rBODs)" ValueType="AlgVars" ValueIndex="303"/>
+<Link Name=".River_4.DO" ValueType="AlgVars" ValueIndex="304"/>
+<Link Name=".River_4.NH4" ValueType="AlgVars" ValueIndex="305"/>
+<Link Name=".River_4.Q" ValueType="AlgVars" ValueIndex="306"/>
+<Link Name=".River_4.DO_sat_perc" ValueType="AlgVars" ValueIndex="307"/>
+<Link Name=".River_4.UIamm" ValueType="AlgVars" ValueIndex="308"/>
+<Link Name=".River_4.UIamm_corr" ValueType="AlgVars" ValueIndex="309"/>
+<Link Name=".River_4.DO_corr" ValueType="AlgVars" ValueIndex="310"/>
+<Link Name=".River_5.Inflow1(rH2O)" ValueType="AlgVars" ValueIndex="311"/>
+<Link Name=".River_5.Inflow1(rO2)" ValueType="AlgVars" ValueIndex="312"/>
+<Link Name=".River_5.Inflow1(rBOD1)" ValueType="AlgVars" ValueIndex="313"/>
+<Link Name=".River_5.Inflow1(rBOD2)" ValueType="AlgVars" ValueIndex="314"/>
+<Link Name=".River_5.Inflow1(rNH4)" ValueType="AlgVars" ValueIndex="315"/>
+<Link Name=".River_5.Inflow1(rBOD1p)" ValueType="AlgVars" ValueIndex="316"/>
+<Link Name=".River_5.Inflow1(rBOD2p)" ValueType="AlgVars" ValueIndex="317"/>
+<Link Name=".River_5.Inflow1(rBODs)" ValueType="AlgVars" ValueIndex="318"/>
+<Link Name=".River_5.V_help" ValueType="AlgVars" ValueIndex="319"/>
+<Link Name=".River_5.V" ValueType="AlgVars" ValueIndex="320"/>
+<Link Name=".River_5.C(rH2O)" ValueType="AlgVars" ValueIndex="321"/>
+<Link Name=".River_5.C(rO2)" ValueType="AlgVars" ValueIndex="322"/>
+<Link Name=".River_5.C(rBOD1)" ValueType="AlgVars" ValueIndex="323"/>
+<Link Name=".River_5.C(rBOD2)" ValueType="AlgVars" ValueIndex="324"/>
+<Link Name=".River_5.C(rNH4)" ValueType="AlgVars" ValueIndex="325"/>
+<Link Name=".River_5.C(rBOD1p)" ValueType="AlgVars" ValueIndex="326"/>
+<Link Name=".River_5.C(rBOD2p)" ValueType="AlgVars" ValueIndex="327"/>
+<Link Name=".River_5.C(rBODs)" ValueType="AlgVars" ValueIndex="328"/>
+<Link Name=".River_5.A_man" ValueType="AlgVars" ValueIndex="329"/>
+<Link Name=".River_5.A" ValueType="AlgVars" ValueIndex="330"/>
+<Link Name=".River_5.d" ValueType="AlgVars" ValueIndex="331"/>
+<Link Name=".River_5.P" ValueType="AlgVars" ValueIndex="332"/>
+<Link Name=".River_5.R" ValueType="AlgVars" ValueIndex="333"/>
+<Link Name=".River_5.Q_Out" ValueType="AlgVars" ValueIndex="334"/>
+<Link Name=".River_5.Outflow(rH2O)" ValueType="AlgVars" ValueIndex="335"/>
+<Link Name=".River_5.Outflow(rO2)" ValueType="AlgVars" ValueIndex="336"/>
+<Link Name=".River_5.Outflow(rBOD1)" ValueType="AlgVars" ValueIndex="337"/>
+<Link Name=".River_5.Outflow(rBOD2)" ValueType="AlgVars" ValueIndex="338"/>
+<Link Name=".River_5.Outflow(rNH4)" ValueType="AlgVars" ValueIndex="339"/>
+<Link Name=".River_5.Outflow(rBOD1p)" ValueType="AlgVars" ValueIndex="340"/>
+<Link Name=".River_5.Outflow(rBOD2p)" ValueType="AlgVars" ValueIndex="341"/>
+<Link Name=".River_5.Outflow(rBODs)" ValueType="AlgVars" ValueIndex="342"/>
+<Link Name=".River_5.FluxPerComponent(rH2O)" ValueType="AlgVars" ValueIndex="343"/>
+<Link Name=".River_5.FluxPerComponent(rO2)" ValueType="AlgVars" ValueIndex="344"/>
+<Link Name=".River_5.FluxPerComponent(rBOD1)" ValueType="AlgVars" ValueIndex="345"/>
+<Link Name=".River_5.FluxPerComponent(rBOD2)" ValueType="AlgVars" ValueIndex="346"/>
+<Link Name=".River_5.FluxPerComponent(rNH4)" ValueType="AlgVars" ValueIndex="347"/>
+<Link Name=".River_5.FluxPerComponent(rBOD1p)" ValueType="AlgVars" ValueIndex="348"/>
+<Link Name=".River_5.FluxPerComponent(rBOD2p)" ValueType="AlgVars" ValueIndex="349"/>
+<Link Name=".River_5.FluxPerComponent(rBODs)" ValueType="AlgVars" ValueIndex="350"/>
+<Link Name=".River_5.Inflow2(rH2O)" ValueType="AlgVars" ValueIndex="351"/>
+<Link Name=".River_5.Inflow2(rO2)" ValueType="AlgVars" ValueIndex="352"/>
+<Link Name=".River_5.Inflow2(rBOD1)" ValueType="AlgVars" ValueIndex="353"/>
+<Link Name=".River_5.Inflow2(rBOD2)" ValueType="AlgVars" ValueIndex="354"/>
+<Link Name=".River_5.Inflow2(rNH4)" ValueType="AlgVars" ValueIndex="355"/>
+<Link Name=".River_5.Inflow2(rBOD1p)" ValueType="AlgVars" ValueIndex="356"/>
+<Link Name=".River_5.Inflow2(rBOD2p)" ValueType="AlgVars" ValueIndex="357"/>
+<Link Name=".River_5.Inflow2(rBODs)" ValueType="AlgVars" ValueIndex="358"/>
+<Link Name=".River_5.InFluxPerComponent(rH2O)" ValueType="AlgVars" ValueIndex="359"/>
+<Link Name=".River_5.InFluxPerComponent(rO2)" ValueType="AlgVars" ValueIndex="360"/>
+<Link Name=".River_5.InFluxPerComponent(rBOD1)" ValueType="AlgVars" ValueIndex="361"/>
+<Link Name=".River_5.InFluxPerComponent(rBOD2)" ValueType="AlgVars" ValueIndex="362"/>
+<Link Name=".River_5.InFluxPerComponent(rNH4)" ValueType="AlgVars" ValueIndex="363"/>
+<Link Name=".River_5.InFluxPerComponent(rBOD1p)" ValueType="AlgVars" ValueIndex="364"/>
+<Link Name=".River_5.InFluxPerComponent(rBOD2p)" ValueType="AlgVars" ValueIndex="365"/>
+<Link Name=".River_5.InFluxPerComponent(rBODs)" ValueType="AlgVars" ValueIndex="366"/>
+<Link Name=".River_5.Q_In" ValueType="AlgVars" ValueIndex="367"/>
+<Link Name=".River_5.T" ValueType="AlgVars" ValueIndex="368"/>
+<Link Name=".River_5.T_wat_help" ValueType="AlgVars" ValueIndex="369"/>
+<Link Name=".River_5.T_wat" ValueType="AlgVars" ValueIndex="370"/>
+<Link Name=".River_5.CS" ValueType="AlgVars" ValueIndex="371"/>
+<Link Name=".River_5.OTR" ValueType="AlgVars" ValueIndex="372"/>
+<Link Name=".River_5.kLa" ValueType="AlgVars" ValueIndex="373"/>
+<Link Name=".River_5.SOTR" ValueType="AlgVars" ValueIndex="374"/>
+<Link Name=".River_5.BOD" ValueType="AlgVars" ValueIndex="375"/>
+<Link Name=".River_5.vel_water" ValueType="AlgVars" ValueIndex="376"/>
+<Link Name=".River_5.KL20_help" ValueType="AlgVars" ValueIndex="377"/>
+<Link Name=".River_5.KL20" ValueType="AlgVars" ValueIndex="378"/>
+<Link Name=".River_5.KLT" ValueType="AlgVars" ValueIndex="379"/>
+<Link Name=".River_5.REAR" ValueType="AlgVars" ValueIndex="380"/>
+<Link Name=".River_5.I0" ValueType="AlgVars" ValueIndex="381"/>
+<Link Name=".River_5.PO2M" ValueType="AlgVars" ValueIndex="382"/>
+<Link Name=".River_5.SedO2" ValueType="AlgVars" ValueIndex="383"/>
+<Link Name=".River_5.BODox" ValueType="AlgVars" ValueIndex="384"/>
+<Link Name=".River_5.Nitrif" ValueType="AlgVars" ValueIndex="385"/>
+<Link Name=".River_5.SODT" ValueType="AlgVars" ValueIndex="386"/>
+<Link Name=".River_5.ConversionTermPerComponent(rH2O)" ValueType="AlgVars" ValueIndex="387"/>
+<Link Name=".River_5.ConversionTermPerComponent(rO2)" ValueType="AlgVars" ValueIndex="388"/>
+<Link Name=".River_5.ConversionTermPerComponent(rBOD1)" ValueType="AlgVars" ValueIndex="389"/>
+<Link Name=".River_5.ConversionTermPerComponent(rBOD2)" ValueType="AlgVars" ValueIndex="390"/>
+<Link Name=".River_5.ConversionTermPerComponent(rNH4)" ValueType="AlgVars" ValueIndex="391"/>
+<Link Name=".River_5.ConversionTermPerComponent(rBOD1p)" ValueType="AlgVars" ValueIndex="392"/>
+<Link Name=".River_5.ConversionTermPerComponent(rBOD2p)" ValueType="AlgVars" ValueIndex="393"/>
+<Link Name=".River_5.ConversionTermPerComponent(rBODs)" ValueType="AlgVars" ValueIndex="394"/>
+<Link Name=".River_5.DO" ValueType="AlgVars" ValueIndex="395"/>
+<Link Name=".River_5.NH4" ValueType="AlgVars" ValueIndex="396"/>
+<Link Name=".River_5.Q" ValueType="AlgVars" ValueIndex="397"/>
+<Link Name=".River_5.DO_sat_perc" ValueType="AlgVars" ValueIndex="398"/>
+<Link Name=".River_5.UIamm" ValueType="AlgVars" ValueIndex="399"/>
+<Link Name=".River_5.UIamm_corr" ValueType="AlgVars" ValueIndex="400"/>
+<Link Name=".River_5.DO_corr" ValueType="AlgVars" ValueIndex="401"/>
+<Link Name=".Rural_inflow.rainfall" ValueType="AlgVars" ValueIndex="402"/>
+<Link Name=".Rural_inflow.Outflow(rH2O)" ValueType="AlgVars" ValueIndex="403"/>
+<Link Name=".Rural_inflow.Outflow(rO2)" ValueType="AlgVars" ValueIndex="404"/>
+<Link Name=".Rural_inflow.Outflow(rBOD1)" ValueType="AlgVars" ValueIndex="405"/>
+<Link Name=".Rural_inflow.Outflow(rBOD2)" ValueType="AlgVars" ValueIndex="406"/>
+<Link Name=".Rural_inflow.Outflow(rNH4)" ValueType="AlgVars" ValueIndex="407"/>
+<Link Name=".Rural_inflow.Outflow(rBOD1p)" ValueType="AlgVars" ValueIndex="408"/>
+<Link Name=".Rural_inflow.Outflow(rBOD2p)" ValueType="AlgVars" ValueIndex="409"/>
+<Link Name=".Rural_inflow.Outflow(rBODs)" ValueType="AlgVars" ValueIndex="410"/>
+<Link Name=".River_1.Inflow1(rH2O)" ValueType="AlgVars" ValueIndex="411"/>
+<Link Name=".River_1.Inflow1(rO2)" ValueType="AlgVars" ValueIndex="412"/>
+<Link Name=".River_1.Inflow1(rBOD1)" ValueType="AlgVars" ValueIndex="413"/>
+<Link Name=".River_1.Inflow1(rBOD2)" ValueType="AlgVars" ValueIndex="414"/>
+<Link Name=".River_1.Inflow1(rNH4)" ValueType="AlgVars" ValueIndex="415"/>
+<Link Name=".River_1.Inflow1(rBOD1p)" ValueType="AlgVars" ValueIndex="416"/>
+<Link Name=".River_1.Inflow1(rBOD2p)" ValueType="AlgVars" ValueIndex="417"/>
+<Link Name=".River_1.Inflow1(rBODs)" ValueType="AlgVars" ValueIndex="418"/>
+<Link Name=".River_1.FluxPerComponent(rH2O)" ValueType="AlgVars" ValueIndex="419"/>
+<Link Name=".River_1.FluxPerComponent(rO2)" ValueType="AlgVars" ValueIndex="420"/>
+<Link Name=".River_1.FluxPerComponent(rBOD1)" ValueType="AlgVars" ValueIndex="421"/>
+<Link Name=".River_1.FluxPerComponent(rBOD2)" ValueType="AlgVars" ValueIndex="422"/>
+<Link Name=".River_1.FluxPerComponent(rNH4)" ValueType="AlgVars" ValueIndex="423"/>
+<Link Name=".River_1.FluxPerComponent(rBOD1p)" ValueType="AlgVars" ValueIndex="424"/>
+<Link Name=".River_1.FluxPerComponent(rBOD2p)" ValueType="AlgVars" ValueIndex="425"/>
+<Link Name=".River_1.FluxPerComponent(rBODs)" ValueType="AlgVars" ValueIndex="426"/>
+<Link Name=".River_1.Inflow2(rH2O)" ValueType="AlgVars" ValueIndex="427"/>
+<Link Name=".River_1.Inflow2(rO2)" ValueType="AlgVars" ValueIndex="428"/>
+<Link Name=".River_1.Inflow2(rBOD1)" ValueType="AlgVars" ValueIndex="429"/>
+<Link Name=".River_1.Inflow2(rBOD2)" ValueType="AlgVars" ValueIndex="430"/>
+<Link Name=".River_1.Inflow2(rNH4)" ValueType="AlgVars" ValueIndex="431"/>
+<Link Name=".River_1.Inflow2(rBOD1p)" ValueType="AlgVars" ValueIndex="432"/>
+<Link Name=".River_1.Inflow2(rBOD2p)" ValueType="AlgVars" ValueIndex="433"/>
+<Link Name=".River_1.Inflow2(rBODs)" ValueType="AlgVars" ValueIndex="434"/>
+<Link Name=".Rural_inflow.Q" ValueType="AlgVars" ValueIndex="435"/>
+<Link Name=".Rural_inflow.NH4_in" ValueType="AlgVars" ValueIndex="436"/>
+<Link Name=".River_1.InFluxPerComponent(rH2O)" ValueType="AlgVars" ValueIndex="437"/>
+<Link Name=".River_1.InFluxPerComponent(rO2)" ValueType="AlgVars" ValueIndex="438"/>
+<Link Name=".River_1.InFluxPerComponent(rBOD1)" ValueType="AlgVars" ValueIndex="439"/>
+<Link Name=".River_1.InFluxPerComponent(rBOD2)" ValueType="AlgVars" ValueIndex="440"/>
+<Link Name=".River_1.InFluxPerComponent(rNH4)" ValueType="AlgVars" ValueIndex="441"/>
+<Link Name=".River_1.InFluxPerComponent(rBOD1p)" ValueType="AlgVars" ValueIndex="442"/>
+<Link Name=".River_1.InFluxPerComponent(rBOD2p)" ValueType="AlgVars" ValueIndex="443"/>
+<Link Name=".River_1.InFluxPerComponent(rBODs)" ValueType="AlgVars" ValueIndex="444"/>
+<Link Name=".River_1.Q_In" ValueType="AlgVars" ValueIndex="445"/>
+<Link Name=".River_1.T" ValueType="AlgVars" ValueIndex="446"/>
+<Link Name=".River_1.T_wat_help" ValueType="AlgVars" ValueIndex="447"/>
+<Link Name=".River_1.T_wat" ValueType="AlgVars" ValueIndex="448"/>
+<Link Name=".River_1.CS" ValueType="AlgVars" ValueIndex="449"/>
+<Link Name=".River_1.OTR" ValueType="AlgVars" ValueIndex="450"/>
+<Link Name=".River_1.kLa" ValueType="AlgVars" ValueIndex="451"/>
+<Link Name=".River_1.SOTR" ValueType="AlgVars" ValueIndex="452"/>
+<Link Name=".River_1.BOD" ValueType="AlgVars" ValueIndex="453"/>
+<Link Name=".River_1.vel_water" ValueType="AlgVars" ValueIndex="454"/>
+<Link Name=".River_1.KL20_help" ValueType="AlgVars" ValueIndex="455"/>
+<Link Name=".River_1.KL20" ValueType="AlgVars" ValueIndex="456"/>
+<Link Name=".River_1.KLT" ValueType="AlgVars" ValueIndex="457"/>
+<Link Name=".River_1.REAR" ValueType="AlgVars" ValueIndex="458"/>
+<Link Name=".River_1.I0" ValueType="AlgVars" ValueIndex="459"/>
+<Link Name=".River_1.PO2M" ValueType="AlgVars" ValueIndex="460"/>
+<Link Name=".River_1.SedO2" ValueType="AlgVars" ValueIndex="461"/>
+<Link Name=".River_1.BODox" ValueType="AlgVars" ValueIndex="462"/>
+<Link Name=".River_1.Nitrif" ValueType="AlgVars" ValueIndex="463"/>
+<Link Name=".River_1.SODT" ValueType="AlgVars" ValueIndex="464"/>
+<Link Name=".River_1.ConversionTermPerComponent(rH2O)" ValueType="AlgVars" ValueIndex="465"/>
+<Link Name=".River_1.ConversionTermPerComponent(rO2)" ValueType="AlgVars" ValueIndex="466"/>
+<Link Name=".River_1.ConversionTermPerComponent(rBOD1)" ValueType="AlgVars" ValueIndex="467"/>
+<Link Name=".River_1.ConversionTermPerComponent(rBOD2)" ValueType="AlgVars" ValueIndex="468"/>
+<Link Name=".River_1.ConversionTermPerComponent(rNH4)" ValueType="AlgVars" ValueIndex="469"/>
+<Link Name=".River_1.ConversionTermPerComponent(rBOD1p)" ValueType="AlgVars" ValueIndex="470"/>
+<Link Name=".River_1.ConversionTermPerComponent(rBOD2p)" ValueType="AlgVars" ValueIndex="471"/>
+<Link Name=".River_1.ConversionTermPerComponent(rBODs)" ValueType="AlgVars" ValueIndex="472"/>
+<Link Name=".River_1.DO" ValueType="AlgVars" ValueIndex="473"/>
+<Link Name=".River_1.NH4" ValueType="AlgVars" ValueIndex="474"/>
+<Link Name=".River_1.Q" ValueType="AlgVars" ValueIndex="475"/>
+<Link Name=".River_1.DO_sat_perc" ValueType="AlgVars" ValueIndex="476"/>
+<Link Name=".River_1.UIamm" ValueType="AlgVars" ValueIndex="477"/>
+<Link Name=".River_1.UIamm_corr" ValueType="AlgVars" ValueIndex="478"/>
+<Link Name=".River_1.DO_corr" ValueType="AlgVars" ValueIndex="479"/>
+<Link Name=".River_2.M(rH2O)" ValueType="DerVars" ValueIndex="0"/>
+<Link Name=".River_2.M(rO2)" ValueType="DerVars" ValueIndex="1"/>
+<Link Name=".River_2.M(rBOD1)" ValueType="DerVars" ValueIndex="2"/>
+<Link Name=".River_2.M(rBOD2)" ValueType="DerVars" ValueIndex="3"/>
+<Link Name=".River_2.M(rNH4)" ValueType="DerVars" ValueIndex="4"/>
+<Link Name=".River_2.M(rBOD1p)" ValueType="DerVars" ValueIndex="5"/>
+<Link Name=".River_2.M(rBOD2p)" ValueType="DerVars" ValueIndex="6"/>
+<Link Name=".River_2.M(rBODs)" ValueType="DerVars" ValueIndex="7"/>
+<Link Name=".River_2.M(rH2O)" DerivativeType="Derivatives" DerivativeIndex="0"/>
+<Link Name=".River_2.M(rO2)" DerivativeType="Derivatives" DerivativeIndex="1"/>
+<Link Name=".River_2.M(rBOD1)" DerivativeType="Derivatives" DerivativeIndex="2"/>
+<Link Name=".River_2.M(rBOD2)" DerivativeType="Derivatives" DerivativeIndex="3"/>
+<Link Name=".River_2.M(rNH4)" DerivativeType="Derivatives" DerivativeIndex="4"/>
+<Link Name=".River_2.M(rBOD1p)" DerivativeType="Derivatives" DerivativeIndex="5"/>
+<Link Name=".River_2.M(rBOD2p)" DerivativeType="Derivatives" DerivativeIndex="6"/>
+<Link Name=".River_2.M(rBODs)" DerivativeType="Derivatives" DerivativeIndex="7"/>
+<Link Name=".River_3.M(rH2O)" ValueType="DerVars" ValueIndex="8"/>
+<Link Name=".River_3.M(rO2)" ValueType="DerVars" ValueIndex="9"/>
+<Link Name=".River_3.M(rBOD1)" ValueType="DerVars" ValueIndex="10"/>
+<Link Name=".River_3.M(rBOD2)" ValueType="DerVars" ValueIndex="11"/>
+<Link Name=".River_3.M(rNH4)" ValueType="DerVars" ValueIndex="12"/>
+<Link Name=".River_3.M(rBOD1p)" ValueType="DerVars" ValueIndex="13"/>
+<Link Name=".River_3.M(rBOD2p)" ValueType="DerVars" ValueIndex="14"/>
+<Link Name=".River_3.M(rBODs)" ValueType="DerVars" ValueIndex="15"/>
+<Link Name=".River_3.M(rH2O)" DerivativeType="Derivatives" DerivativeIndex="8"/>
+<Link Name=".River_3.M(rO2)" DerivativeType="Derivatives" DerivativeIndex="9"/>
+<Link Name=".River_3.M(rBOD1)" DerivativeType="Derivatives" DerivativeIndex="10"/>
+<Link Name=".River_3.M(rBOD2)" DerivativeType="Derivatives" DerivativeIndex="11"/>
+<Link Name=".River_3.M(rNH4)" DerivativeType="Derivatives" DerivativeIndex="12"/>
+<Link Name=".River_3.M(rBOD1p)" DerivativeType="Derivatives" DerivativeIndex="13"/>
+<Link Name=".River_3.M(rBOD2p)" DerivativeType="Derivatives" DerivativeIndex="14"/>
+<Link Name=".River_3.M(rBODs)" DerivativeType="Derivatives" DerivativeIndex="15"/>
+<Link Name=".River_4.M(rH2O)" ValueType="DerVars" ValueIndex="16"/>
+<Link Name=".River_4.M(rO2)" ValueType="DerVars" ValueIndex="17"/>
+<Link Name=".River_4.M(rBOD1)" ValueType="DerVars" ValueIndex="18"/>
+<Link Name=".River_4.M(rBOD2)" ValueType="DerVars" ValueIndex="19"/>
+<Link Name=".River_4.M(rNH4)" ValueType="DerVars" ValueIndex="20"/>
+<Link Name=".River_4.M(rBOD1p)" ValueType="DerVars" ValueIndex="21"/>
+<Link Name=".River_4.M(rBOD2p)" ValueType="DerVars" ValueIndex="22"/>
+<Link Name=".River_4.M(rBODs)" ValueType="DerVars" ValueIndex="23"/>
+<Link Name=".River_4.M(rH2O)" DerivativeType="Derivatives" DerivativeIndex="16"/>
+<Link Name=".River_4.M(rO2)" DerivativeType="Derivatives" DerivativeIndex="17"/>
+<Link Name=".River_4.M(rBOD1)" DerivativeType="Derivatives" DerivativeIndex="18"/>
+<Link Name=".River_4.M(rBOD2)" DerivativeType="Derivatives" DerivativeIndex="19"/>
+<Link Name=".River_4.M(rNH4)" DerivativeType="Derivatives" DerivativeIndex="20"/>
+<Link Name=".River_4.M(rBOD1p)" DerivativeType="Derivatives" DerivativeIndex="21"/>
+<Link Name=".River_4.M(rBOD2p)" DerivativeType="Derivatives" DerivativeIndex="22"/>
+<Link Name=".River_4.M(rBODs)" DerivativeType="Derivatives" DerivativeIndex="23"/>
+<Link Name=".River_5.M(rH2O)" ValueType="DerVars" ValueIndex="24"/>
+<Link Name=".River_5.M(rO2)" ValueType="DerVars" ValueIndex="25"/>
+<Link Name=".River_5.M(rBOD1)" ValueType="DerVars" ValueIndex="26"/>
+<Link Name=".River_5.M(rBOD2)" ValueType="DerVars" ValueIndex="27"/>
+<Link Name=".River_5.M(rNH4)" ValueType="DerVars" ValueIndex="28"/>
+<Link Name=".River_5.M(rBOD1p)" ValueType="DerVars" ValueIndex="29"/>
+<Link Name=".River_5.M(rBOD2p)" ValueType="DerVars" ValueIndex="30"/>
+<Link Name=".River_5.M(rBODs)" ValueType="DerVars" ValueIndex="31"/>
+<Link Name=".River_5.M(rH2O)" DerivativeType="Derivatives" DerivativeIndex="24"/>
+<Link Name=".River_5.M(rO2)" DerivativeType="Derivatives" DerivativeIndex="25"/>
+<Link Name=".River_5.M(rBOD1)" DerivativeType="Derivatives" DerivativeIndex="26"/>
+<Link Name=".River_5.M(rBOD2)" DerivativeType="Derivatives" DerivativeIndex="27"/>
+<Link Name=".River_5.M(rNH4)" DerivativeType="Derivatives" DerivativeIndex="28"/>
+<Link Name=".River_5.M(rBOD1p)" DerivativeType="Derivatives" DerivativeIndex="29"/>
+<Link Name=".River_5.M(rBOD2p)" DerivativeType="Derivatives" DerivativeIndex="30"/>
+<Link Name=".River_5.M(rBODs)" DerivativeType="Derivatives" DerivativeIndex="31"/>
+<Link Name=".River_1.M(rH2O)" ValueType="DerVars" ValueIndex="32"/>
+<Link Name=".River_1.M(rO2)" ValueType="DerVars" ValueIndex="33"/>
+<Link Name=".River_1.M(rBOD1)" ValueType="DerVars" ValueIndex="34"/>
+<Link Name=".River_1.M(rBOD2)" ValueType="DerVars" ValueIndex="35"/>
+<Link Name=".River_1.M(rNH4)" ValueType="DerVars" ValueIndex="36"/>
+<Link Name=".River_1.M(rBOD1p)" ValueType="DerVars" ValueIndex="37"/>
+<Link Name=".River_1.M(rBOD2p)" ValueType="DerVars" ValueIndex="38"/>
+<Link Name=".River_1.M(rBODs)" ValueType="DerVars" ValueIndex="39"/>
+<Link Name=".River_1.M(rH2O)" DerivativeType="Derivatives" DerivativeIndex="32"/>
+<Link Name=".River_1.M(rO2)" DerivativeType="Derivatives" DerivativeIndex="33"/>
+<Link Name=".River_1.M(rBOD1)" DerivativeType="Derivatives" DerivativeIndex="34"/>
+<Link Name=".River_1.M(rBOD2)" DerivativeType="Derivatives" DerivativeIndex="35"/>
+<Link Name=".River_1.M(rNH4)" DerivativeType="Derivatives" DerivativeIndex="36"/>
+<Link Name=".River_1.M(rBOD1p)" DerivativeType="Derivatives" DerivativeIndex="37"/>
+<Link Name=".River_1.M(rBOD2p)" DerivativeType="Derivatives" DerivativeIndex="38"/>
+<Link Name=".River_1.M(rBODs)" DerivativeType="Derivatives" DerivativeIndex="39"/>
+</Links>
+</Model>
+</Tornado>

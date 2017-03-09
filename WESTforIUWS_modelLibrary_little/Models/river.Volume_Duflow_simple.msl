@@ -1,0 +1,233 @@
+// ------------------------------------------------------------------------------------------------------------
+//  HEMMIS - Ghent University, BIOMATH
+//  Implementation: Tolessa Deksissa, Veerle De Schepper, Veerle Gevaert, Lorenzo Benedetti, Peter Vanrolleghem
+//  Description: MSL-USER/River/VolumeConsersionModel body
+// ------------------------------------------------------------------------------------------------------------
+
+CLASS RivVarVolumeRIVER
+ (* icon = "River" *)
+ SPECIALISES RivVarVolumeConversionModel :=
+ {:
+  comments <- "Model for a bulk water unit with a variable volume";
+  interface <-{};
+  parameters <-{
+  //////////////////////////HYDRAULICS PARAMETERS///////////////////
+  OBJ slp "Average channel slope along channel length" : Ratio := {:value <- 0.0005; group <- "River characteristics" :};
+	OBJ n "Manning's 'n' value for channel" : Real := {:value <- 0.035; group <- "River characteristics" :};
+	OBJ W_b "Width of channel at bottom of bank" : Length := {:value <- 10; group <- "River characteristics" :};
+	OBJ L "Length of channel" : Length := {:value <- 2000; group <- "River characteristics" :};
+	OBJ z "Banks slope" : Real := {:value <- 0.5; group <- "River characteristics" :};	
+	OBJ d_min "Minimum depth of water" : Length := {:value <- 0.01; group <- "River characteristics" :};
+	OBJ Vol_min "Minimum volume of water" : Volume := {: group <- "River characteristics" :};
+	OBJ Vol_init "Initial volume of water as ratio on minimum" : Real := {:value <- 1.5; group <- "River characteristics" :};  
+	
+	OBJ Q_initial "Initial Flow in m3/s" : Real := {:value <- 5; group <- "River characteristics" :};
+
+  ////////////////////////////////////////////////////////////////////
+  
+  //////////////////////////BIOCHEMISTRY PARAMETERS///////////////////
+  OBJ alpha "Alpha factor for artificial aeration" : Real := {:value <- 0.85:};	
+  OBJ pH "pH" : Real := {:value <- 7.5:};	
+  OBJ KLmin "Minimum mass transfer constant reaeration": Velocity := {:value <- 0.1; unit <- "m/d":};
+	OBJ TKL "Temperature coefficient mass transfer": Real := {:value <- 1.02:};
+	OBJ Kd1 "Decay rate BOD1": RateConstant := {:value <- 0.4; unit <- "1/d":};
+	OBJ Kd2 "Decay rate BOD2": RateConstant := {:value <- 0.3; unit <- "1/d":};
+	OBJ KBODs "Decay rate temporary sediment BOD": RateConstant := {:value <- 0.7; unit <- "1/d":};
+	OBJ Vs1 "Sedimentation rate particulate BOD1": Velocity := {:value <- 10; unit <- "m/d":};
+	OBJ Vs2 "Sedimentation rate particulate BOD2": Velocity := {:value <- 50; unit <- "m/d":};
+	OBJ KO2 "Monod constant O2 on BOD decay": Concentration := {:value <- 2.0; unit <- "mg/l":};
+	OBJ TKd "Temperature coefficient DOD decay": Real := {:value <- 1.05:};
+	OBJ TKp "Temperature coefficient plant growth/decay": Real := {:value <- 1.03:};
+	OBJ Knit "Nitrification rate": RateConstant := {:value <- 0.2; unit <- "1/d":};
+	OBJ TKnit "Temperature coefficient nitrification": Real := {:value <- 1.06:};
+	OBJ KNO2 "Monod constant O2 on nitrification": Concentration := {:value <- 3.0; unit <- "mg/l":};
+	OBJ KSO2 "Monod constant O2 on sediment oxygen demand": Concentration := {:value <- 2.0; unit <- "mg/l":};
+	OBJ ProdM "Oxygen production Macrophyte Biomass (gO2/gM)/(W/m2)/day": Real := {:value <- 0.0002:};
+	OBJ ResM "Oxygen respiration Macrophyte Biomass (gO2/gM)/day": RateConstant := {:value <- 0.04; unit <- "1/d":};
+	OBJ TSOD "Temperature coefficient SOD": Real := {:value <- 1.08:};
+	OBJ SBOD1 "Diffuse source BOD1, sediment (g/m2/day)" : Real := {:value <- 0.0; group <- "Inputs":};
+	OBJ SBOD2 "Diffuse source BOD2, sediment (g/m2/day)" : Real := {:value <- 0.0; group <- "Inputs":};
+	OBJ SNH4 "Diffuse source NH4, sediment (g/m2/day)" : Real := {:value <- 0.0; group <- "Inputs":};
+	OBJ SOD "Sediment Oxygen Demand (g/m2/day)" : Real := {:value <- 5.0; group <- "Inputs":};	
+	OBJ VKL "Velocity reaeration coefficient": Real := {:value <- 3.2:};
+
+	OBJ MB "Macrophyte biomass" : SurfaceDensity := {:value <- 50; group <- "Inputs":};
+
+	OBJ T_ref "Air/water T conversion: T_wat=T_air+(T_ref-T_air)/T_par" : CelsiusTemperature := {:value <- 15:};
+	OBJ T_par "Air/water T conversion: T_wat=T_air+(T_ref-T_air)/T_par" : Real := {:value <- 3:};
+	/////////////////////////////////////////////////////////////////////////////
+	};
+  state <-{
+  OBJ d_initial "Initial Water depth. Serves as a Volume initialization" : Length := {:value <- 1; group <- "River characteristics" :};
+  //////////////////////////////STATE HYDRAULICS///////////////////////////////
+  OBJ P "Wetted perimeter" : Length:= {: group <- "River characteristics" :};
+	OBJ R "Hydraulic radius" : Length:= {: group <- "River characteristics" :};
+	OBJ A "Cross-sectional area bulk water tank" : Area:= {: group <- "River characteristics" :};
+	OBJ A_man "Cross-sectional area bulk water tank, reduced fr Manning equation, due to d_min" : Area:= {: group <- "River characteristics" :};
+	OBJ d "Depth of water in channel" : Length:= {: group <- "River characteristics" :};
+	OBJ vel_water "Velocity of water" : Velocity := {: group <- "River characteristics" :};
+	OBJ d_help "Depth of water in channel" : Length:= {: group <- "River characteristics" :};
+	OBJ vel_water_help "Velocity of water" : Velocity := {: group <- "River characteristics" :};
+	OBJ V_help (* hidden="1" *) "Help volume" : Volume:= {: group <- "River characteristics" :};
+  /////////////////////////////////////////////////////////////
+  
+  //////////////////////////////STATE BIOCHEMISTRY///////////////////////////////
+  OBJ CS "saturation conc Oxygen" : Real ;
+  OBJ DO_sat_perc "saturation percentage Oxygen" : Fraction ;
+  OBJ UIamm "unionised ammonia" : Concentration ;
+  OBJ UIamm_corr "unionised ammonia, corrected for DO" : Concentration ;
+  OBJ DO_corr "DO, corrected fro UIamm" : Concentration ;
+	OBJ KL20 "mass transfer at 20oC calculated form velocity and depth" : Real ;
+	OBJ KLT "" : Real ;
+	OBJ PO2M "net oxygen production/consumption Macrophytesn" : Real ;
+	OBJ SedO2 "" : Real ;
+	OBJ REAR "" : Real ;
+	OBJ Nitrif "" : Real ;
+	OBJ BODox "" : Real ;
+	OBJ SODT "" : Real ;
+	OBJ BOD "" : Real ;
+	OBJ T_wat "Water temperature" : CelsiusTemperature ;
+	
+	OBJ KL20_help (* hidden = "1" *) "" : Real ;
+	OBJ T_wat_help (* hidden = "1" *) "Water temperature" : CelsiusTemperature ;
+
+	OBJ OTR "Actual oxygen transfer rate" : MassFlux;
+  OBJ SOTR "Standard oxygen transfer rate" : MassFlux;
+  //////////////////////////////////////////////////////////////////
+
+   	  };
+	  
+   initial <-{   
+   //state.d = NewtonRaphson(1, parameters.Q_initial, parameters.W_b, parameters.slp, parameters.z, parameters.n, 10); 
+   //parameters.Vol_min = parameters.d_min * (parameters.W_b + parameters.d_min * parameters.z) * parameters.L;
+   //state.M[1] = (parameters.d_initial * (parameters.W_b + parameters.d_initial * parameters.z) * parameters.L) / 0.000001; 
+   //state.M[1] = (state.d * (parameters.W_b + state.d * parameters.z) * parameters.L)*1000000; 
+   //state.Q_Out = (sqrt(parameters.slp)/parameters.n)* (pow( parameters.W_b * state.d + parameters.z * pow(state.d, 2)  ,(5.0/3.0))   ) / pow(parameters.W_b + 2* state.d * sqrt(1 + pow(parameters.z,2) ), (2.0/3.0)); 
+   //state.Q_In = state.Q_Out;
+   //Initial state from volume
+   //state.M[1] = parameters.Vol_init * 1000000;
+   //state.M[2] = state.M[1] * 9/1000000;
+   //state.d = (sqrt(pow(parameters.W_b,2) + 4*parameters.z*(parameters.Vol_init/parameters.L) ) - parameters.W_b )/(2*parameters.z);
+   //state.Q_Out = (sqrt(parameters.slp)/parameters.n)* (pow( parameters.W_b * state.d + parameters.z * pow(state.d, 2)  ,(5.0/3.0))   ) / pow(parameters.W_b + 2* state.d * sqrt(1 + pow(parameters.z,2) ), (2.0/3.0));    
+   //state.Q_In = state.Q_Out;
+   };
+ 
+
+  equations <-{
+  //////////////////////////////DERIVATIVES//////////////////////////
+  
+  // The FluxPerComponent is the sum of all
+    // incoming (positive) and outgoing (negative) fluxes 
+
+    {FOREACH Comp_Index IN {1 .. RivNrOfComponents}:
+      state.FluxPerComponent[Comp_Index] =
+
+    (SUMOVER In_RivTerminal IN {SelectByType(interface,InRivTerminal)}:
+    In_RivTerminal[Comp_Index])+
+    (SUMOVER Out_RivTerminal IN {SelectByType(interface,OutRivTerminal)}:
+    Out_RivTerminal[Comp_Index]);};
+
+    // The mass balance equations.
+    // These are composed of a term due to incoming and
+    // outgoing fluxes and of a term due to biochemical
+    // interactions between components.
+
+    {FOREACH Comp_Index IN {1 .. RivNrOfComponents}:
+      DERIV(state.M[Comp_Index],[independent.t]) = 
+      state.FluxPerComponent[Comp_Index]
+      +state.ConversionTermPerComponent[Comp_Index];};
+
+    // for efficiency and because most models need it anyway
+    // we calculate Q_In here
+    
+    {FOREACH Comp_Index IN {1 .. RivNrOfComponents}:
+      state.InFluxPerComponent[Comp_Index] =
+         SUMOVER In_RivTerminal IN {SelectByType(interface,InRivTerminal)}:
+            (In_RivTerminal[Comp_Index]);
+    };
+
+    {state.Q_In = (0.000001
+                  * state.InFluxPerComponent[rH2O]);
+    };
+  
+  /////////////////////////EQUATIONS FLOW/////////////////////////////////////////////////////////////////////
+	state.P = parameters.W_b + 2 * (state.d - parameters.d_min) * sqrt(1 + pow(parameters.z,2)) ;
+	state.R = state.A_man / state.P ;
+	state.A = state.V / parameters.L ;
+	state.A_man = (state.V - parameters.Vol_min) / parameters.L ;
+	state.vel_water = state.Q_Out / state.A ;   // m/d
+	state.d = 
+		IF (parameters.z > 0)
+		THEN  sqrt(state.A / parameters.z + pow((parameters.W_b / 2 / parameters.z),2)) - (parameters.W_b / 2 / parameters.z)
+		ELSE  state.A / parameters.W_b ; 
+		
+	state.V_help = (SUMOVER Comp_Index IN {1 .. RivNrOfComponents}:
+	(0.000001*state.M[Comp_Index]));		
+	
+	state.V =  IF (state.V_help <= parameters.Vol_min)
+			   THEN parameters.Vol_min
+			   ELSE state.V_help ;
+	 
+    {FOREACH Comp_Index IN {1 .. RivNrOfComponents}:
+     state.C[Comp_Index] = IF (state.V == 0)
+			   THEN 0
+			   ELSE state.M[Comp_Index]/state.V;
+     };
+  ///////////////////////////////////////FLOW EQUATIONS/////////////////////////////////////////////////
+  state.Q_Out = 60 * 60 * 24 * state.A_man * pow(state.R,(2.0/3.0)) * pow(parameters.slp,0.5) / parameters.n ;   
+
+  {FOREACH Comp_Index IN {1 .. rBOD2p}:interface.Outflow[Comp_Index] = - state.C[Comp_Index] * state.Q_Out ;};	
+  interface.Outflow[rBODs] = 0;
+
+//////////////////////////EQUATIONS BIOCHEMISTRY //////////////////////////////////////////////////////
+  state.OTR = interface.kLa * (state.CS - state.C[rO2]) * state.V;
+  state.SOTR = state.OTR * state.CS / (state.CS - state.C[rO2]) / parameters.alpha;
+	
+	state.T_wat_help = interface.T + (parameters.T_ref - interface.T) / parameters.T_par;
+	state.T_wat = IF (state.T_wat_help > 0)
+				        THEN state.T_wat_help
+				        ELSE 0;
+
+	state.CS = 14.652 - 0.41022 * state.T_wat + 0.007991 * pow(state.T_wat,2.0) - 0.000077774 * pow(state.T_wat,3.0);
+	state.KL20_help = parameters.VKL * pow((state.vel_water/3600/24),0.67) * pow(state.d,-0.85);
+	state.KL20 = IF (state.KL20_help < parameters.KLmin)
+			         THEN parameters.KLmin
+				       ELSE state.KL20_help;
+	state.KLT = state.KL20 * pow(parameters.TKL,(state.T_wat-20));
+	state.PO2M = (parameters.ProdM * interface.I0 - parameters.ResM) * parameters.MB / state.d * pow(parameters.TKp,(state.T_wat-20));
+	state.SedO2 = (- parameters.SOD / state.d) * pow(parameters.TSOD,(state.T_wat-20)) * state.C[rO2] / (state.C[rO2] + parameters.KSO2);
+	state.REAR = (state.KLT / state.d + interface.kLa) * (state.CS - state.C[rO2]);
+	state.Nitrif = -4.57 * parameters.Knit * state.C[rNH4] * pow(parameters.TKnit,(state.T_wat-20)) * state.C[rO2] / (state.C[rO2] + parameters.KNO2);
+	state.BODox = (- parameters.Kd1 * (state.C[rBOD1] + state.C[rBOD1p]) - parameters.Kd2 * (state.C[rBOD2] + state.C[rBOD2p])  ) * pow(parameters.TKd,(state.T_wat-20)) * state.C[rO2] / (state.C[rO2] + parameters.KO2);
+	state.SODT = - state.C[rBODs] * parameters.KBODs * pow(parameters.TSOD,(state.T_wat-20)) * state.C[rO2] / (state.C[rO2] + parameters.KSO2);
+	state.BOD = state.C[rBOD1] + state.C[rBOD2] + state.C[rBOD1p] + state.C[rBOD2p];
+	
+	state.ConversionTermPerComponent[rO2] = (state.REAR + state.PO2M + state.SedO2 + state.BODox + state.Nitrif + state.SODT / state.d) * state.V;
+	state.ConversionTermPerComponent[rBOD1] = (- parameters.Kd1 * state.C[rBOD1] * pow(parameters.TKd,(state.T_wat-20)) 
+											   * state.C[rO2] / (state.C[rO2] + parameters.KO2) + parameters.SBOD1 / state.d) * state.V;
+	state.ConversionTermPerComponent[rBOD2] = (- parameters.Kd2 * state.C[rBOD2] * pow(parameters.TKd,(state.T_wat-20)) 
+											   * state.C[rO2] / (state.C[rO2] + parameters.KO2) + parameters.SBOD2 / state.d) * state.V;
+  state.ConversionTermPerComponent[rBOD1p] = (- parameters.Vs1 / state.d - parameters.Kd1 * pow(parameters.TKd,(state.T_wat-20)) 
+											    * state.C[rO2] / (state.C[rO2] + parameters.KO2)) * state.C[rBOD1p] * state.V;
+	state.ConversionTermPerComponent[rBOD2p] = (- parameters.Vs2 / state.d - parameters.Kd2 * pow(parameters.TKd,(state.T_wat-20)) 
+											    * state.C[rO2] / (state.C[rO2] + parameters.KO2)) * state.C[rBOD2p] * state.V;
+	state.ConversionTermPerComponent[rNH4] = (- parameters.Knit * state.C[rNH4] * pow(parameters.TKnit,(state.T_wat-20)) 
+										      * state.C[rO2] / (state.C[rO2] + parameters.KNO2) + parameters.SNH4 / state.d) * state.V;
+	state.ConversionTermPerComponent[rBODs] = (parameters.Vs1 * state.C[rBOD1p] + parameters.Vs2 * state.C[rBOD2p] + state.SODT) / state.d * state.V;
+	interface.DO = state.C[rO2];
+  interface.NH4 = state.C[rNH4];
+  interface.Q = state.Q_Out;
+  state.DO_sat_perc = state.C[rO2] / state.CS;
+  state.UIamm = state.C[rNH4] * 1 / (pow(10,(0.090182 + 2729.92 / (273.15 + state.T_wat) - parameters.pH)) +1);
+  state.UIamm_corr = IF (state.C[rO2] >= 5)
+										 THEN state.UIamm
+										 ELSE state.UIamm * 2;
+  state.DO_corr = IF (state.UIamm < 0.02)
+									THEN state.C[rO2]
+									ELSE IF (state.UIamm <= 0.15)
+											 THEN state.C[rO2] - 0.97 * log(state.UIamm) - 3.8
+											 ELSE state.C[rO2] - 2;
+/////////////////////////////////////////////////////////////////////////
+   };
+   
+ :};

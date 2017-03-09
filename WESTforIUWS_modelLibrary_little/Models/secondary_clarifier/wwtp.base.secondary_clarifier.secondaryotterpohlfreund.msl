@@ -1,0 +1,412 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 23. marts 2012 12:41:33$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_BASE_SECONDARY_CLARIFIER_SECONDARYOTTERPOHLFREUND
+#define WWTP_BASE_SECONDARY_CLARIFIER_SECONDARYOTTERPOHLFREUND
+
+#ifdef StandardCategoryModels
+ CLASS SecondaryOtterpohlFreund
+ (* icon = "secondary_clarifier" *)
+ "secondary clarifier"
+ EXTENDS WWTPAtomicModelWithoutVolume WITH
+ {:
+// According to this model solids in the secondary clarifier are divided into two fractions, i.e.
+// small solids and macro flocs
+// macro flocs settle according to the function of Hartel and small ones
+// have a constant settling velocity
+//
+// this model uses the same global var's (e.g. NrOfLayers, ...)
+// as in Takacs
+// so if one needs both O&P and Takacs, they both have to be
+// for example 10 layer models ...
+//
+// Literature : 
+// Otterpohl R. and Freund M. (1992),
+// Dynamic models for clarifiers of activated sludge plants with dry and wet weather flows,
+// Wat. Sci. Tech., 26, 1391-1400.
+
+   Comments <- "A model for a secondary settler by Otterpohl and Freund";
+   interface <-
+   { 
+    OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+         InWWTPTerminal := {: causality <- "CIN" ; group <- "Influent" :};
+    OBJ Overflow (* terminal = "out_1" *) "Overflow" : 
+         OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent" :};
+    OBJ Underflow (* terminal = "out_2" *) "Underflow" : 
+         OutWWTPTerminal := {: causality <- "COUT" ; group <- "Underflow" :};
+    OBJ Q_Under (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Underflow rate" : 
+    FlowRate := {: causality <- "CIN" ; value <- 200 ; group <- "Operational" :}; 
+    OBJ SVI (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Sludge volume index" : Real := 
+        {: 
+          causality <- "CIN" ; 
+      value <- 100;
+      group <- "Settling";
+          interval  <- {: lowerBound <- 0; upperBound <- 1000; :};
+        :};
+    OBJ TSS(* terminal = "out_3" *) "Total suspended solids concentration" : 
+        Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ V_Clarifier (* terminal = "out_3" *)"Volume measurement data" : 
+        Volume := {: causality <- "COUT" ; group <- "Measurement data" :};
+   OBJ PumpingEnergy (* terminal = "out_3" *)"Pumping energy" : ElectricalEnergy := {: causality <- "COUT"; group <- "Energy" :};
+   };
+
+   parameters <- 
+   {
+    
+    OBJ A (* is_favorite = "1" *) "Surface area of the clarifier" : Area := {: value <- 1500 ; group <- "Dimension" :};
+    OBJ H (* is_favorite = "1" *) "Height of the clarifier" : Length := {: value <- 4 ; group <- "Dimension" :};
+    OBJ v_FS "Settling velocity for small fraction of solids" : Velocity := {: value <- 0.24 ; group <- "Settling" :};
+    OBJ f0 "Parameter for the calculation of the small solids fraction" : Real :=
+        {: 
+          value <- 0.04;
+      group <- "Settling";
+          interval  <- {: lowerBound <- 0; :};
+        :};
+    OBJ A_FS "Parameter for the calculation of the small solids fraction" : Real :=
+        {: 
+          value <- 0.00078;
+      group <- "Settling";
+          interval  <- {: lowerBound <- 0; :};
+        :};
+    OBJ F_TSS_COD "Fraction TSS/COD" : Fraction := {: value <- 0.75 ; group <- "Conversion factors" :};
+// PUMPING ENERGY
+    OBJ F_Energy_FlowRate "Conversion factor Energy needed/Pump flow rate" : Ratio := {: value <- 0.04 ; group <- "Energy":};
+   };
+
+   state <-
+   {
+    OBJ J_Up_FS (* hidden = "1" *) "Upward sludge flux of the small solids fraction" : TakacsArealFluxVector;
+    OBJ J_Up_FM (* hidden = "1" *) "Upward sludge flux of the macroflocs" : TakacsArealFluxVector;
+    OBJ J_Dn_FS (* hidden = "1" *) "Downward sludge flux of the small solids fraction" : TakacsArealFluxVector;
+    OBJ J_Dn_FM (* hidden = "1" *) "Downward sludge flux macroflocs" : TakacsArealFluxVector;
+    OBJ J_G_FS (* hidden = "1" *) "Static sludge flux of the small solids fraction" : TakacsArealFluxVector;
+    OBJ J_G_FM (* hidden = "1" *) "Static sludge flux of the macroflocs" : TakacsArealFluxVector;
+    OBJ J_G_FM_Help (* hidden = "1" *) "Static sludge flux of the macroflocs": TakacsArealFluxVector;
+    OBJ J_G_FS_Help (* hidden = "1" *) "Static sludge flux of the small solids fraction": TakacsArealFluxVector;
+    OBJ v_Up (* hidden = "1" *) "Upward bulk velocity" : Velocity ; 
+    OBJ v_Dn (* hidden = "1" *) "Downward bulk velocity" : Velocity ;
+
+    OBJ Q_Out (* is_favorite = "1" *) "Effluent flow rate" : FlowRate := {: group <- "Operational" :};
+    OBJ Q_Under_Actual (* is_favorite = "1" *) "Actual underflow rate" : FlowRate := {: group <- "Operational" :};
+
+    OBJ V_Layer (* hidden = "1" *)  "Volume of the layer" : Volume ;  
+    
+    OBJ X_FM_Layer "Vector containing concentration of macroflocs for all the layers" : TakacsConcentrationVector := {: group <- "Concentration" :};
+    OBJ X_FS_Layer "Vector containing concentration of small solids  for all the layers" : TakacsConcentrationVector := {: group <- "Concentration" :};
+    OBJ H_Layer (* hidden = "1" *) "Height of layer" : Length ;
+    OBJ SolidFlux_In (* hidden = "1" *) "Sum of massfluxes of particulates" : MassFlux ;
+    OBJ SolidFlux_Out (* hidden = "1" *) "Fraction of influx that goes to the effluent" : MassFlux ;
+    OBJ SolidFlux_Under (* hidden = "1" *) "Fraction of influx that goes to the underflow" : MassFlux ;
+    OBJ v_FM "Settling velocity for macroflocs" : TakacsVelocityVector := {: group <- "Settling" :};
+    OBJ f1 "Fraction of small solids" : Fraction := {: group <- "Influent characterization" :};
+    OBJ X_In (* is_favorite = "1" *) "Influent suspended solids concentration" : Concentration := {: group <- "Concentration" :};
+    OBJ X_Out (* is_favorite = "1" *) "Effluent suspended solids concentration" : Concentration := {: group <- "Concentration" :};  
+    OBJ X_Under (* is_favorite = "1" *) "Underflow suspended solids concentration" : Concentration := {: group <- "Concentration" :};  
+
+    // states used for calculation of the omega function
+    OBJ B (* hidden = "1" *) "variable B of the omega function" : Real ;
+    OBJ help_var_omega (* hidden = "1" *) "help state" : Real ;
+    
+    OBJ H_T "Height of transition point" : Length := {: group <- "Settling" :};
+    OBJ H_C "Height of compressing point" : Length := {: group <- "Settling" :};
+    OBJ H0 "Height of influent" : Length := {: group <- "Dimension" :};
+    OBJ omega (* hidden = "1" *) "Hartels omega function" : Real[NrOfLayers;] ;
+    OBJ z (* hidden = "1" *) "Vertical coordinate, bottom z=0" : LengthVector ;
+    OBJ X_C "Solids concentration at compression point" : Concentration := {: group <- "Settling" :};
+    OBJ X_AT "Solids concentration of the aeration tank" : Concentration := {: group <- "Concentration" :};
+    OBJ X_FM_AT "Solids concentration of the aeration tank, macroflocs" : Concentration := {: group <- "Concentration" :};
+    OBJ X_FS_AT "Solids concentration of the aeration tank, small solids" : Concentration := {: group <- "Concentration" :};
+    OBJ k (* hidden = "1" *) "Part of the Vesilind equation, here results of Hartel" : Real ;
+    OBJ SolidConcentration (* hidden = "1" *) "Sum of concentrations of small solids and macroflocs" : Concentration ;
+// PUMPING ENERGY
+    OBJ Integ_PE (* hidden = "1" *)"Integral Pumping energy" : ElectricalEnergy ;
+   };
+
+   initial <-
+   {
+    
+    state.V_Layer = parameters.A * (parameters.H / NrOfLayers); 
+    state.H_Layer = parameters.H / NrOfLayers;
+    state.H0 = ((NrOfLayers - IndexOfFeedLayer) + 0.5) * state.H_Layer;
+    state.X_C = 480 / interface.SVI ;
+    state.k = 1.043 - 0.9834 * exp( -0.00581 * interface.SVI) ;
+    state.help_var_omega = -(1 + 2 * interface.SVI / (100 + interface.SVI));
+
+    { FOREACH Layer_Index IN {1 .. NrOfLayers}:
+     state.z[Layer_Index] =
+        ((NrOfLayers - Layer_Index) + 0.5) * state.H_Layer ;
+    };
+
+   };
+
+  equations <-
+   {
+    state.Q_Under_Actual = IF (state.Q_In <= interface.Q_Under)
+         THEN state.Q_In
+         ELSE interface.Q_Under; 
+
+    state.Q_Out = state.Q_In - state.Q_Under_Actual; 
+
+#ifdef CalculateTSSComponent
+    { state.SolidFlux_In =
+       (SUMOVER Comp_Index IN {IndexOfFirstTSSComponent .. IndexOfLastTSSComponent}:
+          state.InFluxPerComponent[Comp_Index]* parameters.F_TSS_COD) ;
+    };
+#endif // CalculateTSSComponent
+
+#ifdef UseTSSComponent
+    state.SolidFlux_In =  state.InFluxPerComponent[IndexOfTSSComponent];
+#endif // UseTSSComponent
+
+    //
+    // calculation of the omega function
+    //
+    state.B = - (( 100 + interface.SVI) / interface.SVI + 1)
+                * pow(state.H_C, (1 + 2 * interface.SVI / (100 + interface.SVI)));
+
+    
+
+    state.H_T = IF(2 * state.H_C > state.H0)
+                THEN state.H0
+                ELSE 2 * state.H_C ;
+
+    state.H_C = (state.X_AT * state.H0 / state.X_C) * (1 - 1 / (state.X_C * state.k)) ;
+    state.X_AT = IF (state.Q_In == 0 )
+             THEN 0
+         ELSE state.SolidFlux_In / state.Q_In;
+
+// The reason for the following IF statement is that in visual C the function pow(X,Y) has as result INF for X = 0 and Y < 0. 
+// z[Layer_Index] normally doesn't become zero, unless as clarifier hight zero is chosen.
+
+    { FOREACH Layer_Index IN {1 .. NrOfLayers}:
+      state.omega[Layer_Index] = IF (state.H_T == 0)
+             THEN 1 / (1 - state.B * pow(state.z[Layer_Index], state.help_var_omega))
+             ELSE (1 - state.B * pow(state.H_T,state.help_var_omega))
+              / (1 - state.B * pow(state.z[Layer_Index], state.help_var_omega));
+    };
+
+    state.f1 = parameters.f0 * exp( - parameters.A_FS * state.X_AT) ;
+
+    //
+    // calculation of v_FM, v_FS is assumed to be constant and 0.24 m/d, see parameter section
+    // multiply by 24 to convert from m/h to m/d
+    //
+
+    { FOREACH Layer_Index IN {1 .. NrOfLayers}:
+      state.v_FM[Layer_Index] = 
+             (17.4 * exp(-0.00581 * interface.SVI) + 3.931)
+             * (exp(-(-0.9834e-3 * exp(-0.00581 * interface.SVI) + 1.043e-3)
+                       * (state.X_FM_Layer[Layer_Index] + state.X_FS_Layer[Layer_Index])))
+             * 24 ;
+    };
+
+    //
+    // behaviour of solids and soluble substances
+    //
+
+    state.X_FM_AT = state.X_AT * (1 - state.f1) ;
+    state.X_FS_AT = state.X_AT * state.f1 ;
+
+    state.v_Up = state.Q_Out / parameters.A; 
+    state.v_Dn = state.Q_Under_Actual / parameters.A; 
+
+    { FOREACH Layer_Index IN {1 .. NrOfLayers}:
+       state.J_G_FM_Help[Layer_Index] =
+        state.v_FM[Layer_Index] * state.X_FM_Layer[Layer_Index];
+    };
+
+    { FOREACH Layer_Index IN {1 .. NrOfLayers}:
+       state.J_G_FS_Help[Layer_Index] =
+        parameters.v_FS * state.X_FS_Layer[Layer_Index];
+    };
+
+    { FOREACH Layer_Index IN {2 .. IndexOfFeedLayer}:
+       state.J_Up_FS[Layer_Index] =
+        state.v_Up * state.X_FS_Layer[Layer_Index];
+    };
+
+    { FOREACH Layer_Index IN {2 .. IndexOfFeedLayer}:
+       state.J_Up_FM[Layer_Index] =
+        state.v_Up * state.X_FM_Layer[Layer_Index];
+    };
+
+    { FOREACH Layer_Index IN {IndexOfFeedLayer .. NrOfLayersButOne}:
+       state.J_Dn_FS[Layer_Index] =
+        state.v_Dn * state.X_FS_Layer[Layer_Index];
+    };
+
+    { FOREACH Layer_Index IN {IndexOfFeedLayer .. NrOfLayersButOne}:
+       state.J_Dn_FM[Layer_Index] =
+        state.v_Dn * state.X_FM_Layer[Layer_Index];
+    };
+
+    //
+    // setting minimal s_g before
+    // multiplication with omega function
+    //
+
+    { FOREACH Layer_Index IN {1 .. NrOfLayersButOne}:
+       state.J_G_FS[Layer_Index] =
+        IF (state.J_G_FS_Help[Layer_Index] > state.J_G_FS_Help[Layer_Index+1])
+        THEN state.J_G_FS_Help[Layer_Index+1]
+        ELSE state.J_G_FS_Help[Layer_Index] ;
+    };
+
+    { FOREACH Layer_Index IN {1 .. NrOfLayersButOne}:
+       state.J_G_FM[Layer_Index] =
+        IF (state.J_G_FM_Help[Layer_Index] > state.J_G_FM_Help[Layer_Index+1])
+        THEN state.J_G_FM_Help[Layer_Index+1]
+        ELSE state.J_G_FM_Help[Layer_Index] ;
+    };
+
+    //
+    // calculating for X_FS_Layer
+    //
+
+    { DERIV(state.X_FS_Layer[1],[independent.t]) =
+       (1 / state.H_Layer) * 
+       (state.J_Up_FS[2] - state.J_G_FS[1] - ( state.Q_Out / parameters.A * state.X_FS_Layer[1]));
+    };
+
+    { FOREACH Layer_Index IN {2 .. NrOfLayersButOne}:
+       DERIV(state.X_FS_Layer[Layer_Index],[independent.t]) =
+        IF (Layer_Index == IndexOfFeedLayer)
+        THEN (1 / state.H_Layer) *
+             ( - state.J_Dn_FS[Layer_Index] - state.J_Up_FS[Layer_Index]
+             + state.J_G_FS[Layer_Index-1]
+             - (state.J_G_FS[Layer_Index] * state.omega[Layer_Index]))
+             + (1 / state.V_Layer) * state.SolidFlux_In * state.f1
+        ELSE
+          IF(Layer_Index < IndexOfFeedLayer)
+          THEN (1 / state.H_Layer) *
+                (state.J_Up_FS[Layer_Index+1] - ( state.J_Up_FS[Layer_Index])
+                - state.J_G_FS[Layer_Index] + state.J_G_FS[Layer_Index-1])
+          ELSE (1 / state.H_Layer) *
+                (state.J_Dn_FS[Layer_Index-1] - ( state.J_Dn_FS[Layer_Index])
+                + (state.J_G_FS[Layer_Index-1] * state.omega[Layer_Index-1])
+                - (state.J_G_FS[Layer_Index] * state.omega[Layer_Index]));
+    };
+
+    { DERIV(state.X_FS_Layer[NrOfLayers],[independent.t]) =
+       (1 / state.H_Layer) *
+       (state.J_Dn_FS[NrOfLayersButOne] - ( state.Q_Under_Actual / parameters.A * state.X_FS_Layer[NrOfLayers])
+       + (state.J_G_FS[NrOfLayersButOne] * state.omega[NrOfLayersButOne]));
+    };
+
+    //
+    // calculating for X_FM_Layer
+    //
+
+    { DERIV(state.X_FM_Layer[1],[independent.t]) =
+       (1 / state.H_Layer) * 
+       (state.J_Up_FM[2] - state.J_G_FM[1] - ( state.Q_Out / parameters.A * state.X_FM_Layer[1]));
+    };
+
+    { FOREACH Layer_Index IN {2 .. NrOfLayersButOne}:
+       DERIV(state.X_FM_Layer[Layer_Index],[independent.t]) =
+        IF (Layer_Index == IndexOfFeedLayer)
+        THEN (1 / state.H_Layer) *
+             ( - state.J_Dn_FM[Layer_Index] - state.J_Up_FM[Layer_Index]
+             + state.J_G_FM[Layer_Index-1]
+             - (state.J_G_FM[Layer_Index] * state.omega[Layer_Index]))
+             + (1 / state.V_Layer) * state.SolidFlux_In * (1 - state.f1)
+        ELSE
+          IF(Layer_Index < IndexOfFeedLayer)
+          THEN (1 / state.H_Layer) *
+                (state.J_Up_FM[Layer_Index+1] - ( state.J_Up_FM[Layer_Index])
+                - state.J_G_FM[Layer_Index] + state.J_G_FM[Layer_Index-1])
+          ELSE (1 / state.H_Layer) *
+                (state.J_Dn_FM[Layer_Index-1] - ( state.J_Dn_FM[Layer_Index])
+                + (state.J_G_FM[Layer_Index-1] * state.omega[Layer_Index-1])
+                - (state.J_G_FM[Layer_Index] * state.omega[Layer_Index]));
+    };
+
+    { DERIV(state.X_FM_Layer[NrOfLayers],[independent.t]) =
+       (1 / state.H_Layer) *
+       (state.J_Dn_FM[NrOfLayersButOne] - ( state.Q_Under_Actual / parameters.A * state.X_FM_Layer[NrOfLayers])
+       + (state.J_G_FM[NrOfLayersButOne] * state.omega[NrOfLayersButOne]));
+    };
+
+    //
+    // calculating X_In, X_Out and X_Under
+    //
+
+    state.X_In = IF (state.Q_In == 0)
+      THEN 0
+      ELSE state.SolidFlux_In / state.Q_In;
+
+    state.X_Out = IF (state.Q_Out == 0)
+      THEN 0
+      ELSE state.X_FS_Layer[1] + state.X_FM_Layer[1];
+
+    state.X_Under = IF (state.Q_Under_Actual == 0)
+        THEN 0
+        ELSE state.X_FS_Layer[NrOfLayers] + state.X_FM_Layer[NrOfLayers];
+
+// Calculation of the fluxes of all components in the effluent
+ 
+    state.SolidFlux_Out = state.X_Out * state.Q_Out;
+
+    { FOREACH Comp_Index IN {IndexOfSolvent .. IndexOfLastSolubleComponent}:
+      interface.Overflow[Comp_Index] = 
+      IF (state.Q_In == 0)
+      THEN 0
+      ELSE - state.InFluxPerComponent[Comp_Index] * (state.Q_Out / state.Q_In);
+    };
+
+    { FOREACH Comp_Index IN {IndexOfFirstParticulateComponent .. IndexOfLastParticulateComponent}:
+      interface.Overflow[Comp_Index] =
+      IF ( state.SolidFlux_In == 0)
+      THEN 0
+      ELSE - (state.InFluxPerComponent[Comp_Index] / state.SolidFlux_In) * state.SolidFlux_Out ;
+    };
+
+// Calculation of the fluxes of all components in the underflow
+
+    state.SolidFlux_Under = state.X_Under * state.Q_Under_Actual;
+
+    interface.Underflow[IndexOfSolvent] = - state.Q_Under_Actual / 0.000001 ;
+
+    { FOREACH Comp_Index IN {IndexOfFirstSolubleComponent .. IndexOfLastSolubleComponent}:
+      interface.Underflow[Comp_Index] = - state.InFluxPerComponent[Comp_Index] - interface.Overflow[Comp_Index] ;
+    };
+
+    { FOREACH Comp_Index IN {IndexOfFirstParticulateComponent .. IndexOfLastParticulateComponent}:
+      interface.Underflow[Comp_Index] =
+      IF ( state.SolidFlux_In == 0)
+      THEN 0
+      ELSE - (state.InFluxPerComponent[Comp_Index] / state.SolidFlux_In) * state.SolidFlux_Under ;
+    }; 
+
+    { state.SolidConcentration = (SUMOVER Layer_Index IN {1 .. NrOfLayers}:
+       state.X_FS_Layer[Layer_Index] + state.X_FM_Layer[Layer_Index]) ;
+    };
+
+    interface.TSS = state.SolidConcentration;
+
+    interface.V_Clarifier = parameters.A * parameters.H;  
+
+// PUMPING ENERGY
+  DERIV(state.Integ_PE,[independent.t])=  state.Q_Under_Actual;
+  interface.PumpingEnergy = parameters.F_Energy_FlowRate * state.Integ_PE ;
+
+   };
+
+ :};
+#endif // StandardCategoryModels
+
+#endif // WWTP_BASE_SECONDARY_CLARIFIER_SECONDARYOTTERPOHLFREUND
+

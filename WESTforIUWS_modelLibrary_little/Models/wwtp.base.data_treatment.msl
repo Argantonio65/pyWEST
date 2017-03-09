@@ -1,0 +1,58 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$ EURE
+ * $Date: 19. april 2012 10:17:54$
+ *
+ ******************************************************************************/
+
+//  The model has been implemented as defined in Rieger et al. (2003). Further information can be also found in Alex et al. (2009)
+//  References:
+//  Rieger L., Alex J., Winkler S., Boehler M., Thomann M. and Siegrist H. (2003). Progress in sensor technology - progress in process control? Part I: Sensor property investigation and classification. Water Sci. Technol., 47(2), 103-112.
+//  Alex, J., Rieger, L., Corominas, L. and Winkler, S. (2009). Models of Sensors and Actuators. Scientific Technical Report of the IWA Task Group on Benchmarking control strategies. IWA publishing, London, UK.
+
+#ifndef WWTP_BASE_DATATREATMENT
+#define WWTP_BASE_DATATREATMENT
+
+CLASS DataTreatment "Data Treatment" SPECIALISES PhysicalDAEModelType :=
+  {:
+    comments <- "A general model for signal treatment";
+    interface <-
+    {
+	 	OBJ u (* terminal = "in_1" *) "Signal input" : Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+		OBJ y_M (* terminal = "out_1" *) "Output signal" : Real := {: causality <- "COUT" ; group <- "Measurement data" :};    
+    };
+    independent <- 
+    {
+		OBJ t "Time" : Time := {: group <- "Time" :}; 
+    };
+	state <-
+    {
+		OBJ signal (* hidden = "1" *) "Dummy variable to store the signal": Real ;
+    };
+	equations <-
+    {
+		// obtain the signal input from the interface
+		state.signal = interface.u ;  
+    };
+  :};
+
+  
+#include "data_treatment/wwtp.base.datatreatment.response_time.msl"  
+#include "data_treatment/wwtp.base.datatreatment.delay.msl"  
+#include "data_treatment/wwtp.base.datatreatment.noise.msl"  
+#include "data_treatment/wwtp.base.datatreatment.noise_file.msl"  
+#include "data_treatment/wwtp.base.datatreatment.sample_and_hold.msl"  
+#include "data_treatment/wwtp.base.datatreatment.saturation_range.msl"  
+  
+  
+#endif // WWTP_BASE_DATATREATMENT
+

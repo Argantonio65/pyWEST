@@ -1,0 +1,7 @@
+#ifndef __MODEL_DUMMY_1_PROJECT__
+#define __MODEL_DUMMY_1_PROJECT__
+
+#include "iuws.msl"
+#include "_Model_dummy_1_.msl"
+
+#endif

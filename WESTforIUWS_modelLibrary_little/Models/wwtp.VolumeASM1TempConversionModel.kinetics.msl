@@ -1,0 +1,38 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 5. september 2011 16:01:11$
+ *
+ ******************************************************************************/
+
+#ifdef ASM1Temp
+    state.X_TSS = (state.C[X_BH] + state.C[X_BA] + state.C[X_I] + state.C[X_S] + state.C[X_P]) * parameters.F_TSS_COD;
+
+    state.S_O_Saturation = 14.65 - 0.41 * state.Temp_Actual + 0.00799 * state.Temp_Actual * state.Temp_Actual - 0.0000778 * state.Temp_Actual * state.Temp_Actual * state.Temp_Actual;
+  state.mu_H_Temp = parameters.mu_H * pow(parameters.theta_mu_H,state.Temp_Actual - parameters.Temp_Ref);
+  state.mu_A_Temp = parameters.mu_A * pow(parameters.theta_mu_A,state.Temp_Actual - parameters.Temp_Ref);
+  state.b_H_Temp = parameters.b_H * pow(parameters.theta_b_H,state.Temp_Actual - parameters.Temp_Ref);
+  state.b_A_Temp = parameters.b_A * pow(parameters.theta_b_A,state.Temp_Actual - parameters.Temp_Ref);
+  state.k_h_Temp = parameters.k_h * pow(parameters.theta_k_h,state.Temp_Actual - parameters.Temp_Ref);
+  state.k_a_Temp = parameters.k_a * pow(parameters.theta_k_a,state.Temp_Actual - parameters.Temp_Ref);
+  state.K_X_Temp = parameters.K_X * pow(parameters.theta_K_X,state.Temp_Actual - parameters.Temp_Ref);
+
+  state.Kinetics[AerGrowthHetero] = state.mu_H_Temp * (state.C[S_S] / (parameters.K_S + state.C[S_S])) * (state.C[S_O] / (parameters.K_OH + state.C[S_O])) * (state.C[S_NH] / (parameters.K_NH_H + state.C[S_NH])) * state.C[X_BH];
+  state.Kinetics[AnGrowthHetero] = state.mu_H_Temp * (state.C[S_S] / (parameters.K_S + state.C[S_S])) * (parameters.K_OH / (parameters.K_OH + state.C[S_O])) * (state.C[S_NO] / (parameters.K_NO + state.C[S_NO])) * (state.C[S_NH] / (parameters.K_NH_H + state.C[S_NH])) * parameters.n_g * state.C[X_BH];
+  state.Kinetics[AerGrowthAuto] = state.mu_A_Temp * (state.C[S_NH] / (parameters.K_NH + state.C[S_NH])) * (state.C[S_O] / (parameters.K_OA + state.C[S_O])) * state.C[X_BA];
+  state.Kinetics[DecayOfHetero] = state.b_H_Temp * state.C[X_BH];
+  state.Kinetics[DecayOfAuto] = state.b_A_Temp * state.C[X_BA];
+  state.Kinetics[AmmonOfSolOrgN] = state.k_a_Temp * state.C[S_ND] * state.C[X_BH];
+  state.Kinetics[HydrolOfEntrOrg] = state.k_h_Temp * (state.C[X_S] / state.C[X_BH]) / (state.K_X_Temp + (state.C[X_S] / state.C[X_BH])) * ((state.C[S_O] / (parameters.K_OH + state.C[S_O])) + parameters.n_h * (parameters.K_OH / (parameters.K_OH + state.C[S_O])) * (state.C[S_NO] / (parameters.K_NO + state.C[S_NO]))) * state.C[X_BH];
+  state.Kinetics[HydrolOfEntrOrgN] = (state.k_h_Temp * (state.C[X_S] / state.C[X_BH]) / (state.K_X_Temp + (state.C[X_S] / state.C[X_BH])) * ((state.C[S_O] / (parameters.K_OH + state.C[S_O])) + parameters.n_h * (parameters.K_OH / (parameters.K_OH + state.C[S_O])) * (state.C[S_NO] / (parameters.K_NO + state.C[S_NO]))) * state.C[X_BH]) * (state.C[X_ND] / state.C[X_S]);
+  state.Kinetics[Aeration] = state.Kla_Actual * (state.S_O_Saturation - state.C[S_O]);
+#endif // ASM1Temp

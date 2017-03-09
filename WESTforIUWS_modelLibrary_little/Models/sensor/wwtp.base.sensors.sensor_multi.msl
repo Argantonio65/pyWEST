@@ -1,0 +1,276 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$ EURE
+ * $Date: 23. april 2012 08:05:14$
+ *
+ ******************************************************************************/
+ 
+#ifndef WWTP_BASE_SENSORS_SENSORMULTI
+#define WWTP_BASE_SENSORS_SENSORMULTI
+
+#ifdef StandardCategoryModels
+CLASS MultiSensor (* icon = "sensor_multi"; is_default = "true" *) "Multi-probe sensor" EXTENDS Sensor WITH 
+  {:
+    comments <- "A model for a multi-probe sensor";
+    interface <-
+    {
+		OBJ y_Q (* terminal = "out_2"; is_favorite = "1" *) "Flow rate" : FlowRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+		#if (defined ASM1Temp || defined ASM2dModTemp || defined ASM3Temp || defined ASM3P_EAWAG)
+		OBJ y_DO (* terminal = "out_2"; is_favorite = "1" *) "Oxygen concentration" : Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+		OBJ y_NH (* terminal = "out_2"; is_favorite = "1" *) "Ammonia concentration" : Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+		OBJ y_NO (* terminal = "out_2"; is_favorite = "1" *) "Nitrate concentration" : Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+		OBJ y_TSS (* terminal = "out_2"; is_favorite = "1" *) "Particulates concentration" : Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+		OBJ y_COD (* terminal = "out_2"; is_favorite = "1" *) "COD concentration" : Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+		OBJ y_BOD (* terminal = "out_2"; is_favorite = "1" *) "BOD concentration" : Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+		OBJ y_TN (* terminal = "out_2"; is_favorite = "1" *) "Total Nitrogen concentration" : Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+		OBJ y_TKN (* terminal = "out_2"; is_favorite = "1" *) "Total Kjeldahl Nitrogen concentration" : Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+		#endif
+		#if (defined ASM2dModTemp || defined ASM3P_EAWAG)
+		OBJ y_TP (* terminal = "out_2"; is_favorite = "1" *) "Total Phosphorous concentration" : Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+		OBJ y_PO (* terminal = "out_2"; is_favorite = "1" *) "Phosphate concentration" : Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+		#endif
+    };
+    parameters <- 
+    {
+		OBJ F_TSS_COD "Fraction TSS/COD" : Ratio := {: value <- 0.75 ; group <- "Conversion factors":};
+
+		#if (defined ASM1Temp)
+		OBJ f_P "Fraction Of Biomass Converted To Inert Matter" : FractOfBiomassLeadingToPartProd := {: value<- 0.20 ; group <- "Stoichiometry" :};
+		#endif
+		#if (defined ASM2dModTemp)
+		OBJ f_X_I "Fraction of inert COD generated in biomass lysis" : Fraction := {: value <- 0.10 ; group <- "Stoichiometry" :};
+		#endif
+		#if (defined ASM3Temp || defined ASM3P_EAWAG)
+		OBJ f_X_I "Production of X_I in aerobic endogenous respiration" : FractOfBiomassLeadingToPartProd := {: value <- 0.2 ; group <- "Stoichiometry" :};
+		#endif
+		OBJ F_BOD_COD "Conversion factor BOD/COD" : Fraction := {:value<- 0.65 ; group <- "Conversion factors":};
+
+		#if (defined ASM1Temp)
+		OBJ i_X_B "Mass Of Nitrogen Per Mass Of COD In Biomass" : MassOfNitrogenPerMassOfCODInBiomass := {:value <- 0.086 ; group <- "Composition parameters" :};
+		OBJ i_X_P "Mass Of Nitrogen Per Mass Of COD In Products Formed" : MassOfNitrogenPerMassOfCODInProdFromBiomass := {:value <- 0.06 ; group <- "Composition parameters" :};
+		#endif
+		#if (defined ASM2dModTemp)
+		OBJ i_N_S_I "Nitrogen content of inert soluble COD S_I" : NitrogenConversionFactor := {:value <- 0.01 ; group <- "Composition parameters" :};
+		OBJ i_N_S_F "Nitrogen content of soluble substrate S_F" : NitrogenConversionFactor := {:value <- 0.03 ; group <- "Composition parameters" :};
+		OBJ i_N_X_I "Nitrogen content of inert particulate COD X_I" : NitrogenConversionFactor := {:value <- 0.03 ; group <- "Composition parameters" :};
+		OBJ i_N_X_S "Nitrogen content of particulate substrate X_S" : NitrogenConversionFactor := {:value <- 0.04 ; group <- "Composition parameters" :};
+		OBJ i_N_BM "Nitrogen content of biomass X_H, X_PAO, X_AUT" : NitrogenConversionFactor := {:value <- 0.07 ; group <- "Composition parameters" :};
+		#endif
+		#if (defined ASM3Temp)
+		OBJ i_N_S_I "Nitrogen content of inert soluble COD S_I" : NitrogenConversionFactor := {:value <- 0.01 ; group <- "Composition parameters" :};
+		OBJ i_N_S_S "Nitrogen content of soluble substrate S_S" : NitrogenConversionFactor := {:value <- 0.03 ; group <- "Composition parameters" :};
+		OBJ i_N_X_I "Nitrogen content of inert particulate COD X_I" : NitrogenConversionFactor := {:value <- 0.03 ; group <- "Composition parameters" :};
+		OBJ i_N_X_S "Nitrogen content of particulate substrate X_S" : NitrogenConversionFactor := {:value <- 0.04 ; group <- "Composition parameters" :};
+		OBJ i_N_BM "Nitrogen content of biomass X_H, X_A" : NitrogenConversionFactor := {:value <- 0.07 ; group <- "Composition parameters" :};
+		#endif
+		#ifdef ASM3P_EAWAG
+		OBJ i_N_BM  "Nitrogen content of the biomass" : ConversionFactor  := {: value <- 0.07 ; group <- "Composition parameters" :};
+		OBJ i_N_S_I "Nitrogen content of S_I" : ConversionFactor  := {: value <- 0.01 ; group <- "Composition parameters" :};
+		OBJ i_N_S_S "Nitrogen content of S_S" : ConversionFactor  := {: value <- 0.03 ; group <- "Composition parameters" :};
+		OBJ i_N_X_I "Nitrogen content of X_I" : ConversionFactor  := {: value <- 0.03 ; group <- "Composition parameters" :};
+		OBJ i_N_X_S "Nitrogen content of X_S" : ConversionFactor  := {: value <- 0.02 ; group <- "Composition parameters" :}; 
+		#endif
+
+		#if (defined ASM2dModTemp)
+		OBJ i_P_S_I "Phosphorus content of inert soluble COD S_I" : PhosphorusConversionFactor := {:value <- 0.00 ; group <- "Composition parameters" :};
+		OBJ i_P_S_F "Phosphorus content of soluble substrate S_F" : PhosphorusConversionFactor := {:value <-0.01 ; group <- "Composition parameters" :};
+		OBJ i_P_X_I "Phosphorus content of inert particulate COD X_I" : PhosphorusConversionFactor := {:value <- 0.01 ; group <- "Composition parameters" :};
+		OBJ i_P_X_S "Phosphorus content of particulate substrate X_S" : PhosphorusConversionFactor := {:value <- 0.01 ; group <- "Composition parameters" :};
+		OBJ i_P_BM "Phosphorus content of biomass X_H, X_PAO, X_AUT" : PhosphorusConversionFactor := {:value <- 0.02 ; group <- "Composition parameters" :};
+		#endif
+		#ifdef ASM3P_EAWAG
+		OBJ i_P_BM  "Phosphorus content of the biomass" : ConversionFactor  := {: value <- 0.014 ; group <- "Composition parameters" :};
+		OBJ i_P_S_I "Phosphorus content of S_I" : ConversionFactor  := {: value <- 0 ; group <- "Composition parameters" :};
+		OBJ i_P_S_S "Phosphorus content of S_S" : ConversionFactor  := {: value <- 0 ; group <- "Composition parameters" :};
+		OBJ i_P_X_I "Phosphorus content of X_I" : ConversionFactor  := {: value <- 0.01 ; group <- "Composition parameters" :};
+		OBJ i_P_X_S "Phosphorus content of X_S" : ConversionFactor  := {: value <- 0.005 ; group <- "Composition parameters" :}; 
+		#endif
+    };
+    equations <- 
+    {
+		interface.y_Q = state.Q_In ;
+
+		#if (defined ASM1Temp || defined ASM2dModTemp || defined ASM3Temp || defined ASM3P_EAWAG)
+		interface.y_DO = IF (state.Q_In == 0) THEN 0
+			ELSE interface.Inflow[S_O] / state.Q_In ;
+
+		interface.y_NH = IF (state.Q_In == 0) THEN 0
+			ELSE interface.Inflow[S_NH] / state.Q_In ;
+
+		interface.y_NO = IF (state.Q_In == 0) THEN 0
+			ELSE interface.Inflow[S_NO] / state.Q_In ;
+		//
+		//TSS
+		#if (defined ASM1Temp)
+		interface.y_TSS = IF (state.Q_In == 0) THEN 0
+			ELSE (interface.Inflow[X_BH] + interface.Inflow[X_BA] + interface.Inflow[X_S] +
+			interface.Inflow[X_I] + interface.Inflow[X_P]) * parameters.F_TSS_COD / state.Q_In ; 
+		#endif
+		#if (defined ASM2dModTemp || defined ASM3Temp || defined ASM3P_EAWAG)
+		interface.y_TSS = IF (state.Q_In == 0) THEN 0
+			ELSE interface.Inflow[X_TSS] / state.Q_In ; 
+		#endif
+		//
+		//COD
+		#if (defined ASM1Temp)
+		interface.y_COD = IF (state.Q_In == 0) THEN 0
+			ELSE (interface.Inflow[S_S] + interface.Inflow[X_S] + interface.Inflow[S_I] +
+			interface.Inflow[X_I] + interface.Inflow[X_P] + interface.Inflow[X_BH] + interface.Inflow[X_BA]) / state.Q_In ; 
+		#endif
+		#if (defined ASM2dModTemp)
+		interface.y_COD = IF (state.Q_In == 0) THEN 0
+			ELSE (interface.Inflow[S_A] + interface.Inflow[S_F] + interface.Inflow[X_S] +
+			interface.Inflow[S_I] + interface.Inflow[X_I] + interface.Inflow[X_AUT] +
+			interface.Inflow[X_H] + interface.Inflow[X_PAO] + interface.Inflow[X_PHA]) / state.Q_In ; 
+		#endif
+		#if (defined ASM3Temp)
+		interface.y_COD = IF (state.Q_In == 0) THEN 0
+            ELSE (interface.Inflow[S_S] + interface.Inflow[X_S] + interface.Inflow[S_I] +
+			interface.Inflow[X_I] + interface.Inflow[X_A] + interface.Inflow[X_H] + interface.Inflow[X_STO]) / state.Q_In ; 
+		#endif
+		#ifdef ASM3P_EAWAG
+		interface.y_COD = IF (state.Q_In == 0) THEN 0
+            ELSE (interface.Inflow[S_S] + interface.Inflow[X_S] + interface.Inflow[S_I] +
+			interface.Inflow[X_I] + interface.Inflow[X_A] + interface.Inflow[X_H] +
+			interface.Inflow[X_PAO] + interface.Inflow[X_STO] + interface.Inflow[X_PHA]) / state.Q_In ; 
+		#endif
+		//
+		//BOD
+		#if (defined ASM1Temp)
+		interface.y_BOD = IF (state.Q_In == 0) THEN 0
+			ELSE parameters.F_BOD_COD * (interface.Inflow[S_S] + interface.Inflow[X_S] +
+			(1 - parameters.f_P) * (interface.Inflow[X_BH] + interface.Inflow[X_BA]) ) / state.Q_In ; 
+		#endif
+		#if (defined ASM2dModTemp)
+		interface.y_BOD = IF (state.Q_In == 0) THEN 0
+			ELSE parameters.F_BOD_COD * (interface.Inflow[S_A] + interface.Inflow[S_F] +
+			interface.Inflow[X_S] + interface.Inflow[X_PHA] + (1 - parameters.f_X_I) * (interface.Inflow[X_AUT] +
+			interface.Inflow[X_H] + interface.Inflow[X_PAO] )) / state.Q_In ; 
+		#endif
+		#if (defined ASM3Temp)
+		interface.y_BOD = IF (state.Q_In == 0) THEN 0
+            ELSE parameters.F_BOD_COD * (interface.Inflow[S_S] + interface.Inflow[X_S] +
+			interface.Inflow[X_STO] + (1 - parameters.f_X_I) * (interface.Inflow[X_A] + interface.Inflow[X_H])) / state.Q_In ; 
+		#endif
+		#ifdef ASM3P_EAWAG
+		interface.y_BOD = IF (state.Q_In == 0) THEN 0
+            ELSE parameters.F_BOD_COD * (interface.Inflow[S_S] + interface.Inflow[X_S] +
+			interface.Inflow[X_STO] + interface.Inflow[X_PHA] + (1 - parameters.f_X_I) * (interface.Inflow[X_A] +
+			interface.Inflow[X_H] + interface.Inflow[X_PAO])) / state.Q_In ; 
+		#endif
+		//
+		//TN
+		#if (defined ASM1Temp)
+		interface.y_TN = IF (state.Q_In == 0) THEN 0
+			ELSE (interface.Inflow[S_NO] + interface.Inflow[S_NH] + interface.Inflow[S_ND] +
+			interface.Inflow[X_ND] + parameters.i_X_B * (interface.Inflow[X_BH] + interface.Inflow[X_BA]) +
+			parameters.i_X_P * (interface.Inflow[X_P] + interface.Inflow[X_I])) / state.Q_In ;
+		#endif
+		#if (defined ASM2dModTemp)
+		interface.y_TN = IF (state.Q_In == 0) THEN 0
+			ELSE (interface.Inflow[S_NO] + interface.Inflow[S_NH] + parameters.i_N_S_I * interface.Inflow[S_I] +
+			parameters.i_N_S_F * interface.Inflow[S_F] + parameters.i_N_X_I * interface.Inflow[X_I] +
+			parameters.i_N_X_S * interface.Inflow[X_S] + parameters.i_N_BM * (interface.Inflow[X_H] +
+			interface.Inflow[X_AUT] + interface.Inflow[X_PAO]) ) / state.Q_In ;
+		#endif
+		#if (defined ASM3Temp)
+		interface.y_TN = IF (state.Q_In == 0) THEN 0
+			ELSE (interface.Inflow[S_NO] + interface.Inflow[S_NH] + parameters.i_N_S_I * interface.Inflow[S_I] +
+			parameters.i_N_S_S * interface.Inflow[S_S] + parameters.i_N_X_I * interface.Inflow[X_I] +
+			parameters.i_N_X_S * interface.Inflow[X_S] + parameters.i_N_BM * (interface.Inflow[X_H] + interface.Inflow[X_A] ) ) / state.Q_In ;
+		#endif
+		#ifdef ASM3P_EAWAG
+		interface.y_TN = IF (state.Q_In == 0) THEN 0
+			ELSE (interface.Inflow[S_NO] + interface.Inflow[S_NH] + parameters.i_N_S_I * interface.Inflow[S_I] +
+			parameters.i_N_S_S * interface.Inflow[S_S] + parameters.i_N_X_I * interface.Inflow[X_I] +
+			parameters.i_N_X_S * interface.Inflow[X_S] + parameters.i_N_BM * (interface.Inflow[X_H] +
+			interface.Inflow[X_A] + interface.Inflow[X_PAO]) ) / state.Q_In ;
+		#endif
+		//
+		//TKN
+		#if (defined ASM1Temp)
+		interface.y_TKN = IF (state.Q_In == 0) THEN 0
+			ELSE (interface.Inflow[S_NH] + interface.Inflow[S_ND] + interface.Inflow[X_ND] +
+			parameters.i_X_B * (interface.Inflow[X_BH] + interface.Inflow[X_BA]) + parameters.i_X_P * (interface.Inflow[X_P] +
+			interface.Inflow[X_I])) / state.Q_In ;
+		#endif
+		#if (defined ASM2dModTemp)
+		interface.y_TKN = IF (state.Q_In == 0) THEN 0
+			ELSE (interface.Inflow[S_NH] + parameters.i_N_S_I * interface.Inflow[S_I] +
+			parameters.i_N_S_F * interface.Inflow[S_F] + parameters.i_N_X_I * interface.Inflow[X_I] +
+			parameters.i_N_X_S * interface.Inflow[X_S] + parameters.i_N_BM * (interface.Inflow[X_H] +
+			interface.Inflow[X_AUT] + interface.Inflow[X_PAO]) ) / state.Q_In ;
+		#endif
+		#if (defined ASM3Temp)
+		interface.y_TKN = IF (state.Q_In == 0) THEN 0
+			ELSE (interface.Inflow[S_NH] + parameters.i_N_S_I * interface.Inflow[S_I] +
+			parameters.i_N_S_S * interface.Inflow[S_S] + parameters.i_N_X_I * interface.Inflow[X_I] +
+			parameters.i_N_X_S * interface.Inflow[X_S] + parameters.i_N_BM * (interface.Inflow[X_H] + interface.Inflow[X_A] ) ) / state.Q_In ;
+		#endif
+		#ifdef ASM3P_EAWAG
+		interface.y_TKN = IF (state.Q_In == 0) THEN 0
+			ELSE (interface.Inflow[S_NH] + parameters.i_N_S_I * interface.Inflow[S_I] +
+			parameters.i_N_S_S * interface.Inflow[S_S] + parameters.i_N_X_I * interface.Inflow[X_I] +
+			parameters.i_N_X_S * interface.Inflow[X_S] + parameters.i_N_BM * (interface.Inflow[X_H] +
+			interface.Inflow[X_A] + interface.Inflow[X_PAO]) ) / state.Q_In ;
+		#endif
+		//
+		//TP
+		#if (defined ASM2dModTemp)
+		interface.y_TP = IF (state.Q_In == 0) THEN 0
+			ELSE (interface.Inflow[S_PO] + interface.Inflow[X_PP] + 0.205 * interface.Inflow[X_MEP] +
+			parameters.i_P_S_I * interface.Inflow[S_I] + parameters.i_P_S_F * interface.Inflow[S_F] +
+			parameters.i_P_X_I * interface.Inflow[X_I] + parameters.i_P_X_S * interface.Inflow[X_S] +
+			parameters.i_P_BM * (interface.Inflow[X_H] + interface.Inflow[X_AUT] + interface.Inflow[X_PAO]) ) / state.Q_In ;
+		#endif
+		#ifdef ASM3P_EAWAG
+		interface.y_TP = IF (state.Q_In == 0) THEN 0
+			ELSE (interface.Inflow[S_PO] + interface.Inflow[X_PP] + parameters.i_P_S_I * interface.Inflow[S_I] +
+			parameters.i_P_S_S * interface.Inflow[S_S] + parameters.i_P_X_I * interface.Inflow[X_I] +
+			parameters.i_P_X_S * interface.Inflow[X_S] + parameters.i_P_BM * (interface.Inflow[X_H] +
+			interface.Inflow[X_A] + interface.Inflow[X_PAO]) ) / state.Q_In ; 
+		#endif
+		//
+		//PO
+		#if (defined ASM2dModTemp || defined ASM3P_EAWAG)
+		interface.y_PO = IF (state.Q_In == 0) THEN 0
+			ELSE interface.Inflow[S_PO] / state.Q_In ; 
+		#endif
+
+		#endif
+    };
+
+  :};
+
+  CLASS NH4_load
+  (* icon = "sensor_multi" *)
+  "sensor"
+  EXTENDS Sensor WITH
+  {:
+    comments <- "A model for a sensor measuring the ammonia concentration";
+
+    interface <-
+    {
+      OBJ y_M (* terminal = "out_2" *) "Sensor measured output" :
+         Real := {: causality <- "COUT" ; group <- "Measurement data" :};
+    };
+    
+   
+    equations <-
+    {
+       interface.y_M = interface.Inflow[S_NH];
+    };
+  :};
+
+#endif // StandardCategoryModels
+
+#endif // WWTP_BASE_SENSORS_SENSORMULTI

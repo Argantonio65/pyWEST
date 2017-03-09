@@ -1,0 +1,96 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 26. juni 2012 15:01:08$
+ *
+ ******************************************************************************/
+
+#ifdef ASMG1
+
+	parameters.Stoichiometry[AerGrowthHetero][S_S] :=  - 1.0 / (parameters.Y_H);
+	parameters.Stoichiometry[AerGrowthHetero][S_O] :=  - (1.0 - parameters.Y_H) / parameters.Y_H;
+	parameters.Stoichiometry[AerGrowthHetero][S_NH] :=  - parameters.i_X_B;
+	parameters.Stoichiometry[AerGrowthHetero][S_ALK] :=  - parameters.i_X_B / 14.0;
+	parameters.Stoichiometry[AerGrowthHetero][X_BH] := 1.0;
+	parameters.Stoichiometry[AnGrowthHeteroNO3_NO2][S_S] :=  - 1.0 / (parameters.Y_H * parameters.n_Y);
+	parameters.Stoichiometry[AnGrowthHeteroNO3_NO2][S_NO3] :=  - (1.0 - parameters.Y_H * parameters.n_Y) / (1.14385714 * parameters.Y_H * parameters.n_Y);
+	parameters.Stoichiometry[AnGrowthHeteroNO3_NO2][S_NO2] := (1.0 - parameters.Y_H * parameters.n_Y) / (1.14385714 * parameters.Y_H * parameters.n_Y);
+	parameters.Stoichiometry[AnGrowthHeteroNO3_NO2][S_NH] :=  - parameters.i_X_B;
+	parameters.Stoichiometry[AnGrowthHeteroNO3_NO2][S_ALK] :=  - parameters.i_X_B / 14.0;
+	parameters.Stoichiometry[AnGrowthHeteroNO3_NO2][X_BH] := 1.0;
+	parameters.Stoichiometry[AnGrowthHeteroNO2_NO][S_S] :=  - 1.0 / (parameters.Y_H * parameters.n_Y);
+	parameters.Stoichiometry[AnGrowthHeteroNO2_NO][S_NO2] :=  - (1.0 - parameters.Y_H * parameters.n_Y) / ((3.4285714 - 2.8571429) * parameters.Y_H * parameters.n_Y);
+	parameters.Stoichiometry[AnGrowthHeteroNO2_NO][S_NO] := (1.0 - parameters.Y_H * parameters.n_Y) / ((3.4285714 - 2.8571429) * parameters.Y_H * parameters.n_Y);
+	parameters.Stoichiometry[AnGrowthHeteroNO2_NO][S_NH] :=  - parameters.i_X_B;
+	parameters.Stoichiometry[AnGrowthHeteroNO2_NO][S_ALK] :=  - (parameters.i_X_B / 14.0) + (1.0 - parameters.Y_H * parameters.n_Y) / (14.0 * ((3.428571429 - 2.8571429) * parameters.Y_H * parameters.n_Y));
+	parameters.Stoichiometry[AnGrowthHeteroNO2_NO][X_BH] := 1.0;
+	parameters.Stoichiometry[AnGrowthHeteroNO_N2O][S_S] :=  - 1.0 / (parameters.Y_H * parameters.n_Y);
+	parameters.Stoichiometry[AnGrowthHeteroNO_N2O][S_NO] :=  - (1.0 - (parameters.Y_H * parameters.n_Y)) / ((3.4285714 - 2.8571429) * parameters.Y_H * parameters.n_Y);
+	parameters.Stoichiometry[AnGrowthHeteroNO_N2O][S_N2O] := (1.0 - (parameters.Y_H * parameters.n_Y)) / ((3.4285714 - 2.8571429) * parameters.Y_H * parameters.n_Y);
+	parameters.Stoichiometry[AnGrowthHeteroNO_N2O][S_NH] :=  - parameters.i_X_B;
+	parameters.Stoichiometry[AnGrowthHeteroNO_N2O][S_ALK] :=  - parameters.i_X_B / 14.0;
+	parameters.Stoichiometry[AnGrowthHeteroNO_N2O][X_BH] := 1.0;
+	parameters.Stoichiometry[AnGrowthHeteroN2O_N2][S_S] :=  - 1.0 / (parameters.Y_H * parameters.n_Y);
+	parameters.Stoichiometry[AnGrowthHeteroN2O_N2][S_N2O] :=  - (1.0 - parameters.Y_H * parameters.n_Y) / ((3.4285714 - 2.8571429) * parameters.Y_H * parameters.n_Y);
+	parameters.Stoichiometry[AnGrowthHeteroN2O_N2][S_N2] := (1.0 - parameters.Y_H * parameters.n_Y) / ((3.4285714 - 2.8571429) * parameters.Y_H * parameters.n_Y);
+	parameters.Stoichiometry[AnGrowthHeteroN2O_N2][S_NH] :=  - parameters.i_X_B;
+	parameters.Stoichiometry[AnGrowthHeteroN2O_N2][S_ALK] :=  - parameters.i_X_B / 14.0;
+	parameters.Stoichiometry[AnGrowthHeteroN2O_N2][X_BH] := 1.0;
+	parameters.Stoichiometry[DecayOfHetero][X_S] := 1.0 - parameters.f_P;
+	parameters.Stoichiometry[DecayOfHetero][X_BH] :=  - 1.0;
+	parameters.Stoichiometry[DecayOfHetero][X_P] := parameters.f_P;
+	parameters.Stoichiometry[DecayOfHetero][X_ND] := parameters.i_X_B - parameters.f_P * parameters.i_X_P;
+	parameters.Stoichiometry[AutoGrowthAOB][S_O] :=  - (3.4285714 - parameters.Y_A1) / parameters.Y_A1;
+	parameters.Stoichiometry[AutoGrowthAOB][S_NO2] := 1.0 / parameters.Y_A1;
+	parameters.Stoichiometry[AutoGrowthAOB][S_NH] :=  - parameters.i_X_B - (1.0 / parameters.Y_A1);
+	parameters.Stoichiometry[AutoGrowthAOB][S_ALK] := ( - parameters.i_X_B) / 14.0 - 1.0 / (7.0 * parameters.Y_A1);
+	parameters.Stoichiometry[AutoGrowthAOB][X_BA1] := 1.0;
+	parameters.Stoichiometry[AutoGrowthNOB][S_O] :=  - (1.1428571 - parameters.Y_A2) / parameters.Y_A2;
+	parameters.Stoichiometry[AutoGrowthNOB][S_NO3] := 1.0 / parameters.Y_A2;
+	parameters.Stoichiometry[AutoGrowthNOB][S_NO2] :=  - 1.0 / parameters.Y_A2;
+	parameters.Stoichiometry[AutoGrowthNOB][S_NH] :=  - parameters.i_X_B;
+	parameters.Stoichiometry[AutoGrowthNOB][S_ALK] :=  - parameters.i_X_B / 14.0;
+	parameters.Stoichiometry[AutoGrowthNOB][X_BA2] := 1.0;
+	parameters.Stoichiometry[DecayOfAOB][X_S] := 1.0 - parameters.f_P;
+	parameters.Stoichiometry[DecayOfAOB][X_BA1] :=  - 1.0;
+	parameters.Stoichiometry[DecayOfAOB][X_P] := parameters.f_P;
+	parameters.Stoichiometry[DecayOfAOB][X_ND] := parameters.i_X_B - parameters.f_P * parameters.i_X_P;
+	parameters.Stoichiometry[DecayOfNOB][X_S] := 1.0 - parameters.f_P;
+	parameters.Stoichiometry[DecayOfNOB][X_BA2] :=  - 1.0;
+	parameters.Stoichiometry[DecayOfNOB][X_P] := parameters.f_P;
+	parameters.Stoichiometry[DecayOfNOB][X_ND] := parameters.i_X_B - parameters.f_P * parameters.i_X_P;
+	parameters.Stoichiometry[AmmonOfSolOrgN][S_NH] := 1.0;
+	parameters.Stoichiometry[AmmonOfSolOrgN][S_ND] :=  - 1.0;
+	parameters.Stoichiometry[AmmonOfSolOrgN][S_ALK] := 1.0 / 14.0;
+	parameters.Stoichiometry[HydrolOfEntrOrg][S_S] := 1.0;
+	parameters.Stoichiometry[HydrolOfEntrOrg][X_S] :=  - 1.0;
+	parameters.Stoichiometry[HydrolOfEntrOrgN][S_ND] := 1.0;
+	parameters.Stoichiometry[HydrolOfEntrOrgN][X_ND] :=  - 1.0;
+	parameters.Stoichiometry[Aeration][S_O] := 1.0;
+	parameters.Stoichiometry[StrippingN2][S_N2] := 1.0;
+	parameters.Stoichiometry[StrippingNO][S_NO] := 1.0;
+	parameters.Stoichiometry[StrippingN2O][S_N2O] := 1.0;
+	parameters.Stoichiometry[AutoNO2_NO][S_O] :=  - ((2.2857143 / (parameters.Y_A1 * parameters.n_Y_AOB)) - 1.0);
+	parameters.Stoichiometry[AutoNO2_NO][S_NO2] :=  - 1.0 / (parameters.Y_A1 * parameters.n_Y_AOB);
+	parameters.Stoichiometry[AutoNO2_NO][S_NO] := 2.0 / (parameters.Y_A1 * parameters.n_Y_AOB);
+	parameters.Stoichiometry[AutoNO2_NO][S_NH] :=  - (1.0 / (parameters.Y_A1 * parameters.n_Y_AOB)) - parameters.i_X_B;
+	parameters.Stoichiometry[AutoNO2_NO][S_ALK] :=  - parameters.i_X_B / 14.0;
+	parameters.Stoichiometry[AutoNO2_NO][X_BA1] := 1.0;
+	parameters.Stoichiometry[AutoNO_N2O][S_O] :=  - ((2.2857143 / (parameters.Y_A1 * parameters.n_Y_AOB)) - 1.0);
+	parameters.Stoichiometry[AutoNO_N2O][S_NO2] := 1.0 / (parameters.Y_A1 * parameters.n_Y_AOB);
+	parameters.Stoichiometry[AutoNO_N2O][S_NO] :=  - 2.0 / (parameters.Y_A1 * parameters.n_Y_AOB);
+	parameters.Stoichiometry[AutoNO_N2O][S_N2O] := 2.0 / (parameters.Y_A1 * parameters.n_Y_AOB);
+	parameters.Stoichiometry[AutoNO_N2O][S_NH] :=  - (1.0 / (parameters.Y_A1 * parameters.n_Y_AOB)) - parameters.i_X_B;
+	parameters.Stoichiometry[AutoNO_N2O][S_ALK] := ( - parameters.i_X_B) / 14.0 - 1.0 / (7.0 * (parameters.Y_A1 * parameters.n_Y_AOB));
+	parameters.Stoichiometry[AutoNO_N2O][X_BA1] := 1.0;
+
+#endif

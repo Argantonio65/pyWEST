@@ -1,0 +1,79 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 5. september 2011 16:01:09$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_BASE_LOOPBREAKER
+#define WWTP_BASE_LOOPBREAKER
+
+#include "loopbreaker/wwtp.base.loopbreaker.differentialloopbreaker.msl"
+
+CLASS LoopBreaker
+(* icon = "loop_breaker" ; is_default = "true" *)
+"An Explicit Implicit Algebraic Loop Breaker using previous"
+
+SPECIALISES PhysicalDAEModelType :=
+{:
+  comments <- "A model for a loopbreaker with previous functions";
+  interface <-
+  {
+   OBJ Inflow (* terminal = "in_1" *) "Inflow" :
+        InWWTPTerminal := {: causality <- "CIN" ; group <- "Influent" :};
+   OBJ Outflow (* terminal = "out_1" *) "Outflow" :
+        OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent" :};
+  };
+
+  independent <- 
+  { 
+   OBJ t "Time" : Time := {: group <- "Time" :}; 
+  };
+
+ parameters <-
+ {
+  //OBJ InitialFluxPerComponent "Vector containing initial flux for all components" : MassFluxVector := {: group <- "Miscellaneous" :};
+ };
+
+ state <-
+ {
+  OBJ InFluxPerComponent (* hidden = "1" *) "Vector containing incoming fluxes for all components" : MassFluxVector;
+ };
+
+ initial <-
+ {
+   { FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+      state.InFluxPerComponent[Comp_Index] = 0;
+       //parameters.InitialFluxPerComponent[Comp_Index];
+   };
+ };
+
+ equations <-
+ {
+   { FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+      state.InFluxPerComponent[Comp_Index] =
+       SUMOVER In_Terminal IN {SelectByType(interface,InWWTPTerminal)}:
+       (In_Terminal[Comp_Index]);
+   };
+
+  { FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+     interface.Outflow[Comp_Index] =
+       - previous(state.InFluxPerComponent[Comp_Index]);
+  };
+
+ };
+
+:};
+
+#endif // WWTP_BASE_LOOPBREAKER
+
+

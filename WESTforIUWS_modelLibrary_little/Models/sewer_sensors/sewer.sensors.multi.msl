@@ -1,0 +1,53 @@
+CLASS ArrayBODCODN_Sew
+ 
+   (* icon = "Sensor" *)
+   "sensor"
+   EXTENDS SewSensor WITH 
+   {:
+     comments <- "A model for a sensor measuring BOD, COD, TN, (TP), NH4 and NO3";
+ 
+ 	interface <-
+     {
+ 	 OBJ Q (* terminal = "out_2" *)"measurement" :FlowRate:= {: causality <- "COUT" ; group <- "Measurement data" :};
+	  OBJ COD (* terminal = "out_2" *) "COD" : ChemOxDemand := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ BOD5 (* terminal = "out_2" *) "BOD5" : BiolOxDemand := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ TSS (* terminal = "out_2" *) "TSS" : Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+	  OBJ NH4 (* terminal = "out_2" *) "NH4" : Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+	  OBJ PO4 (* terminal = "out_2" *) "PO4" : Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+     };
+ 
+ parameters <-
+   {
+    OBJ F_TSS_X_COD "Conversion factor TSS/COD particulate" : Real := {: value <- 0.75 ; group <- "Conversion factors" :};
+    OBJ F_BOD5_S_COD "Conversion factor BOD5/COD soluble": Fraction := {: value <- 0.25 ; group <- "Conversion factors" :};
+     };
+ 
+ state <-
+   {
+   
+   };
+   
+     equations <-
+   {
+    interface.Q = state.Q_In;
+     
+    interface.COD = IF (state.Q_In == 0)
+    			   THEN 0
+ 			   ELSE
+    			   (interface.Inflow[COD_sol] + interface.Inflow[COD_part]) / state.Q_In; 
+ 
+    interface.BOD5 = parameters.F_BOD5_S_COD * interface.Inflow[COD_sol];
+    interface.TSS  = parameters.F_TSS_X_COD * interface.Inflow[COD_part];
+    
+    interface.NH4  = IF (state.Q_In == 0)
+    			   THEN 0
+ 			   ELSE
+ 			   interface.Inflow[NH4_sew] / state.Q_In;
+			   
+    interface.PO4  = IF (state.Q_In == 0)
+    			   THEN 0
+ 			   ELSE
+ 			   interface.Inflow[PO4_sew] / state.Q_In;
+
+   };
+  :};  

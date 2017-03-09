@@ -1,0 +1,4 @@
+#include "Model_dummy_1.msl"
+
+OBJ _Model_dummy_1_ : Model_dummy_1;
+

@@ -1,0 +1,65 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 23. april 2012 08:05:09$
+ *
+ ******************************************************************************/
+ 
+#ifndef WWTP
+#define WWTP
+
+#include "generic.msl"
+
+#include "wwtp.general.msl"
+#include "wwtp.definitions1.msl"
+#include "wwtp.definitions2.msl"
+
+#include "wwtp.base.msl"
+
+// Level 1
+#include "wwtp.base.splitters_combiners.msl"
+#include "wwtp.base.buffertanks.msl"
+#include "wwtp.base.activated_sludge_units.msl"
+#include "wwtp.n_tanks.msl"
+#include "wwtp.SBR.msl"
+#include "wwtp.base.SBR.msl"
+#include "wwtp.base.CFCD.msl"
+#include "wwtp.base.CFID.msl"
+#include "wwtp.base.clarifier.msl"
+#include "wwtp.base.primary_clarifier.msl"
+#include "wwtp.base.secondary_clarifier.msl"
+#include "wwtp.base.sand_filter.msl"
+#include "wwtp.base.anaerobic_digestion.msl"
+#include "wwtp.base.sensors.msl"
+#include "wwtp.base.controllers.msl"
+#include "wwtp.base.timers.msl"
+#include "wwtp.base.loopbreaker.msl"
+#include "wwtp.base.process_calculator.msl"
+#include "wwtp.base.evaluator.msl"
+//
+// New models, versions 3.7.5 & 3.7.6
+#include "wwtp.base.dosing_units.msl"
+#include "wwtp.base.sludge_dewatering.msl"
+#if (defined ASM1Temp || defined ASM2dModTemp || defined ASM3Temp || defined ASM3P_EAWAG)
+#include "wwtp.base.biofilms.msl"
+#include "wwtp.base.internal_membrane.msl"
+#endif
+#include "wwtp.base.ADM1.msl"
+#include "anaerobic_digestion_unit/wwtp.base.anaerobic_digestion_units.msl"
+//
+// New models, version 2012
+#include "wwtp.base.data_treatment.msl"
+#include "wwtp.aeration.msl"
+//
+// Coupled models
+#include "coupled_models.msl"
+#endif 

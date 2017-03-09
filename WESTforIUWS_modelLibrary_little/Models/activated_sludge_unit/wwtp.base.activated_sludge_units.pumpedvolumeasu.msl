@@ -1,0 +1,90 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 29. juni 2012 15:47:39$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_BASE_ACTIVATED_SLUDGE_UNITS_PUMPEDVOLUMEASU
+#define WWTP_BASE_ACTIVATED_SLUDGE_UNITS_PUMPEDVOLUMEASU
+
+ CLASS PumpedVolumeASU 
+ (* icon = "activated_sludge_unit" *)
+ SPECIALISES PumpedVolumeASMConversionModel :=
+ {:
+   comments <- "Model for an activated sludge unit with a variable pumped volume";
+   interface <-  
+   {
+     OBJ Kla (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Oxygen transfer coefficient" : OxygenTransferCoefficient 
+     := {: causality <- "CIN" ; value <- 0 ; group <- "Operational" :};   
+#if (defined ASM1Temp || defined ASM2dModTemp || defined ASM3Temp || defined ASM3P_EAWAG || defined ASM1_AN || defined ASMG1)
+   OBJ Temp (* terminal = "in_2"; manip = "1" *)  "Temperature of the activated sludge"
+  : CelsiusTemperature  := {: causality <- "CIN" ; value <- 15 ; group <- "Operational" :}; 
+#endif
+   OBJ AerationEnergy (* terminal = "out_2" *)"Aeration energy" : ElectricalEnergy := {: causality <- "COUT"; group <- "Energy" :};
+   OBJ MixingEnergy (* terminal = "out_2" *)"Mixing energy" : ElectricalEnergy := {: causality <- "COUT"; group <- "Energy" :};
+   OBJ PumpingEnergy (* terminal = "out_2" *)"Pumping energy" : ElectricalEnergy := {: causality <- "COUT"; group <- "Energy" :};
+   };   
+   parameters <- 
+   {
+// AERATION ENERGY (through KLa)
+  OBJ OTR_Energy  "Oxygen transfer rate per energy input" : TransferRateEnergy := {: value <- 1800 ; group <- "Aeration" :}; 
+// MIXING ENERGY
+  OBJ ME_unit "Energy requirement per unit of volume for mixing in a AS tank" : Real := {: value <- 0.005; group <- "Mixing energy":};
+  OBJ Kla_Min "Lowest kLa value that ensures adequate mixing" : OxygenTransferCoefficient :={: value <- 20.0; group <- "Mixing energy":};
+    OBJ Mixing_When_Aerated "Mixing activity during aeration" : Real := {: value <- 0 ; group <- "Mixing energy":};
+// PUMPING ENERGY
+    OBJ F_Energy_FlowRate "Conversion factor Energy needed/Pump flow rate" : Ratio := {: value <- 0.04 ; group <- "Energy":};
+   };
+   state <-
+   {
+// AERATION ENERGY (through KLa)
+    OBJ Integ_AE (* hidden = "1" *)"Integral aeration energy" : ElectricalEnergy ;
+// MIXING ENERGY
+    OBJ Integ_ME (* hidden = "1" *)"Integral mixing energy" : ElectricalEnergy ;
+  OBJ ME_Instant (* hidden = "1" *)"Instantaneous mixing energy" : Real:= {: group <- "Mixing":};
+// PUMPING ENERGY
+    OBJ Integ_PE (* hidden = "1" *)"Integral Pumping energy" : ElectricalEnergy ;
+   };
+   initial <-
+   {
+   };
+   equations <- 
+   {
+    state.Kla_Actual = interface.Kla;
+#if (defined ASM1Temp || defined ASM2dModTemp || defined ASM3Temp || defined ASM3P_EAWAG || defined ASM1_AN || defined ASMG1)
+    state.Temp_Actual = interface.Temp;
+#endif
+
+// AERATION ENERGY
+  DERIV(state.Integ_AE,[independent.t])= state.Kla_Actual * state.V ;
+  interface.AerationEnergy = state.S_O_Saturation / (parameters.OTR_Energy) * state.Integ_AE ;
+
+// MIXING ENERGY
+  state.ME_Instant = IF ((state.Kla_Actual < parameters.Kla_Min) || (state.Kla_Actual == 0))
+            THEN parameters.ME_unit * state.V
+          ELSE 
+            IF (parameters.Mixing_When_Aerated)
+            THEN parameters.ME_unit * state.V
+            ELSE 0;   
+
+  DERIV(state.Integ_ME,[independent.t])= state.ME_Instant;
+  interface.MixingEnergy = state.Integ_ME ;
+
+// PUMPING ENERGY
+  DERIV(state.Integ_PE,[independent.t])=  state.Q_Out;
+  interface.PumpingEnergy = parameters.F_Energy_FlowRate * state.Integ_PE ;
+   };   
+ :};
+
+#endif // WWTP_BASE_ACTIVATED_SLUDGE_UNITS_PUMPEDVOLUMEASU
+

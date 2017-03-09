@@ -1,0 +1,117 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 5. september 2011 16:01:15$
+ *
+ ******************************************************************************/
+
+#ifdef ASM3Temp
+//  OBJ Temp  "Temperature of the activated sludge"
+//  : CelsiusTemperature  := {: value <- 15 ; group <- "Operational" :}; 
+  OBJ Temp_Ref  "Reference temperature of the activated sludge"
+  : CelsiusTemperature  := {: value <- 20 ; group <- "Kinetic" :}; 
+  OBJ theta_k_h "Temperature correction factor for k_h"
+  : Real  := {: value <- 1.041 ; group <- "Kinetic" :}; 
+  OBJ theta_k_STO "Temperature correction factor for k_STO"
+  : Real  := {: value <- 1.072 ; group <- "Kinetic" :}; 
+  OBJ theta_mu_H  "Temperature correction factor for mu_H"
+  : Real  := {: value <- 1.072 ; group <- "Kinetic" :}; 
+  OBJ theta_b_H_O2  "Temperature correction factor for b_H_O2"
+  : Real  := {: value <- 1.072 ; group <- "Kinetic" :}; 
+  OBJ theta_b_H_NO  "Temperature correction factor for b_H_NO"
+  : Real  := {: value <- 1.072 ; group <- "Kinetic" :}; 
+  OBJ theta_b_STO_O2  "Temperature correction factor for b_STO_O2"
+  : Real  := {: value <- 1.072 ; group <- "Kinetic" :}; 
+  OBJ theta_b_STO_NO  "Temperature correction factor for b_STO_NO"
+  : Real  := {: value <- 1.072 ; group <- "Kinetic" :}; 
+  OBJ theta_mu_A  "Temperature correction factor for mu_A"
+  : Real  := {: value <- 1.111 ; group <- "Kinetic" :}; 
+  OBJ theta_b_A_O2  "Temperature correction factor for b_A_O2"
+  : Real  := {: value <- 1.116 ; group <- "Kinetic" :}; 
+  OBJ theta_b_A_NO  "Temperature correction factor for b_A_NO"
+  : Real  := {: value <- 1.096 ; group <- "Kinetic" :}; 
+  OBJ k_h "Hydrolysis rate constant"
+  : MaxSpecificHydrolysisRate := {: value <- 3 ; group <- "Kinetic" :}; 
+  OBJ K_X "Hydrolysis saturation constant"
+  : HalfSatCoeffForHydrolSlowBioDegradeSubstr := {: value <- 1 ; group <- "Kinetic" :}; 
+  OBJ k_STO "Storage rate constant"
+  : MaxSpecifGrowthRateHetero := {: value <- 5 ; group <- "Kinetic" :}; 
+  OBJ n_NO  "Anoxic reduction factor"
+  : FractOfBiomassLeadingToPartProd := {: value <- 0.6 ; group <- "Kinetic" :}; 
+  OBJ K_O "Saturation constant for S_O"
+  : OxygenHalfSatCoeffForHetero := {: value <- 0.2 ; group <- "Kinetic" :}; 
+  OBJ K_NO  "Saturation constant for S_NO"
+  : NitrateHalfSatCoeffForDenitrifHetero  := {: value <- 0.5 ; group <- "Kinetic" :}; 
+  OBJ K_S "Saturation constant for substrate S_S"
+  : HalfSatCoeffForHetero := {: value <- 2 ; group <- "Kinetic" :}; 
+  OBJ K_STO "Saturation constant for X_STO"
+  : HalfSatCoeff  := {: value <- 1 ; group <- "Kinetic" :}; 
+  OBJ mu_H  "Heterotrophic max. growth rate"
+  : MaxSpecifGrowthRateHetero := {: value <- 2 ; group <- "Kinetic" :}; 
+  OBJ K_NH  "Ammonium saturation as nutrient"
+  : AmmonHalfSatCoeffForAutotr  := {: value <- 0.01 ; group <- "Kinetic" :}; 
+  OBJ K_HCO "Bicarbonate saturation constant of X_H"
+  : HalfSatCoeff  := {: value <- 0.1 ; group <- "Kinetic" :}; 
+  OBJ b_H_O2  "Aerobic endogenous respiration rate of X_H"
+  : DecayCoeffHeterotr  := {: value <- 0.2 ; group <- "Kinetic" :}; 
+  OBJ b_H_NO  "Anoxic endogenous respiration rate of X_H"
+  : DecayCoeffHeterotr  := {: value <- 0.1 ; group <- "Kinetic" :}; 
+  OBJ b_STO_O2  "Aerobic respiration rate for X_STO"
+  : DecayCoeffHeterotr  := {: value <- 0.2 ; group <- "Kinetic" :}; 
+  OBJ b_STO_NO  "Anoxic respiration rate for X_STO"
+  : DecayCoeffHeterotr  := {: value <- 0.1 ; group <- "Kinetic" :}; 
+  OBJ mu_A  "Autotrophic max. growth rate of X_A"
+  : MaxSpecifGrowthRateAutotr := {: value <- 1 ; group <- "Kinetic" :}; 
+  OBJ K_A_NH  "Ammonium substrate concentration for X_A"
+  : HalfSatCoeff  := {: value <- 1 ; group <- "Kinetic" :}; 
+  OBJ K_A_O "Oxygen saturation for nitrifiers"
+  : HalfSatCoeff  := {: value <- 0.5 ; group <- "Kinetic" :}; 
+  OBJ K_A_HCO "Bicarbonate saturation for nitrifiers"
+  : HalfSatCoeff  := {: value <- 0.5 ; group <- "Kinetic" :}; 
+  OBJ b_A_O2  "Aerobic endogenous respiration rate of X_A"
+  : DecayCoeffAutotr  := {: value <- 0.15 ; group <- "Kinetic" :}; 
+  OBJ b_A_NO  "Anoxic endogenous respiration rate of X_A"
+  : DecayCoeffAutotr  := {: value <- 0.05 ; group <- "Kinetic" :}; 
+  OBJ f_S_I "Production of S_I in hydrolysis"
+  : FractOfBiomassLeadingToPartProd := {: value <- 0 ; group <- "Stoichiometry" :}; 
+  OBJ f_X_I "Production of X_I in aerobic endogenous respiration"
+  : FractOfBiomassLeadingToPartProd := {: value <- 0.2 ; group <- "Stoichiometry" :}; 
+  OBJ Y_STO_O2  "Aerobic yield of stored product per S_S"
+  : YieldForHeterotrophicBiomass  := {: value <- 0.85 ; group <- "Stoichiometry" :}; 
+  OBJ Y_STO_NO  "Anoxic yield of stored product per S_S"
+  : YieldForHeterotrophicBiomass  := {: value <- 0.8 ; group <- "Stoichiometry" :}; 
+  OBJ Y_H_O2  "Aerobic yield of heterotrophic biomass per X_STO"
+  : YieldForHeterotrophicBiomass  := {: value <- 0.63 ; group <- "Stoichiometry" :}; 
+  OBJ Y_H_NO  "Anoxic yield of heterotrophic biomass per X_STO"
+  : YieldForHeterotrophicBiomass  := {: value <- 0.54 ; group <- "Stoichiometry" :};  OBJ Y_A "Yield of autotrophic biomass per NO3_N"
+  : YieldForAutotrophicBiomass  := {: value <- 0.24 ; group <- "Stoichiometry" :}; 
+  OBJ i_N_S_I "N content of S_I"
+  : MassOfNitrogenPerMassOfCODInBiomass := {: value <- 0.01 ; group <- "Composition parameters" :}; 
+  OBJ i_N_S_S "N content of S_S"
+  : MassOfNitrogenPerMassOfCODInBiomass := {: value <- 0.03 ; group <- "Composition parameters" :}; 
+  OBJ i_N_X_I "N content of X_I"
+  : MassOfNitrogenPerMassOfCODInBiomass := {: value <- 0.02 ; group <- "Composition parameters" :}; 
+  OBJ i_N_X_S "N content of X_S"
+  : MassOfNitrogenPerMassOfCODInBiomass := {: value <- 0.04 ; group <- "Composition parameters" :}; 
+  OBJ i_N_BM  "N content of biomass X_H, X_A"
+  : MassOfNitrogenPerMassOfCODInBiomass := {: value <- 0.07 ; group <- "Composition parameters" :}; 
+  OBJ i_TS_X_I  "TSS to COD ratio for X_I"
+  : FractOfBiomassLeadingToPartProd := {: value <- 0.75 ; group <- "Composition parameters" :}; 
+  OBJ i_TS_X_S  "TSS to COD ratio for X_S"
+  : FractOfBiomassLeadingToPartProd := {: value <- 0.75 ; group <- "Composition parameters" :}; 
+  OBJ i_TS_BM "TSS to COD ratio for biomass X_H, X_A"
+  : FractOfBiomassLeadingToPartProd := {: value <- 0.9 ; group <- "Composition parameters" :}; 
+  OBJ i_TS_STO  "TSS to COD ratio for X_STO based on PHB"
+  : FractOfBiomassLeadingToPartProd := {: value <- 0.6 ; group <- "Composition parameters" :}; 
+  OBJ F_BOD_COD "Conversion factor BOD/COD"
+  : Fraction  := {: value <- 0.65 ; group <- "Conversion factors" :}; 
+#endif // ASM3Temp

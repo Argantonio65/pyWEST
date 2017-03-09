@@ -1,0 +1,215 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 23. april 2012 08:05:08$
+ *
+ ******************************************************************************/
+ 
+#if(defined ASM2dModTemp)
+#ifdef ASU_TWO_TANK
+  connect(sub_models.ASU1.interface.DO, interface.DO_ASU1),
+  connect(sub_models.ASU2.interface.DO, interface.DO_ASU2),
+  connect(sub_models.ASU1.interface.NH4, interface.NH4_ASU1),
+  connect(sub_models.ASU2.interface.NH4, interface.NH4_ASU2),
+  connect(sub_models.ASU1.interface.NO3, interface.NO3_ASU1),
+  connect(sub_models.ASU2.interface.NO3, interface.NO3_ASU2),
+  connect(sub_models.ASU1.interface.TSS, interface.TSS_ASU1),
+  connect(sub_models.ASU2.interface.TSS, interface.TSS_ASU2),
+  connect(sub_models.ASU1.interface.OnlineCOD, interface.OnlineCOD_ASU1),
+  connect(sub_models.ASU2.interface.OnlineCOD, interface.OnlineCOD_ASU2),
+  connect(sub_models.ASU1.interface.OfflineBOD, interface.OfflineBOD_ASU1),
+  connect(sub_models.ASU2.interface.OfflineBOD, interface.OfflineBOD_ASU2),
+  connect(sub_models.ASU1.interface.OnlineTN, interface.OnlineTN_ASU1),
+  connect(sub_models.ASU2.interface.OnlineTN, interface.OnlineTN_ASU2),
+  connect(sub_models.ASU1.interface.OfflineTKN, interface.OfflineTKN_ASU1),
+  connect(sub_models.ASU2.interface.OfflineTKN, interface.OfflineTKN_ASU2),
+  connect(sub_models.ASU1.interface.OnlineTP, interface.OnlineTP_ASU1),
+  connect(sub_models.ASU2.interface.OnlineTP, interface.OnlineTP_ASU2),
+  connect(sub_models.ASU1.interface.PO4, interface.PO4_ASU1),
+  connect(sub_models.ASU2.interface.PO4, interface.PO4_ASU2),
+  connect(sub_models.ASU1.interface.V_ASU, interface.V_ASU1),
+  connect(sub_models.ASU2.interface.V_ASU, interface.V_ASU2),
+  connect(sub_models.ASU1.interface.OUR_ASU, interface.OUR_ASU1),
+  connect(sub_models.ASU2.interface.OUR_ASU, interface.OUR_ASU2),
+  connect(sub_models.ASU1.interface.NUR, interface.NUR_ASU1),
+  connect(sub_models.ASU2.interface.NUR, interface.NUR_ASU2),
+  connect(sub_models.ASU1.interface.NPR, interface.NPR_ASU1),
+  connect(sub_models.ASU2.interface.NPR, interface.NPR_ASU2),
+  connect(sub_models.ASU1.interface.AUR, interface.AUR_ASU1),
+  connect(sub_models.ASU2.interface.AUR, interface.AUR_ASU2),
+  connect(sub_models.ASU1.interface.PUR, interface.PUR_ASU1),
+  connect(sub_models.ASU2.interface.PUR, interface.PUR_ASU2),
+  connect(sub_models.ASU1.interface.Kla_ASU, interface.Kla_ASU1),
+  connect(sub_models.ASU2.interface.Kla_ASU, interface.Kla_ASU2),
+
+#endif // ASU_TWO_TANK
+
+#ifdef ASU_THREE_TANK
+  connect(sub_models.ASU3.interface.DO, interface.DO_ASU3),
+  connect(sub_models.ASU3.interface.NH4, interface.NH4_ASU3),
+  connect(sub_models.ASU3.interface.NO3, interface.NO3_ASU3),
+  connect(sub_models.ASU3.interface.TSS, interface.TSS_ASU3),
+  connect(sub_models.ASU3.interface.OnlineCOD, interface.OnlineCOD_ASU3),
+  connect(sub_models.ASU3.interface.OfflineBOD, interface.OfflineBOD_ASU3),
+  connect(sub_models.ASU3.interface.OnlineTN, interface.OnlineTN_ASU3),
+  connect(sub_models.ASU3.interface.OfflineTKN, interface.OfflineTKN_ASU3),
+  connect(sub_models.ASU3.interface.OnlineTP, interface.OnlineTP_ASU3),
+  connect(sub_models.ASU3.interface.PO4, interface.PO4_ASU3),
+  connect(sub_models.ASU3.interface.V_ASU, interface.V_ASU3),
+  connect(sub_models.ASU3.interface.OUR_ASU, interface.OUR_ASU3),
+  connect(sub_models.ASU3.interface.NUR, interface.NUR_ASU3),
+  connect(sub_models.ASU3.interface.NPR, interface.NPR_ASU3),
+  connect(sub_models.ASU3.interface.AUR, interface.AUR_ASU3),
+  connect(sub_models.ASU3.interface.PUR, interface.PUR_ASU3),
+  connect(sub_models.ASU3.interface.Kla_ASU, interface.Kla_ASU3),
+#endif // ASU_THREE_TANK
+
+#ifdef ASU_FOUR_TANK
+  connect(sub_models.ASU4.interface.DO, interface.DO_ASU4),
+  connect(sub_models.ASU4.interface.NH4, interface.NH4_ASU4),
+  connect(sub_models.ASU4.interface.NO3, interface.NO3_ASU4),
+  connect(sub_models.ASU4.interface.TSS, interface.TSS_ASU4),
+  connect(sub_models.ASU4.interface.OnlineCOD, interface.OnlineCOD_ASU4),
+  connect(sub_models.ASU4.interface.OfflineBOD, interface.OfflineBOD_ASU4),
+  connect(sub_models.ASU4.interface.OnlineTN, interface.OnlineTN_ASU4),
+  connect(sub_models.ASU4.interface.OfflineTKN, interface.OfflineTKN_ASU4),
+  connect(sub_models.ASU4.interface.OnlineTP, interface.OnlineTP_ASU4),
+  connect(sub_models.ASU4.interface.PO4, interface.PO4_ASU4),
+  connect(sub_models.ASU4.interface.V_ASU, interface.V_ASU4),
+  connect(sub_models.ASU4.interface.OUR_ASU, interface.OUR_ASU4),
+  connect(sub_models.ASU4.interface.NUR, interface.NUR_ASU4),
+  connect(sub_models.ASU4.interface.NPR, interface.NPR_ASU4),
+  connect(sub_models.ASU4.interface.AUR, interface.AUR_ASU4),
+  connect(sub_models.ASU4.interface.PUR, interface.PUR_ASU4),
+  connect(sub_models.ASU4.interface.Kla_ASU, interface.Kla_ASU4),
+#endif // ASU_FOUR_TANK
+
+#ifdef ASU_FIVE_TANK
+  connect(sub_models.ASU5.interface.DO, interface.DO_ASU5),
+  connect(sub_models.ASU5.interface.NH4, interface.NH4_ASU5),
+  connect(sub_models.ASU5.interface.NO3, interface.NO3_ASU5),
+  connect(sub_models.ASU5.interface.TSS, interface.TSS_ASU5),
+  connect(sub_models.ASU5.interface.OnlineCOD, interface.OnlineCOD_ASU5),
+  connect(sub_models.ASU5.interface.OfflineBOD, interface.OfflineBOD_ASU5),
+  connect(sub_models.ASU5.interface.OnlineTN, interface.OnlineTN_ASU5),
+  connect(sub_models.ASU5.interface.OfflineTKN, interface.OfflineTKN_ASU5),
+  connect(sub_models.ASU5.interface.OnlineTP, interface.OnlineTP_ASU5),
+  connect(sub_models.ASU5.interface.PO4, interface.PO4_ASU5),
+  connect(sub_models.ASU5.interface.V_ASU, interface.V_ASU5),
+  connect(sub_models.ASU5.interface.OUR_ASU, interface.OUR_ASU5),
+  connect(sub_models.ASU5.interface.NUR, interface.NUR_ASU5),
+  connect(sub_models.ASU5.interface.NPR, interface.NPR_ASU5),
+  connect(sub_models.ASU5.interface.AUR, interface.AUR_ASU5),
+  connect(sub_models.ASU5.interface.PUR, interface.PUR_ASU5),
+  connect(sub_models.ASU5.interface.Kla_ASU, interface.Kla_ASU5),
+#endif // ASU_FIVE_TANK
+
+#ifdef ASU_SIX_TANK
+  connect(sub_models.ASU6.interface.DO, interface.DO_ASU6),
+  connect(sub_models.ASU6.interface.NH4, interface.NH4_ASU6),
+  connect(sub_models.ASU6.interface.NO3, interface.NO3_ASU6),
+  connect(sub_models.ASU6.interface.TSS, interface.TSS_ASU6),
+  connect(sub_models.ASU6.interface.OnlineCOD, interface.OnlineCOD_ASU6),
+  connect(sub_models.ASU6.interface.OfflineBOD, interface.OfflineBOD_ASU6),
+  connect(sub_models.ASU6.interface.OnlineTN, interface.OnlineTN_ASU6),
+  connect(sub_models.ASU6.interface.OfflineTKN, interface.OfflineTKN_ASU6),
+  connect(sub_models.ASU6.interface.OnlineTP, interface.OnlineTP_ASU6),
+  connect(sub_models.ASU6.interface.PO4, interface.PO4_ASU6),
+  connect(sub_models.ASU6.interface.V_ASU, interface.V_ASU6),
+  connect(sub_models.ASU6.interface.OUR_ASU, interface.OUR_ASU6),
+  connect(sub_models.ASU6.interface.NUR, interface.NUR_ASU6),
+  connect(sub_models.ASU6.interface.NPR, interface.NPR_ASU6),
+  connect(sub_models.ASU6.interface.AUR, interface.AUR_ASU6),
+  connect(sub_models.ASU6.interface.PUR, interface.PUR_ASU6),
+  connect(sub_models.ASU6.interface.Kla_ASU, interface.Kla_ASU6),
+#endif // ASU_SIX_TANK
+
+#ifdef ASU_SEVEN_TANK
+  connect(sub_models.ASU7.interface.DO, interface.DO_ASU7),
+  connect(sub_models.ASU7.interface.NH4, interface.NH4_ASU7),
+  connect(sub_models.ASU7.interface.NO3, interface.NO3_ASU7),
+  connect(sub_models.ASU7.interface.TSS, interface.TSS_ASU7),
+  connect(sub_models.ASU7.interface.OnlineCOD, interface.OnlineCOD_ASU7),
+  connect(sub_models.ASU7.interface.OfflineBOD, interface.OfflineBOD_ASU7),
+  connect(sub_models.ASU7.interface.OnlineTN, interface.OnlineTN_ASU7),
+  connect(sub_models.ASU7.interface.OfflineTKN, interface.OfflineTKN_ASU7),
+  connect(sub_models.ASU7.interface.OnlineTP, interface.OnlineTP_ASU7),
+  connect(sub_models.ASU7.interface.PO4, interface.PO4_ASU7),
+  connect(sub_models.ASU7.interface.V_ASU, interface.V_ASU7),
+  connect(sub_models.ASU7.interface.OUR_ASU, interface.OUR_ASU7),
+  connect(sub_models.ASU7.interface.NUR, interface.NUR_ASU7),
+  connect(sub_models.ASU7.interface.NPR, interface.NPR_ASU7),
+  connect(sub_models.ASU7.interface.AUR, interface.AUR_ASU7),
+  connect(sub_models.ASU7.interface.PUR, interface.PUR_ASU7),
+  connect(sub_models.ASU7.interface.Kla_ASU, interface.Kla_ASU7),
+#endif // ASU_SEVEN_TANK
+
+#ifdef ASU_EIGHT_TANK
+  connect(sub_models.ASU8.interface.DO, interface.DO_ASU8),
+  connect(sub_models.ASU8.interface.NH4, interface.NH4_ASU8),
+  connect(sub_models.ASU8.interface.NO3, interface.NO3_ASU8),
+  connect(sub_models.ASU8.interface.TSS, interface.TSS_ASU8),
+  connect(sub_models.ASU8.interface.OnlineCOD, interface.OnlineCOD_ASU8),
+  connect(sub_models.ASU8.interface.OfflineBOD, interface.OfflineBOD_ASU8),
+  connect(sub_models.ASU8.interface.OnlineTN, interface.OnlineTN_ASU8),
+  connect(sub_models.ASU8.interface.OfflineTKN, interface.OfflineTKN_ASU8),
+  connect(sub_models.ASU8.interface.OnlineTP, interface.OnlineTP_ASU8),
+  connect(sub_models.ASU8.interface.PO4, interface.PO4_ASU8),
+  connect(sub_models.ASU8.interface.V_ASU, interface.V_ASU8),
+  connect(sub_models.ASU8.interface.OUR_ASU, interface.OUR_ASU8),
+  connect(sub_models.ASU8.interface.NUR, interface.NUR_ASU8),
+  connect(sub_models.ASU8.interface.NPR, interface.NPR_ASU8),
+  connect(sub_models.ASU8.interface.AUR, interface.AUR_ASU8),
+  connect(sub_models.ASU8.interface.PUR, interface.PUR_ASU8),
+  connect(sub_models.ASU8.interface.Kla_ASU, interface.Kla_ASU8),
+#endif // ASU_EIGHT_TANK
+
+#ifdef ASU_NINE_TANK
+  connect(sub_models.ASU9.interface.DO, interface.DO_ASU9),
+  connect(sub_models.ASU9.interface.NH4, interface.NH4_ASU9),
+  connect(sub_models.ASU9.interface.NO3, interface.NO3_ASU9),
+  connect(sub_models.ASU9.interface.TSS, interface.TSS_ASU9),
+  connect(sub_models.ASU9.interface.OnlineCOD, interface.OnlineCOD_ASU9),
+  connect(sub_models.ASU9.interface.OfflineBOD, interface.OfflineBOD_ASU9),
+  connect(sub_models.ASU9.interface.OnlineTN, interface.OnlineTN_ASU9),
+  connect(sub_models.ASU9.interface.OfflineTKN, interface.OfflineTKN_ASU9),
+  connect(sub_models.ASU9.interface.OnlineTP, interface.OnlineTP_ASU9),
+  connect(sub_models.ASU9.interface.PO4, interface.PO4_ASU9),
+  connect(sub_models.ASU9.interface.V_ASU, interface.V_ASU9),
+  connect(sub_models.ASU9.interface.OUR_ASU, interface.OUR_ASU9),
+  connect(sub_models.ASU9.interface.NUR, interface.NUR_ASU9),
+  connect(sub_models.ASU9.interface.NPR, interface.NPR_ASU9),
+  connect(sub_models.ASU9.interface.AUR, interface.AUR_ASU9),
+  connect(sub_models.ASU9.interface.PUR, interface.PUR_ASU9),
+  connect(sub_models.ASU9.interface.Kla_ASU, interface.Kla_ASU9),
+#endif // ASU_NINE_TANK
+
+#ifdef ASU_TEN_TANK
+  connect(sub_models.ASU10.interface.DO, interface.DO_ASU10),
+  connect(sub_models.ASU10.interface.NH4, interface.NH4_ASU10),
+  connect(sub_models.ASU10.interface.NO3, interface.NO3_ASU10),
+  connect(sub_models.ASU10.interface.TSS, interface.TSS_ASU10),
+  connect(sub_models.ASU10.interface.OnlineCOD, interface.OnlineCOD_ASU10),
+  connect(sub_models.ASU10.interface.OfflineBOD, interface.OfflineBOD_ASU10),
+  connect(sub_models.ASU10.interface.OnlineTN, interface.OnlineTN_ASU10),
+  connect(sub_models.ASU10.interface.OfflineTKN, interface.OfflineTKN_ASU10),
+  connect(sub_models.ASU10.interface.OnlineTP, interface.OnlineTP_ASU10),
+  connect(sub_models.ASU10.interface.PO4, interface.PO4_ASU10),
+  connect(sub_models.ASU10.interface.V_ASU, interface.V_ASU10),
+  connect(sub_models.ASU10.interface.OUR_ASU, interface.OUR_ASU10),
+  connect(sub_models.ASU10.interface.NUR, interface.NUR_ASU10),
+  connect(sub_models.ASU10.interface.NPR, interface.NPR_ASU10),
+  connect(sub_models.ASU10.interface.AUR, interface.AUR_ASU10),
+  connect(sub_models.ASU10.interface.PUR, interface.PUR_ASU10),
+  connect(sub_models.ASU10.interface.Kla_ASU, interface.Kla_ASU10),
+#endif // ASU_TEN_TANK
+#endif // ASM2dModTemp

@@ -1,0 +1,65 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$ EURE
+ * $Date: 29. juni 2012 15:54:05$
+ *
+ ******************************************************************************/
+
+#ifdef ASM1_AN
+	parameters.Stoichiometry[Hydrolysis][S_S] := 1;
+	parameters.Stoichiometry[Hydrolysis][X_S] :=  - 1;
+	parameters.Stoichiometry[AerGrowthXH][S_S] :=  - 1 / parameters.Y_HO;
+	parameters.Stoichiometry[AerGrowthXH][S_O] :=  - (1 - parameters.Y_HO) / parameters.Y_HO;
+	parameters.Stoichiometry[AerGrowthXH][S_NH] :=  - parameters.i_N_BM ;
+	parameters.Stoichiometry[AerGrowthXH][X_H] := 1;
+	parameters.Stoichiometry[AerEndoXH][S_NH] := parameters.i_N_BM - parameters.f_XI * parameters.i_N_XI;
+	parameters.Stoichiometry[AerEndoXH][X_I] := parameters.f_XI;
+	parameters.Stoichiometry[AerEndoXH][X_S] := 1 - parameters.f_XI;
+	parameters.Stoichiometry[AerEndoXH][X_H] :=  - 1;
+	parameters.Stoichiometry[AnGrowthXHonNO3][S_S] :=  - 1 / parameters.Y_HNO3;
+	parameters.Stoichiometry[AnGrowthXHonNO3][S_NO2] := (1 - parameters.Y_HNO3) / (1.14 * parameters.Y_HNO3);
+	parameters.Stoichiometry[AnGrowthXHonNO3][S_NO3] :=  - (1 - parameters.Y_HNO3) / (1.14 * parameters.Y_HNO3);
+	parameters.Stoichiometry[AnGrowthXHonNO3][S_NH] :=  - parameters.i_N_BM ;
+	parameters.Stoichiometry[AnGrowthXHonNO3][X_H] := 1;
+	parameters.Stoichiometry[AnGrowthXHonNO2][S_S] :=  - 1 / (parameters.Y_HNO2);
+	parameters.Stoichiometry[AnGrowthXHonNO2][S_NO2] :=  - (1 - parameters.Y_HNO2) / (1.72 * parameters.Y_HNO2);
+	parameters.Stoichiometry[AnGrowthXHonNO2][S_N2] := (1 - parameters.Y_HNO2) / (1.72 * parameters.Y_HNO2);
+	parameters.Stoichiometry[AnGrowthXHonNO2][S_NH] :=  - parameters.i_N_BM ;
+	parameters.Stoichiometry[AnGrowthXHonNO2][X_H] := 1;
+	parameters.Stoichiometry[AerGrowthXNH][S_O] :=  - (3.43 - parameters.Y_NH) / parameters.Y_NH;
+	parameters.Stoichiometry[AerGrowthXNH][S_NO2] := (1 / parameters.Y_NH);
+	parameters.Stoichiometry[AerGrowthXNH][S_NH] :=  - 1 / parameters.Y_NH - parameters.i_N_BM;
+	parameters.Stoichiometry[AerGrowthXNH][X_NH] := 1;
+	parameters.Stoichiometry[AerEndoXNH][S_NH] := parameters.i_N_BM - parameters.f_XI * parameters.i_N_XI;
+	parameters.Stoichiometry[AerEndoXNH][X_I] := parameters.f_XI;
+	parameters.Stoichiometry[AerEndoXNH][X_S] := 1 - parameters.f_XI;
+	parameters.Stoichiometry[AerEndoXNH][X_NH] :=  - 1;
+	parameters.Stoichiometry[AerGrowthXNO][S_O] :=  - (1.14 - parameters.Y_NO) / parameters.Y_NO;
+	parameters.Stoichiometry[AerGrowthXNO][S_NO2] :=  - 1 / parameters.Y_NO;
+	parameters.Stoichiometry[AerGrowthXNO][S_NO3] := 1 / parameters.Y_NO;
+	parameters.Stoichiometry[AerGrowthXNO][S_NH] :=  - parameters.i_N_BM;
+	parameters.Stoichiometry[AerGrowthXNO][X_NO] := 1;
+	parameters.Stoichiometry[AerEndoXNO][S_NH] := parameters.i_N_BM - parameters.f_XI * parameters.i_N_XI;
+	parameters.Stoichiometry[AerEndoXNO][X_I] := parameters.f_XI;
+	parameters.Stoichiometry[AerEndoXNO][X_S] := 1 - parameters.f_XI;
+	parameters.Stoichiometry[AerEndoXNO][X_NO] :=  - 1;
+	parameters.Stoichiometry[AnaerGrowthXAN][S_NO2] :=  - 1.52 - 1 / parameters.Y_AN;
+	parameters.Stoichiometry[AnaerGrowthXAN][S_NO3] := 1.52;
+	parameters.Stoichiometry[AnaerGrowthXAN][S_N2] := 2 / parameters.Y_AN;
+	parameters.Stoichiometry[AnaerGrowthXAN][S_NH] :=  - 1 / parameters.Y_AN - parameters.i_N_BM;
+	parameters.Stoichiometry[AnaerGrowthXAN][X_AN] := 1;
+	parameters.Stoichiometry[AerEndoXAN][S_NH] := parameters.i_N_BM - parameters.f_XI * parameters.i_N_XI;
+	parameters.Stoichiometry[AerEndoXAN][X_I] := parameters.f_XI;
+	parameters.Stoichiometry[AerEndoXAN][X_S] := 1 - parameters.f_XI;
+	parameters.Stoichiometry[AerEndoXAN][X_AN] :=  - 1;
+	parameters.Stoichiometry[Aeration][S_O] := 1;
+#endif // ASM1_AN

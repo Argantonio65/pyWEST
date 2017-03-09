@@ -1,0 +1,615 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Tornado>
+<PaletteLib Name="WEST.WWTP.CNP" Version="1.0">
+<Props>
+<Prop Name="TornadoVersion" Value="2016 Development"/>
+<Prop Name="Author" Value="NASSIM\Lorenzo"/>
+<Prop Name="Date" Value="Mon Nov 10 11:29:44 2014"/>
+<Prop Name="Desc" Value=""/>
+<Prop Name="FileName" Value="C:\backup\VARIA\projects\WW\De Dommel\KALLISTO\2.0\WEST\Eindhoven\WESTforIUWS\Icons\WEST.WWTP.CNP.PaletteLib.xml|.Tornado"/>
+<Prop Name="DisplayName" Value=""/>
+<Prop Name="Data" Value=""/>
+</Props>
+<Palettes>
+<Palette Name="Palette0001">
+<Props>
+<Prop Name="DisplayName" Value="IUWS"/>
+<Prop Name="Data" Value=""/>
+</Props>
+<Icons>
+<Icon Name="Icon0">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Icon66"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon1">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Icon67"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon2">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Icon68"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon3">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Icon69"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon5">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Icon71"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon6">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Icon72"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon7">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Icon73"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon8">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Icon74"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon9">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Icon75"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+</Icons>
+</Palette>
+<Palette Name="Palette_001">
+<Props>
+<Prop Name="DisplayName" Value="Input and Output"/>
+<Prop Name="Data" Value=""/>
+</Props>
+<Icons>
+<Icon Name="Icon11">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Municipal_wastewater"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon12">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Industrial_wastewater"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon13">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Truckloads"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon14">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Effluent"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon15">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Waste"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon21">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Input"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon22">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Output"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+</Icons>
+</Palette>
+<Palette Name="Palette_002">
+<Props>
+<Prop Name="DisplayName" Value="Flow"/>
+<Prop Name="Data" Value=""/>
+</Props>
+<Icons>
+<Icon Name="Icon11">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Two_combiner"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon12">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Three_combiner"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon13">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Four_combiner"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon14">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Five_combiner"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon21">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Two_flow_splitter"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon22">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Three_flow_splitter"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon23">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Four_flow_splitter"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon24">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Five_flow_splitter"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon31">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Two_fraction_splitter"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon32">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Three_fraction_splitter"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon33">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Four_fraction_splitter"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon34">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Five_fraction_splitter"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+</Icons>
+</Palette>
+<Palette Name="Palette_003">
+<Props>
+<Prop Name="DisplayName" Value="Storage"/>
+<Prop Name="Data" Value=""/>
+</Props>
+<Icons>
+<Icon Name="Icon11">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Buffer_tank"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon12">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Equalisation_tank"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon13">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Storm_tank"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+</Icons>
+</Palette>
+<Palette Name="Palette_004">
+<Props>
+<Prop Name="DisplayName" Value="Biological Treatment"/>
+<Prop Name="Data" Value=""/>
+</Props>
+<Icons>
+<Icon Name="Icon11">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Activated_sludge_unit"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon21">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="IFAS"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon22">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Trickling_filter"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon31">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="MBR"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon41">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="SBR"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon42">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="CFCD"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon43">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="CFID"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+</Icons>
+</Palette>
+<Palette Name="Palette_005">
+<Props>
+<Prop Name="DisplayName" Value="Separation"/>
+<Prop Name="Data" Value=""/>
+</Props>
+<Icons>
+<Icon Name="Icon11">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Primary_clarifier"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon21">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Secondary_clarifier"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon31">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Membrane"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon41">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Sand_filter"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+</Icons>
+</Palette>
+<Palette Name="Palette_006">
+<Props>
+<Prop Name="DisplayName" Value="Chemical Dosing"/>
+<Prop Name="Data" Value=""/>
+</Props>
+<Icons>
+<Icon Name="Icon11">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Acetate_dosing_unit"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon12">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Ethanol_dosing_unit"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon13">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Methanol_dosing_unit"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon21">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Alum_dosing_unit"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon22">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Iron_dosing_unit"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+</Icons>
+</Palette>
+<Palette Name="Palette_007">
+<Props>
+<Prop Name="DisplayName" Value="Sludge Treatment"/>
+<Prop Name="Data" Value=""/>
+</Props>
+<Icons>
+<Icon Name="Icon21">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Beltpress"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon22">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Centrifuge"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon23">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Dewatering_unit"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+</Icons>
+</Palette>
+<Palette Name="Palette_008">
+<Props>
+<Prop Name="DisplayName" Value="Sensors"/>
+<Prop Name="Data" Value=""/>
+</Props>
+<Icons>
+<Icon Name="Icon0">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Icon0"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon1">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Icon65"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon11">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Flow_sensor"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon21">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="DO_sensor"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon31">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="NH4_sensor"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon32">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="NO3_sensor"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon33">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="TKN_sensor"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon34">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="TN_sensor"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon35">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="PO4_sensor"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon36">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="TP_sensor"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon41">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="TSS_sensor"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon51">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="COD_sensor"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon52">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="BOD_sensor"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon61">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Cost"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon62">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Process_calculator"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+</Icons>
+</Palette>
+<Palette Name="Palette_009">
+<Props>
+<Prop Name="DisplayName" Value="Controllers"/>
+<Prop Name="Data" Value=""/>
+</Props>
+<Icons>
+<Icon Name="Icon0">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Icon64"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon11">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="On_Off_Controller"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon12">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="P_Controller"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon13">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="PI_Controller"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon14">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="PID_Controller"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon15">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Ratio_Controller"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+<Icon Name="Icon21">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Timer"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+</Icons>
+</Palette>
+<Palette Name="Palette_010">
+<Props>
+<Prop Name="DisplayName" Value="Other"/>
+<Prop Name="Data" Value=""/>
+</Props>
+<Icons>
+<Icon Name="Icon11">
+<Props>
+<Prop Name="IconLib" Value="WEST.IconLib.xml"/>
+<Prop Name="IconName" Value="Loop_breaker"/>
+<Prop Name="Data" Value=""/>
+</Props>
+</Icon>
+</Icons>
+</Palette>
+</Palettes>
+</PaletteLib>
+</Tornado>

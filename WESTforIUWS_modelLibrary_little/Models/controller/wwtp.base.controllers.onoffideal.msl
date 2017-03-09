@@ -1,0 +1,112 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 23. marts 2012 12:41:30$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_BASE_CONTROLLERS_ONOFFIDEAL
+#define WWTP_BASE_CONTROLLERS_ONOFFIDEAL
+
+CLASS OnOffIdeal
+  (* icon = "controller_on_off" ; is_default = "" *)
+  "Ideal On-off controller"
+  SPECIALISES
+  PhysicalDAEModelType :=
+  {:
+    comments <- "A model for an on-off controller";
+    interface <-
+    {
+      OBJ y_M (* terminal = "in_1"; is_favorite = "1" *) "Sensor measured output" : 
+               Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+      OBJ u (* terminal = "out_1"; is_favorite = "1" *) "Controlled variable" : 
+               Real := {: causality <- "COUT" ; group <- "Control action" :};
+    OBJ y_S (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Setpoint value for controlled variable" : 
+         Real := {: causality <- "CIN" ; value <- 2  ; group <- "Operational":};
+    OBJ u_Off (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Output when off" : 
+    Real := {: causality <- "CIN" ; value <- 10 ; group <- "Operational" :};
+    OBJ u_On  (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Output when on"  : 
+    Real := {: causality <- "CIN" ; value <- 20 ; group <- "Operational" :};
+    };
+
+    parameters <-
+    {
+    };
+
+  independent <- 
+  { 
+    OBJ t "Time" : Time := {: group <- "Time" :}; 
+   };
+
+    state <-
+    {
+     OBJ e (* is_favorite = "1" *) "Error" : PhysicalQuantityType := {: group <- "Operational" :};
+     OBJ help_u (* hidden = "1" *) "Previous u help variable" : Real;
+     OBJ help_t (* hidden = "1" *) "Previous t help variable" : Real;
+    };
+
+    equations <-
+    {
+    state.e = interface.y_S - interface.y_M;
+
+    state.help_u = interface.u;
+    state.help_t = independent.t;
+    interface.u = IF (interface.y_M > interface.y_S)
+                  THEN interface.u_Off
+                  ELSE interface.u_On;
+   };
+
+ :};
+
+CLASS OnOff_rivdev
+  (* icon = "controller_on_off" ; is_default = "" *)
+  "On-off controller  for river diversion when CSO active" 
+  SPECIALISES
+  PhysicalDAEModelType :=
+  {:
+    comments <- "A model for an on-off controller";
+    interface <-
+    {
+      OBJ y_M (* terminal = "in_1"; is_favorite = "1" *) "Sensor measured output" : 
+               Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+      OBJ u (* terminal = "out_1"; is_favorite = "1" *) "Controlled variable" : 
+               Real := {: causality <- "COUT" ; group <- "Control action" :};
+    OBJ y_S (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Setpoint value for controlled variable" : 
+         Real := {: causality <- "CIN" ; value <- 2  ; group <- "Operational":};
+
+    };
+
+    parameters <-
+    {
+	    OBJ u_Off "Output when CSO not active" : Real := {: value <- 1 ; group <- "Operational" :};  
+      OBJ u_On  "Output when CSO active"  : Real := {: value <- 1 ; group <- "Operational" :};
+    };
+	
+   independent <- 
+   { 
+    OBJ t "Time" : Time := {: group <- "Time" :}; 
+   };
+
+    state <-
+    {
+    };
+
+    equations <-
+    {
+    interface.u = IF (interface.y_M < interface.y_S)
+                  THEN parameters.u_Off
+                  ELSE parameters.u_On;
+   };
+
+ :};
+
+#endif // WWTP_BASE_CONTROLLERS_ONOFFIDEAL

@@ -1,0 +1,140 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 23. marts 2012 12:41:34$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_BASE_SPLITTERS_COMBINERS_ABSFIVESPLITTER
+#define WWTP_BASE_SPLITTERS_COMBINERS_ABSFIVESPLITTER
+
+ CLASS AbsFiveSplitter
+ (* icon = "five_flow_splitter" ; is_default = "true" *)
+ "absolute five way splitter"
+
+// Dividing a flow in five flows. 
+
+ EXTENDS WWTPAtomicModelWithoutVolume WITH
+ {:
+  comments <- "A model for an absolute splitter into five flows";
+  interface <-
+   { 
+    OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+         InWWTPTerminal := {: causality <- "CIN" ; group <- "Influent" :};
+    OBJ Outflow1 (* terminal = "out_1" *) "Outflow1" : 
+         OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent 1" :};
+    OBJ Outflow2 (* terminal = "out_2" *) "Outflow2" : 
+         OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent 2" :};
+    OBJ Outflow3 (* terminal = "out_3" *) "Outflow3" : 
+         OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent 3" :};
+    OBJ Outflow4 (* terminal = "out_4" *) "Outflow4" : 
+         OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent 4" :};
+    OBJ Outflow5 (* terminal = "out_5" *) "Outflow5" : 
+         OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent 5" :};
+    OBJ Q_Out2 (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Outflow2 rate" : 
+     FlowRate := {: causality <- "CIN" ; value <- 50 ; group <- "Operational" :};
+    OBJ Q_Out3 (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Outflow3 rate" : 
+     FlowRate := {: causality <- "CIN" ; value <- 50 ; group <- "Operational" :};
+    OBJ Q_Out4 (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Outflow4 rate" : 
+     FlowRate := {: causality <- "CIN" ; value <- 50 ; group <- "Operational" :};
+    OBJ Q_Out5 (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Outflow5 rate" : 
+     FlowRate := {: causality <- "CIN" ; value <- 50 ; group <- "Operational" :};
+   OBJ PumpingEnergy (* terminal = "out_6" *)"Pumping energy" : ElectricalEnergy := {: causality <- "COUT"; group <- "Energy" :};
+   };
+
+  parameters <- 
+   { 
+// PUMPING ENERGY
+    OBJ F_Energy_FlowRate "Conversion factor Energy needed/Pump flow rate" : Ratio := {: value <- 0.04 ; group <- "Energy":};
+   };
+
+  state <-
+   {
+    OBJ Q_Out1 (* is_favorite = "1" *) "Outflow1 rate" : FlowRate := {: group <- "Operational" :};
+    OBJ f_Out1 (* hidden = "1" *) "Fraction of the influent flux going to outflow1" : Fraction ;
+    OBJ f_Out2 (* hidden = "1" *) "Fraction of the influent flux going to outflow2" : Fraction ;
+    OBJ f_Out3 (* hidden = "1" *) "Fraction of the influent flux going to outflow3" : Fraction ;
+    OBJ f_Out4 (* hidden = "1" *) "Fraction of the influent flux going to outflow4" : Fraction ;
+    OBJ f_Out5 (* hidden = "1" *) "Fraction of the influent flux going to outflow5" : Fraction ;
+    OBJ Q_Out2_Actual (* is_favorite = "1" *) "Help variable for outflow2 rate" : FlowRate ;
+    OBJ Q_Out3_Actual (* is_favorite = "1" *) "Help variable for outflow3 rate" : FlowRate ;
+    OBJ Q_Out4_Actual (* is_favorite = "1" *) "Help variable for outflow4 rate" : FlowRate ;
+    OBJ Q_Out5_Actual (* is_favorite = "1" *) "Help variable for outflow5 rate" : FlowRate ;
+// PUMPING ENERGY
+    OBJ Integ_PE (* hidden = "1" *)"Integral Pumping energy" : ElectricalEnergy ;
+   };
+
+  equations <-
+   {
+
+    state.Q_Out1 = state.Q_In - (state.Q_Out2_Actual + state.Q_Out3_Actual + state.Q_Out4_Actual + state.Q_Out5_Actual);
+// DOUBLE CHECK CONDITIONS
+    state.Q_Out2_Actual = IF( interface.Q_Out2 > state.Q_In)
+                        THEN state.Q_In
+                        ELSE interface.Q_Out2;
+
+    state.Q_Out3_Actual = IF( (interface.Q_Out2+interface.Q_Out3) > state.Q_In)
+                        THEN state.Q_In - state.Q_Out2_Actual
+                        ELSE interface.Q_Out3;
+
+    state.Q_Out4_Actual = IF( (interface.Q_Out2+interface.Q_Out3+interface.Q_Out4) > state.Q_In)
+                        THEN state.Q_In - state.Q_Out2_Actual - state.Q_Out3_Actual
+                        ELSE interface.Q_Out4;
+
+    state.Q_Out5_Actual = IF( (interface.Q_Out2+interface.Q_Out3+interface.Q_Out4+interface.Q_Out5) > state.Q_In)
+                        THEN state.Q_In - state.Q_Out2_Actual - state.Q_Out3_Actual - state.Q_Out4_Actual
+                        ELSE interface.Q_Out5;
+            
+    state.f_Out1 = IF (state.Q_In == 0)
+           THEN 0
+           ELSE state.Q_Out1 /state.Q_In ;
+    state.f_Out2 = IF (state.Q_In == 0)
+           THEN 0
+           ELSE state.Q_Out2_Actual /state.Q_In ; 
+    state.f_Out3 = IF (state.Q_In == 0)
+           THEN 0
+           ELSE state.Q_Out3_Actual / state.Q_In ;
+    state.f_Out4 = IF (state.Q_In == 0)
+           THEN 0
+           ELSE state.Q_Out4_Actual /state.Q_In ; 
+    state.f_Out5 = IF (state.Q_In == 0)
+           THEN 0
+           ELSE state.Q_Out5_Actual / state.Q_In ;
+           
+           
+    {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+      interface.Outflow1[Comp_Index] =
+      - state.InFluxPerComponent[Comp_Index] * state.f_Out1 ;};
+
+    {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+      interface.Outflow2[Comp_Index] =
+      - state.InFluxPerComponent[Comp_Index] * state.f_Out2 ;};
+
+    {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+      interface.Outflow3[Comp_Index] =
+      - state.InFluxPerComponent[Comp_Index] * state.f_Out3 ;};
+
+    {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+      interface.Outflow4[Comp_Index] =
+      - state.InFluxPerComponent[Comp_Index] * state.f_Out4 ;};
+
+    {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+      interface.Outflow5[Comp_Index] =
+      - state.InFluxPerComponent[Comp_Index] * state.f_Out5 ;};
+
+// PUMPING ENERGY
+  DERIV(state.Integ_PE,[independent.t])=  state.Q_Out2_Actual + state.Q_Out3_Actual + state.Q_Out4_Actual + state.Q_Out5_Actual;
+  interface.PumpingEnergy = parameters.F_Energy_FlowRate * state.Integ_PE ;
+   }; 
+ :};
+
+#endif // WWTP_BASE_SPLITTERS_ABSFIVESPLITTER

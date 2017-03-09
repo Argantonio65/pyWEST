@@ -1,0 +1,66 @@
+// -----------------------------------------------------------------------
+//  HEMMIS - Ghent University, BIOMATH
+//  Implementation: Frederik Decouttere, Henk Vanhooren, Youri Amerlinck.
+//  Description: MSL-USER/WWTP/Base/Sensors
+// -----------------------------------------------------------------------
+
+#ifndef SEWER_BASE_SENSORS
+#define SEWER_BASE_SENSORS
+#endif
+
+CLASS SewSensor
+  (* class = "" *)
+  "sensor"
+  SPECIALISES
+  PhysicalDAEModelType :=
+  {:
+    interface <-
+    {
+      OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+         InSewTerminal := {: causality <- "CIN" :};
+      OBJ Outflow (* terminal = "out_1" *) "Outflow" : 
+         OutSewTerminal := {: causality <- "COUT" :};
+    };
+
+    parameters <-
+    {
+  /*  OBJ SewSpecificVolume (* hidden = "1" *)
+    "The specific volumes (= 1/density) of the components"
+    : SewSpecificVolumeVector;*/
+    };
+
+    independent <- 
+    {
+      OBJ t "Time": Time ;
+    };
+
+    state <-
+    {
+      OBJ InFluxPerSewComponent (* hidden = "0" *) "Vector containing incoming fluxes for all the components" : SewMassFluxVector;
+      OBJ Q_In "Influent flow rate" : FlowRate ;
+    };
+
+  initial <-
+   {
+   // parameters.SewSpecificVolume[H2O_sew] := 0.000001;
+   };
+
+    equations <-
+    {
+      {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+        state.InFluxPerSewComponent[s_comp_index] =
+        SUMOVER s_in_terminal IN
+        {SelectByType(interface,InSewTerminal)}:
+        (s_in_terminal[s_comp_index]) ;};
+
+      {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+        interface.Outflow[s_comp_index] =
+        - state.InFluxPerSewComponent[s_comp_index] ;}; 
+
+      {state.Q_In = 0.000001 * state.InFluxPerSewComponent[H2O_sew] ;};
+
+    };
+ :};
+  
+  #include "sewer_sensors/sewer.sensors.flow.msl"
+  #include "sewer_sensors/sewer.sensors.multi.msl"

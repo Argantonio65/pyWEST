@@ -1,0 +1,44 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 5. september 2011 16:01:14$
+ *
+ ******************************************************************************/
+
+#ifdef ASM3P_EAWAG
+   interface <-
+   {
+//   #include"wwtp.VolumeASM3P_EAWAGModel.interface.msl"
+   };
+
+  parameters <-
+  {
+//  #include "wwtp.VolumeASM3P_EAWAGConversionModel.parameters.msl"
+  };
+
+  state <-
+  {
+  #include "wwtp.VolumeASM3P_EAWAGConversionModel.layer.state.msl"
+  };
+
+  initial <-
+  {
+//  #include "wwtp.VolumeASM3P_EAWAGConversionModel.stoichiometry.msl"
+  };
+
+  equations <-
+  {
+  #include "wwtp.VolumeASM3P_EAWAGConversionModel.layer.kinetics.msl"
+//  #include"wwtp.VolumeASM3P_EAWAGModel.sensors.msl"
+  };
+
+#endif // ASM3P_EAWAG

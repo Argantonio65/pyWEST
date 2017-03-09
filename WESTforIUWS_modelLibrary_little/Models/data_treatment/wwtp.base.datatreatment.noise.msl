@@ -1,0 +1,76 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$ EURE
+ * $Date: 26. juni 2012 13:43:49$
+ *
+ ******************************************************************************/
+
+//  The model has been implemented as defined in Rieger et al. (2003). Further information can be also found in Alex et al. (2009)
+//  References:
+//  Rieger L., Alex J., Winkler S., Boehler M., Thomann M. and Siegrist H. (2003). Progress in sensor technology - progress in process control? Part I: Sensor property investigation and classification. Water Sci. Technol., 47(2), 103-112.
+//  Alex, J., Rieger, L., Corominas, L. and Winkler, S. (2009). Models of Sensors and Actuators. Scientific Technical Report of the IWA Task Group on Benchmarking control strategies. IWA publishing, London, UK.
+
+#ifndef WWTP_BASE_DATATREATMENT_NOISE
+#define WWTP_BASE_DATATREATMENT_NOISE
+
+CLASS Noise
+  (* icon = "data_treatment" *)
+  "Data Treatment"
+  EXTENDS DataTreatment WITH 
+  {:
+    comments <- "A model for adding noise to a signal, using random values sampled from a normal distribution";
+    parameters <-
+    {
+		OBJ Percent_YMax "Percentage of the measuring range to define the standard deviation of the noise (%)" : Real := {: value <- 2.5 ; group <- "System" :};
+		OBJ Noise_Sample_Time "Noise sampling interval": Time := {: value <- 0.000694444444444 ; group <- "System" :};
+		OBJ YMax "Maximum measuring range" : Real := {: value <- 10 ; group <- "System" :};
+    };
+    state <-
+    {
+		OBJ signal_noise (* hidden = "1" *) "Dummy variable to store the noisy signal": Real:= {: group <- "System" :};
+		OBJ Noise "Random number sampled from Normal Distribution N(0,1)" : Real:= {: group <- "System" :};
+		OBJ rand "Random number in the range [0,1[ sampled from Uniform distribution" : Real:= {: group <- "System" :};
+		OBJ prev_nst (* hidden = "1" *) "Previous noise sampling time" : Real ;
+		OBJ flag_noise (* hidden = "1" *)"Boolean variable related to a timer": Boolean ;
+		OBJ Noise_Level "Noise level (Std Dev of the noise signal)" : Real := {: group <- "System" :};
+    };
+    initial <-
+    {
+		state.prev_nst = 0;
+		// noise level is depending on the variance of the normal distribution and on the maximum measuring range
+		state.Noise_Level = parameters.Percent_YMax/100 * parameters.YMax;
+    };
+    equations <-
+    {
+		// A C-function is used for generating the random signal. Necessary to add the files random.cpp, prob.cpp, in the external libraries.
+		// Produce white Gaussian noise --> random sampling of a Gaussian distribution with mean=0 and user-defined variance
+		state.flag_noise = IF (independent.t > (previous(state.prev_nst) + parameters.Noise_Sample_Time)) THEN 1
+			ELSE 0 ;
+
+		state.rand = IF (state.flag_noise) THEN MSLUGetRandom()
+			ELSE IF (independent.t == 0) THEN MSLUGetRandom()
+				 ELSE previous(state.rand) ;
+
+		state.prev_nst = IF (state.flag_noise) THEN previous(state.prev_nst) + parameters.Noise_Sample_Time
+			ELSE previous(state.prev_nst) ;
+
+		//This function is in the prob.cpp.
+		//A way of generating normally distributed random numbers is to run uniform random numbers (0<X<1) through the inverse normal distribution
+		state.Noise = MSLU_normal_cdf_inv(state.rand,0,1);
+		
+		// finally noise is added to the signal
+		interface.y_M = state.Noise*state.Noise_Level+state.signal ;
+    };
+    
+  :};
+  
+#endif // WWTP_BASE_DATATREATMENT_NOISE

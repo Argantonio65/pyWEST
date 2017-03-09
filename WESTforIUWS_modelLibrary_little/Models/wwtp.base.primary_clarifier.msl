@@ -1,0 +1,31 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 5. september 2011 16:01:09$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_BASE_PRIMARY_CLARIFIER
+#define WWTP_BASE_PRIMARY_CLARIFIER
+
+#include "primary_clarifier/wwtp.base.primary_clarifier.primarypointsettler.msl"
+#include "primary_clarifier/wwtp.base.primary_clarifier.primaryotterpohlfreund.msl"
+#include "primary_clarifier/wwtp.base.primary_clarifier.tay.msl"
+#include "primary_clarifier/wwtp.base.primary_clarifier.tay4.msl"
+#include "primary_clarifier/wwtp.base.primary_clarifier.lessardbeck.msl"
+#include "primary_clarifier/wwtp.base.primary_clarifier.primarytakacs.msl"
+#include "primary_clarifier/wwtp.base.primary_clarifier.primarytakacssolublespropagator.msl"
+#include "primary_clarifier/wwtp.base.primary_clarifier.primarytakacsallfractionpropagator.msl"
+#include "primary_clarifier/wwtp.base.primary_clarifier.primarytakacsreactive1.msl"
+#include "primary_clarifier/wwtp.base.primary_clarifier.DAF.msl"
+
+#endif // WWTP_BASE_PRIMARY_CLARIFIER

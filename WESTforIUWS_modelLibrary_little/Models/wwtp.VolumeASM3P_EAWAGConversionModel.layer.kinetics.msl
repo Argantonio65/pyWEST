@@ -1,0 +1,250 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 5. september 2011 16:01:14$
+ *
+ ******************************************************************************/
+
+#ifdef ASM3P_EAWAG
+
+  state.S_O_Saturation = exp(7.7117 - 1.31403 * log(state.Temp_Actual + 45.93));
+
+  state.b_A_Temp = parameters.b_A * exp(parameters.theta_b_A * (state.Temp_Actual - parameters.Temp_Ref));
+  state.b_H_Temp = parameters.b_H * exp(parameters.theta_b_H * (state.Temp_Actual - parameters.Temp_Ref));
+  state.b_PAO_Temp = parameters.b_PAO * exp(parameters.theta_b_PAO * (state.Temp_Actual - parameters.Temp_Ref));
+  state.b_PHA_Temp = parameters.b_PHA * exp(parameters.theta_b_PHA * (state.Temp_Actual - parameters.Temp_Ref));
+  state.b_PP_Temp = parameters.b_PP * exp(parameters.theta_b_PP * (state.Temp_Actual - parameters.Temp_Ref));
+  state.k_h_Temp = parameters.k_h * exp(parameters.theta_k_h * (state.Temp_Actual - parameters.Temp_Ref));
+  state.k_STO_Temp = parameters.k_STO * exp(parameters.theta_k_STO * (state.Temp_Actual - parameters.Temp_Ref));
+  state.K_X_Temp = parameters.K_X * exp(parameters.theta_K_X * (state.Temp_Actual - parameters.Temp_Ref));
+  state.mu_A_Temp = parameters.mu_A * exp(parameters.theta_mu_A * (state.Temp_Actual - parameters.Temp_Ref));
+  state.mu_H_Temp = parameters.mu_H * exp(parameters.theta_mu_H * (state.Temp_Actual - parameters.Temp_Ref));
+  state.mu_PAO_Temp = parameters.mu_PAO * exp(parameters.theta_mu_PAO * (state.Temp_Actual - parameters.Temp_Ref));
+  state.q_PHA_Temp = parameters.q_PHA * exp(parameters.theta_q_PHA * (state.Temp_Actual - parameters.Temp_Ref));
+  state.q_PP_Temp = parameters.q_PP * exp(parameters.theta_q_PP * (state.Temp_Actual - parameters.Temp_Ref));
+
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.S_O_InhibitionTerm_X_H_Biofilm[Layer_Index] = parameters.K_O / (parameters.K_O + state.C_Biofilm[S_O][Layer_Index]);
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.S_O_InhibitionTerm_X_PAO_Biofilm[Layer_Index] = parameters.K_O_PAO / (parameters.K_O_PAO + state.C_Biofilm[S_O][Layer_Index]);
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.S_ALK_MonodTerm_X_A_Biofilm[Layer_Index] = state.C_Biofilm[S_ALK][Layer_Index] / (parameters.K_HCO_A + state.C_Biofilm[S_ALK][Layer_Index]);
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.S_ALK_MonodTerm_X_H_Biofilm[Layer_Index] = state.C_Biofilm[S_ALK][Layer_Index] / (parameters.K_HCO + state.C_Biofilm[S_ALK][Layer_Index]);
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.S_ALK_MonodTerm_X_PAO_Biofilm[Layer_Index] = state.C_Biofilm[S_ALK][Layer_Index] / (parameters.K_HCO_PAO + state.C_Biofilm[S_ALK][Layer_Index]);
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.X_PP_X_PAO_Max_MonodTerm_Biofilm[Layer_Index] = (parameters.K_MAX_PAO - (state.C_Biofilm[X_PP][Layer_Index] / state.C_Biofilm[X_PAO][Layer_Index])) / (parameters.K_iPP_PAO + (parameters.K_MAX_PAO - (state.C_Biofilm[X_PP][Layer_Index] / state.C_Biofilm[X_PAO][Layer_Index])));
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.S_NH_MonodTerm_X_A_Biofilm[Layer_Index] = state.C_Biofilm[S_NH][Layer_Index] / (parameters.K_NH_A + state.C_Biofilm[S_NH][Layer_Index]);
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.S_NH_MonodTerm_X_H_Biofilm[Layer_Index] = state.C_Biofilm[S_NH][Layer_Index] / (parameters.K_NH + state.C_Biofilm[S_NH][Layer_Index]);
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.S_NH_MonodTerm_X_PAO_Biofilm[Layer_Index] = state.C_Biofilm[S_NH][Layer_Index] / (parameters.K_NH_PAO + state.C_Biofilm[S_NH][Layer_Index]);
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.S_NO_MonodTerm_X_H_Biofilm[Layer_Index] = state.C_Biofilm[S_NO][Layer_Index] / (parameters.K_NO + state.C_Biofilm[S_NO][Layer_Index]);
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.S_NO_MonodTerm_X_PAO_Biofilm[Layer_Index] = state.C_Biofilm[S_NO][Layer_Index] / (parameters.K_NO_PAO + state.C_Biofilm[S_NO][Layer_Index]);
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.S_O_MonodTerm_X_A_Biofilm[Layer_Index] = state.C_Biofilm[S_O][Layer_Index] / (parameters.K_O_A + state.C_Biofilm[S_O][Layer_Index]);
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.S_O_MonodTerm_X_H_Biofilm[Layer_Index] = state.C_Biofilm[S_O][Layer_Index] / (parameters.K_O + state.C_Biofilm[S_O][Layer_Index]);
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.S_O_MonodTerm_X_PAO_Biofilm[Layer_Index] = state.C_Biofilm[S_O][Layer_Index] / (parameters.K_O_PAO + state.C_Biofilm[S_O][Layer_Index]);
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.S_PHA_MonodTerm_X_PAO_Biofilm[Layer_Index] = (state.C_Biofilm[X_PHA][Layer_Index] / state.C_Biofilm[X_PAO][Layer_Index]) / (parameters.K_PHA + state.C_Biofilm[X_PHA][Layer_Index] / state.C_Biofilm[X_PAO][Layer_Index]);
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.S_PO_MonodTerm_X_A_Biofilm[Layer_Index] = state.C_Biofilm[S_PO][Layer_Index] / (parameters.K_PO_A + state.C_Biofilm[S_PO][Layer_Index]);
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.S_PO_MonodTerm_X_H_Biofilm[Layer_Index] = state.C_Biofilm[S_PO][Layer_Index] / (parameters.K_PO_H + state.C_Biofilm[S_PO][Layer_Index]);
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.S_PO_MonodTerm_X_PAO_Biofilm[Layer_Index] = state.C_Biofilm[S_PO][Layer_Index] / (parameters.K_PO_PAO + state.C_Biofilm[S_PO][Layer_Index]);
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.S_PO_MonodTerm_X_PP_Biofilm[Layer_Index] = state.C_Biofilm[S_PO][Layer_Index] / (parameters.K_PO_PP + state.C_Biofilm[S_PO][Layer_Index]);
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.X_PP_X_PAO_MonodTerm_Biofilm[Layer_Index] = (state.C_Biofilm[X_PP][Layer_Index] / state.C_Biofilm[X_PAO][Layer_Index]) / (parameters.K_PP_PAO + (state.C_Biofilm[X_PP][Layer_Index] / state.C_Biofilm[X_PAO][Layer_Index]));
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.S_S_MonodTerm_X_H_Biofilm[Layer_Index] = state.C_Biofilm[S_S][Layer_Index] / (parameters.K_SS_H + state.C_Biofilm[S_S][Layer_Index]);
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.S_S_MonodTerm_X_PAO_Biofilm[Layer_Index] = state.C_Biofilm[S_S][Layer_Index] / (parameters.K_SS_PAO + state.C_Biofilm[S_S][Layer_Index]);
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.X_STO_MonodTerm_X_H_Biofilm[Layer_Index] = (state.C_Biofilm[X_STO][Layer_Index] / state.C_Biofilm[X_H][Layer_Index]) / (parameters.K_STO_H + (state.C_Biofilm[X_STO][Layer_Index] / state.C_Biofilm[X_H][Layer_Index])); 
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.X_S_MonodTerm_HYD_Biofilm[Layer_Index] = (state.C_Biofilm[X_S][Layer_Index] / state.C_Biofilm[X_H][Layer_Index]) / (state.K_X_Temp + (state.C_Biofilm[X_S][Layer_Index] / state.C_Biofilm[X_H][Layer_Index])); 
+  };
+  
+  
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.rate01_Biofilm[Layer_Index] = state.k_h_Temp * state.X_S_MonodTerm_HYD_Biofilm[Layer_Index] * state.C_Biofilm[X_H][Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.rate02_Biofilm[Layer_Index] = state.k_STO_Temp * state.S_O_MonodTerm_X_H_Biofilm[Layer_Index] * state.S_S_MonodTerm_X_H_Biofilm[Layer_Index] * state.C_Biofilm[X_H][Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.rate03_Biofilm[Layer_Index] = state.k_STO_Temp * parameters.n_NO * state.S_O_InhibitionTerm_X_H_Biofilm[Layer_Index] * state.S_NO_MonodTerm_X_H_Biofilm[Layer_Index] * state.S_S_MonodTerm_X_H_Biofilm[Layer_Index] * state.C_Biofilm[X_H][Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.rate04_Biofilm[Layer_Index] = state.mu_H_Temp * state.S_O_MonodTerm_X_H_Biofilm[Layer_Index] * state.S_NH_MonodTerm_X_H_Biofilm[Layer_Index] * state.S_PO_MonodTerm_X_H_Biofilm[Layer_Index] * state.S_ALK_MonodTerm_X_H_Biofilm[Layer_Index] * state.X_STO_MonodTerm_X_H_Biofilm[Layer_Index] * state.C_Biofilm[X_H][Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.rate05_Biofilm[Layer_Index] = state.mu_H_Temp * parameters.n_NO * state.S_O_InhibitionTerm_X_H_Biofilm[Layer_Index] * state.S_NO_MonodTerm_X_H_Biofilm[Layer_Index] * state.S_NH_MonodTerm_X_H_Biofilm[Layer_Index] * state.S_PO_MonodTerm_X_H_Biofilm[Layer_Index] * state.S_ALK_MonodTerm_X_H_Biofilm[Layer_Index] * state.X_STO_MonodTerm_X_H_Biofilm[Layer_Index] * state.C_Biofilm[X_H][Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.rate06_Biofilm[Layer_Index] = state.b_H_Temp * state.S_O_MonodTerm_X_H_Biofilm[Layer_Index] * state.C_Biofilm[X_H][Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.rate07_Biofilm[Layer_Index] = state.b_H_Temp * parameters.n_NO_end_H * state.S_O_InhibitionTerm_X_H_Biofilm[Layer_Index] * state.S_NO_MonodTerm_X_H_Biofilm[Layer_Index] * state.C_Biofilm[X_H][Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.rate08_Biofilm[Layer_Index] = state.b_H_Temp * state.S_O_MonodTerm_X_H_Biofilm[Layer_Index] * state.C_Biofilm[X_STO][Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.rate09_Biofilm[Layer_Index] = state.b_H_Temp * parameters.n_NO_end_H * state.S_O_InhibitionTerm_X_H_Biofilm[Layer_Index] * state.S_NO_MonodTerm_X_H_Biofilm[Layer_Index] * state.C_Biofilm[X_STO][Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.rate10_Biofilm[Layer_Index] = state.mu_A_Temp * state.S_O_MonodTerm_X_A_Biofilm[Layer_Index] * state.S_NH_MonodTerm_X_A_Biofilm[Layer_Index] * state.S_PO_MonodTerm_X_A_Biofilm[Layer_Index] * state.S_ALK_MonodTerm_X_A_Biofilm[Layer_Index] * state.C_Biofilm[X_A][Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.rate11_Biofilm[Layer_Index] = state.b_A_Temp * state.S_O_MonodTerm_X_H_Biofilm[Layer_Index] * state.C_Biofilm[X_A][Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.rate12_Biofilm[Layer_Index] = state.b_A_Temp * parameters.n_NO_end_A * state.S_O_InhibitionTerm_X_H_Biofilm[Layer_Index] * state.S_NO_MonodTerm_X_H_Biofilm[Layer_Index] * state.C_Biofilm[X_A][Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.rateP01_Biofilm[Layer_Index] = state.q_PHA_Temp * state.S_S_MonodTerm_X_PAO_Biofilm[Layer_Index] * state.S_ALK_MonodTerm_X_PAO_Biofilm[Layer_Index] * state.X_PP_X_PAO_MonodTerm_Biofilm[Layer_Index] * state.C_Biofilm[X_PAO][Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.rateP02_Biofilm[Layer_Index] = state.q_PP_Temp * state.S_O_MonodTerm_X_PAO_Biofilm[Layer_Index] * state.S_PO_MonodTerm_X_PP_Biofilm[Layer_Index] * state.S_ALK_MonodTerm_X_PAO_Biofilm[Layer_Index] * state.S_PHA_MonodTerm_X_PAO_Biofilm[Layer_Index] * state.X_PP_X_PAO_Max_MonodTerm_Biofilm[Layer_Index] * state.C_Biofilm[X_PAO][Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.rateP03_Biofilm[Layer_Index] = state.q_PP_Temp * parameters.n_NO_PAO * state.S_O_InhibitionTerm_X_PAO_Biofilm[Layer_Index] * state.S_NO_MonodTerm_X_PAO_Biofilm[Layer_Index] * state.S_PO_MonodTerm_X_PP_Biofilm[Layer_Index] * state.S_ALK_MonodTerm_X_PAO_Biofilm[Layer_Index] * state.S_PHA_MonodTerm_X_PAO_Biofilm[Layer_Index] * state.X_PP_X_PAO_Max_MonodTerm_Biofilm[Layer_Index] * state.C_Biofilm[X_PAO][Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.rateP04_Biofilm[Layer_Index] = state.mu_PAO_Temp * state.S_O_MonodTerm_X_PAO_Biofilm[Layer_Index] * state.S_NH_MonodTerm_X_PAO_Biofilm[Layer_Index] * state.S_PO_MonodTerm_X_PAO_Biofilm[Layer_Index] * state.S_ALK_MonodTerm_X_PAO_Biofilm[Layer_Index] * state.S_PHA_MonodTerm_X_PAO_Biofilm[Layer_Index] * state.C_Biofilm[X_PAO][Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.rateP05_Biofilm[Layer_Index] = state.mu_PAO_Temp * parameters.n_NO_PAO * state.S_O_InhibitionTerm_X_PAO_Biofilm[Layer_Index] * state.S_NO_MonodTerm_X_PAO_Biofilm[Layer_Index] * state.S_NH_MonodTerm_X_PAO_Biofilm[Layer_Index] * state.S_PO_MonodTerm_X_PAO_Biofilm[Layer_Index] * state.S_ALK_MonodTerm_X_PAO_Biofilm[Layer_Index] * state.S_PHA_MonodTerm_X_PAO_Biofilm[Layer_Index] * state.C_Biofilm[X_PAO][Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.rateP06_Biofilm[Layer_Index] = state.b_PAO_Temp * state.S_O_MonodTerm_X_PAO_Biofilm[Layer_Index] * state.C_Biofilm[X_PAO][Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.rateP07_Biofilm[Layer_Index] = state.b_PAO_Temp * parameters.n_NO_end_PAO * state.S_O_InhibitionTerm_X_PAO_Biofilm[Layer_Index] * state.S_NO_MonodTerm_X_PAO_Biofilm[Layer_Index] * state.C_Biofilm[X_PAO][Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.rateP08_Biofilm[Layer_Index] = state.b_PP_Temp * state.S_O_MonodTerm_X_PAO_Biofilm[Layer_Index] * state.C_Biofilm[X_PP][Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.rateP09_Biofilm[Layer_Index] = state.b_PP_Temp * parameters.n_NO_lys_PP * state.S_O_InhibitionTerm_X_PAO_Biofilm[Layer_Index] * state.S_NO_MonodTerm_X_PAO_Biofilm[Layer_Index] * state.C_Biofilm[X_PP][Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.rateP10_Biofilm[Layer_Index] = state.b_PHA_Temp * state.S_O_MonodTerm_X_PAO_Biofilm[Layer_Index] * state.C_Biofilm[X_PHA][Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.rateP11_Biofilm[Layer_Index] = state.b_PHA_Temp * parameters.n_NO_resp_PHA * state.S_O_InhibitionTerm_X_PAO_Biofilm[Layer_Index] * state.S_NO_MonodTerm_X_PAO_Biofilm[Layer_Index] * state.C_Biofilm[X_PHA][Layer_Index];
+  };
+  
+
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[P01_Hydrolysis][Layer_Index] = state.rate01_Biofilm[Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[P02_AerStorageOfXSTO][Layer_Index] = state.rate02_Biofilm[Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[P03_AnoxStorageOfXSTO][Layer_Index] = state.rate03_Biofilm[Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[P04_AerGrowthOfXH][Layer_Index] = state.rate04_Biofilm[Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[P05_AnoxGrowthOfXH][Layer_Index] = state.rate05_Biofilm[Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[P06_AerEndogRespOfXH][Layer_Index] = state.rate06_Biofilm[Layer_Index]; 
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[P07_AnoxEndogRespOfXH][Layer_Index] = state.rate07_Biofilm[Layer_Index]; 
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[P08_AerRespOfXSTO][Layer_Index] = state.rate08_Biofilm[Layer_Index]; 
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[P09_AnoxRespOfXSTO][Layer_Index] = state.rate09_Biofilm[Layer_Index]; 
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[P10_Nitrification][Layer_Index] = state.rate10_Biofilm[Layer_Index]; 
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[P11_AerEndogRespOfXA][Layer_Index] = state.rate11_Biofilm[Layer_Index]; 
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[P12_AnoxEndogRespOfXA][Layer_Index] = state.rate12_Biofilm[Layer_Index]; 
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[PP01_StorageOfXPHA][Layer_Index] = state.rateP01_Biofilm[Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[PP02_AerStorageOfXPP][Layer_Index] = state.rateP02_Biofilm[Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[PP03_AnoxStorageOfXPP][Layer_Index] = state.rateP03_Biofilm[Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[PP04_AerGrowthOfXPAO][Layer_Index] = state.rateP04_Biofilm[Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[PP05_AnoxGrowthOfXPAO][Layer_Index] = state.rateP05_Biofilm[Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[PP06_AerEndogRespOfXPAO][Layer_Index] = state.rateP06_Biofilm[Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[PP07_AnoxEndogRespOfXPAO][Layer_Index] = state.rateP07_Biofilm[Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[PP08_AerLysisOfXPP][Layer_Index] = state.rateP08_Biofilm[Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[PP09_AnoxLysisOfXPP][Layer_Index] = state.rateP09_Biofilm[Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[PP10_AerRespOfXPHA][Layer_Index] = state.rateP10_Biofilm[Layer_Index];
+  };
+{FOREACH Layer_Index IN {1 .. NrOfLayers}:
+  state.Kinetics_Biofilm[PP11_AnoxRespOfXPHA][Layer_Index] = state.rateP11_Biofilm[Layer_Index];
+  };
+  
+#endif // ASM3P_EAWAG

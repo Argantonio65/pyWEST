@@ -1,0 +1,83 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 23. april 2012 08:05:14$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_BASE_SENSORS_SENSORCOD
+#define WWTP_BASE_SENSORS_SENSORCOD
+
+#if (defined ASM1Temp || defined ASM2dModTemp || defined ASM3Temp || defined ASM3P_EAWAG)
+CLASS Sensor_COD
+  (* icon = "sensor_cod" ; is_default = "true" *)
+  "COD sensor"
+  EXTENDS Sensor WITH 
+  {:
+    comments <- "A model for a sensor measuring the Chemical Oxygen Demand";
+
+    interface <-
+    {
+      OBJ y_M (* terminal = "out_2"; is_favorite = "1" *) "Sensor measured output" :
+         Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    };
+    
+    equations <-
+    {
+#if (defined ASM1Temp)
+       interface.y_M = IF (state.Q_In == 0)
+           THEN 0
+           ELSE (interface.Inflow[S_S] + interface.Inflow[X_S] + 
+             interface.Inflow[S_I] + interface.Inflow[X_I] + interface.Inflow[X_P] + 
+             interface.Inflow[X_BH] + interface.Inflow[X_BA]) 
+            / state.Q_In ; 
+   
+#endif //ASM1Temp
+
+#if (defined ASM2dModTemp)
+    interface.y_M = IF (state.Q_In == 0)
+            THEN 0
+            ELSE (interface.Inflow[S_A] + interface.Inflow[S_F] + interface.Inflow[X_S]
+          + interface.Inflow[S_I] + interface.Inflow[X_I]
+          + interface.Inflow[X_AUT] + interface.Inflow[X_H] 
+          + interface.Inflow[X_PAO] + interface.Inflow[X_PHA])
+             / state.Q_In ; 
+  
+#endif // ASM2dModTemp
+
+#if (defined ASM3Temp)
+    interface.y_M = IF (state.Q_In == 0)
+            THEN 0
+            ELSE (interface.Inflow[S_S] + interface.Inflow[X_S]
+          + interface.Inflow[S_I] + interface.Inflow[X_I]
+          + interface.Inflow[X_A] + interface.Inflow[X_H] 
+          + interface.Inflow[X_STO] ) 
+             / state.Q_In ; 
+  
+#endif // ASM3Temp
+
+#ifdef ASM3P_EAWAG
+    interface.y_M = IF (state.Q_In == 0)
+            THEN 0
+            ELSE (interface.Inflow[S_S] + interface.Inflow[X_S]
+          + interface.Inflow[S_I] + interface.Inflow[X_I]
+          + interface.Inflow[X_A] + interface.Inflow[X_H] + interface.Inflow[X_PAO]
+          + interface.Inflow[X_STO] + interface.Inflow[X_PHA]) 
+             / state.Q_In ; 
+  
+#endif // ASM3P_EAWAG
+  };
+    :};
+#endif // (defined ASM1Temp || defined ASM2dModTemp || defined ASM3Temp || defined ASM3P_EAWAG)
+
+#endif // WWTP_BASE_SENSORS_SENSORCOD
+

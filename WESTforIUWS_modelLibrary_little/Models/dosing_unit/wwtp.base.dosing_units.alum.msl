@@ -1,0 +1,228 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 23. april 2012 08:05:09$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_BASE_CHEMICAL_DOSING_UNITS_ALUM
+#define WWTP_BASE_CHEMICAL_DOSING_UNITS_ALUM
+
+#if (defined ASM2dModTemp)
+ CLASS Alum
+ (* icon = "dosing_unit_alum" *)
+ "A simple model for dosage of a Al2(SO4)3 solution"
+ EXTENDS P_Precipitation WITH
+ {:
+  comments <- "A model for the addition of alum for chemical precipitation";
+
+  interface <-
+  {
+  OBJ M_Alum (* terminal = "out_2" *) "Amount of alum dosed" : MassFlux
+      := {: causality <- "COUT" ; group <- "Measurement data" :};
+  OBJ Q_Alum (* terminal = "out_2" *) "Flow rate of alum dosed" : FlowRate
+      := {: causality <- "COUT" ; group <- "Measurement data" :};
+  };
+
+  initial <-
+  {
+   parameters.MW = 342;
+   parameters.Equiv_P = 1.0;
+  };
+
+  equations <-
+  {
+  interface.M_Alum = interface.Q_Dose * parameters.C_Dose ;
+  interface.Q_Alum = interface.Q_Dose ;
+  interface.Outflow[S_Al] = - interface.Q_Dose * parameters.C_Dose ;
+  };
+
+:};
+
+CLASS MEChemical 
+(* icon = "activated_sludge_unit" *)
+"A dosing unit for chemical P removal"
+
+SPECIALISES PhysicalDAEModelType :=
+
+ {:
+   
+   interface <-
+   { 
+   OBJ Inflow (* terminal = "in_1" *) "Inflow" : InWWTPTerminal := {: causality <- "CIN" ; group <- "Influent" :};
+   OBJ Outflow (* terminal = "out_1" *) "Outflow" : OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent" :};
+   
+   };
+
+   parameters <-
+   {
+   
+   OBJ pH	"pH wastewater at chemical dosing point"
+	: Real	:= {: value <- 7 ; group <- "Kinetic" :}; 
+  // OBJ WWTPSpecificVolume (* hidden = "1" *)
+   //	   "Vector containing the specific volume (= 1/density) for all the components" : SpecificVolumeVector;
+   	
+	OBJ pKa1_P	"pKa1 H3PO4/H2PO4" : Real	:= {: value <- 2.05 ; group <- "Kinetic" :}; 
+	OBJ pKa2_P	"pKa2 H2PO4/HPO4" : Real	:= {: value <- 7.07 ; group <- "Kinetic" :}; 
+	OBJ pKa3_P	"pKa3 HPO4/PO4" : Real	:= {: value <- 12.07 ; group <- "Kinetic" :}; 
+	OBJ pKa1_Al	"pKa1  Al/AlOH"	: Real	:= {: value <- 5.23 ; group <- "Kinetic" :}; 
+	OBJ pKa2_Al	"pKa2 AlOH/Al(OH)2"	: Real	:= {: value <- 9.06 ; group <- "Kinetic" :}; 
+	OBJ pKa3_Al	"pKa3 Al(OH)2/Al(OH)3" : Real	:= {: value <- 15.61 ; group <- "Kinetic" :}; 
+	OBJ pKa4_Al	"pKa4 Al(OH)3/Al(OH)4" : Real	:= {: value <- 23.66 ; group <- "Kinetic" :}; 
+	OBJ pKs_AlPO4	"pKs AlPO4"	: Real	:= {: value <- 22 ; group <- "Kinetic" :}; 
+	OBJ pKs_AlOH3	"pKs AlOH3"	: Real	:= {: value <- 32.3 ; group <- "Kinetic" :}; 
+	OBJ pK_AlH2PO4	"" : Real	:= {: value <- -5.72 ; group <- "Kinetic" :}; 
+	OBJ MW_P	"Molecular weight phosphorus" : Real	:= {: value <- 31 ; group <- "Kinetic" :}; 
+	OBJ MW_Al	"Molecular weight Alum"	: Real	:= {: value <- 27 ; group <- "Kinetic" :}; 
+	OBJ MW_OH "Molecular weight hydroxide" : Real	:= {: value <- 17 ; group <- "Kinetic" :};
+	OBJ MW_H "Molecular weight hydrogen" : Real	:= {: value <- 1 ; group <- "Kinetic" :};  
+	OBJ MW_O "Molecular weight oxygen" : Real	:= {: value <- 16 ; group <- "Kinetic" :};  
+	OBJ a2	"parameter empirical model"	: Real	:= {: value <- 1.42 ; group <- "Kinetic" :}; 
+	OBJ a1	"parameter empirical model"	: Real	:= {: value <- 1.09 ; group <- "Kinetic" :}; 
+	OBJ r "formula precipitate Me(r)H(2)P(1)O(4)OH(3r-1)" : Real := {: value <- 1.2 ; group <- "Kinetic" :};    
+   };
+
+   independent <- 
+   { 
+   OBJ t "Time"  : Time := {: group <- "Time" :}; 
+   /**/
+   
+   };
+
+   initial <- 
+   { 
+  // parameters.WWTPSpecificVolume[IndexOfSolvent] := 0.000001;
+   state.S_OH := 7;
+   };
+
+   state <-
+   {
+   OBJ Q_In "Influent flow rate" : Real;
+   OBJ C_In "Incoming concentrations for all the components" : ConcentrationVector := {: group <- "Concentration" :};
+   OBJ S_H	"Molar Concentration H+ ions": Real := {: group <- "Concentration" :};
+   OBJ pOH	"pOH"	: Real;
+   OBJ S_OH	"Molar Concentration OH- ions"	: Real := {: group <- "Concentration" :};
+   OBJ S_PO4	"chemical equilibrium molar concentration PO4"	: Real := {: group <- "Concentration" :};
+   OBJ S_HPO4	"chemical equilibrium molar concentration HPO4"	: Real := {: group <- "Concentration" :};
+   OBJ S_H2PO4	"chemical equilibrium molar concentration H2PO4"	: Real := {: group <- "Concentration" :};
+   OBJ S_H3PO4	"chemical equilibrium molar concentration H3PO4"	: Real := {: group <- "Concentration" :};
+   OBJ S_AlChem	"chemical equilibrium molar concentration Al"	: Real := {: group <- "Concentration" :};
+   OBJ S_AlOH	"chemical equilibrium molar concentration AlOH"	: Real := {: group <- "Concentration" :};
+   OBJ S_AlOH2	"chemical equilibrium molar concentration AlOH2"	: Real := {: group <- "Concentration" :};
+   OBJ S_AlOH3	"chemical equilibrium molar concentration AlOH3"	: Real := {: group <- "Concentration" :};
+   OBJ S_AlOH4	"chemical equilibrium molar concentration AlOH4"	: Real := {: group <- "Concentration" :};
+   OBJ X_AlH2PO4	"chemical equilibrium molar concentration AlH2PO4"	: Real := {: group <- "Concentration" :};
+   OBJ TP	"chemical equilibrium PO4-P concentration (sum of all species)"	: Real := {: group <- "Concentration" :};
+   OBJ TAl	"chemical equilibrium Al concentration(sum of all species)"	: Real := {: group <- "Concentration" :};
+   OBJ RatioBis	"Ratio of mass metal dosed over P in influent"	: Real;
+   OBJ TP_emp	"empirical equation PO4-P concentration"	: Real := {: group <- "Concentration" :};
+   OBJ TP_limit	"limited PO4-P concentration by Al dosing"	: Real := {: group <- "Concentration" :};
+   OBJ Presult_help	"PO4-P concentration after chemical dosing (help)"	: Real;
+   OBJ Presult_help2	"PO4-P concentration after chemical dosing (help2)"	: Real;
+   OBJ Presult	"PO4-P concentration after chemical dosing"	: Real := {: group <- "Concentration" :};
+   OBJ MW_prec	"molecular weight precipitate Me(r)H(2)P(1)O(4)OH(3r-1)" : Real;   
+   OBJ RatioPrec "gram Al/gram P in precipitaat" : Real;   
+   OBJ Ratio_in "" : Real;
+   OBJ Al_actual	"Actual Al concentration in effluent"	: Real := {: group <- "Concentration" :}; 
+   };
+
+   equations <-
+   {
+   state.Q_In = 0.000001 * interface.Inflow[IndexOfSolvent] ;
+   
+    interface.Outflow[IndexOfSolvent] =
+			- interface.Inflow[IndexOfSolvent];
+  
+  
+   {FOREACH Comp_Index IN {S_I .. S_NO}:
+			interface.Outflow[Comp_Index] =
+			- interface.Inflow[Comp_Index]; };
+  
+  {FOREACH Comp_Index IN {S_NH .. S_ALK}:
+			interface.Outflow[Comp_Index] =
+			- interface.Inflow[Comp_Index]; };
+			
+			
+  {FOREACH Comp_Index IN {X_I .. X_AUT}:
+			interface.Outflow[Comp_Index] =
+			- interface.Inflow[Comp_Index]; };
+  
+  {FOREACH Comp_Index IN {X_MEOH .. X_MEP}:
+			interface.Outflow[Comp_Index] =
+			- interface.Inflow[Comp_Index]; };
+			
+    state.pOH = 14 - parameters.pH;
+	state.S_H = pow(10, - parameters.pH);
+	state.S_OH = pow(10, - state.pOH);
+	state.S_PO4 = pow(10, - parameters.pKs_AlPO4) / pow(10, - parameters.pKs_AlOH3) * pow(state.S_OH,3);
+	state.S_HPO4 = state.S_PO4 * state.S_H / pow(10, - parameters.pKa3_P);
+	state.S_H2PO4 = state.S_HPO4 * state.S_H / pow(10, - parameters.pKa2_P);
+	state.S_H3PO4 = state.S_H2PO4 * state.S_H / pow(10, - parameters.pKa1_P);
+	state.S_AlChem = pow(10, - parameters.pKs_AlOH3) / pow(state.S_OH,3);
+	state.S_AlOH = pow(10, - parameters.pKa1_Al) * state.S_AlChem / state.S_H;
+	state.S_AlOH2 = pow(10, - parameters.pKa2_Al) * state.S_AlOH / state.S_H;
+	state.S_AlOH3 = pow(10, - parameters.pKa3_Al) * state.S_AlOH2 / state.S_H;
+	state.S_AlOH4 = pow(10, - parameters.pKa4_Al) * state.S_AlOH3 / state.S_H;
+	state.X_AlH2PO4 = pow(10, - parameters.pK_AlH2PO4) * state.S_AlChem * state.S_H2PO4;
+	state.TP = (state.S_PO4 + state.S_HPO4 + state.S_H2PO4 + state.S_H3PO4 + state.X_AlH2PO4) * parameters.MW_P * 1000;
+	state.TAl = (state.S_AlChem + state.S_AlOH + state.S_AlOH2 + state.S_AlOH3 + state.S_AlOH4) * parameters.MW_Al * 1000;
+	
+	state.Ratio_in = IF (interface.Inflow[S_PO] == 0) 
+			THEN 1
+				   ELSE interface.Inflow[S_Al] / interface.Inflow[S_PO];
+	state.TP_emp = IF (state.Q_In == 0) 
+				   THEN 0
+				   ELSE parameters.a1 * interface.Inflow[S_PO] / state.Q_In * exp( - parameters.a2 * state.Ratio_in);
+	state.TP_limit = IF (state.Q_In == 0) 
+				     THEN 0
+				     ELSE(interface.Inflow[S_PO]/state.Q_In)- (interface.Inflow[S_Al]/(state.Q_In*state.RatioPrec));
+
+  {FOREACH Comp_Index IN {1 .. NrOfComponents}:
+	state.C_In[Comp_Index] = IF (state.Q_In == 0) 
+				             THEN 0
+				             ELSE interface.Inflow[Comp_Index]/state.Q_In;
+   };
+	
+	
+//	state.Presult_help = max(state.TP_limit,state.TP_emp);
+//	state.Presult = max(state.TP,state.Presult_help);
+	state.Presult_help = max(state.TP_limit,state.TP_emp);
+	state.Presult_help2 = max(state.TP,state.Presult_help);
+	state.Presult = min(state.C_In[S_PO],state.Presult_help2); // limitation if calculated effluent concentration of S_PO is larger than influent concentration
+	
+	interface.Outflow[S_PO]=-state.Presult*state.Q_In;
+    
+	state.MW_prec = parameters.r * parameters.MW_Al+2*parameters.MW_H+parameters.MW_P+4*parameters.MW_O+(3*parameters.r-1)*parameters.MW_OH;
+	state.RatioPrec=parameters.r * parameters.MW_Al/parameters.MW_P;
+	
+	interface.Outflow[X_I_i]=-interface.Inflow[X_I_i]-state.MW_prec/parameters.MW_P*(interface.Inflow[S_PO]+interface.Outflow[S_PO]);
+	
+	interface.Outflow[S_Al]=  -interface.Inflow[S_Al]+state.RatioPrec*(interface.Inflow[S_PO]+interface.Outflow[S_PO]) ;
+	
+	state.Al_actual = IF (state.Q_In == 0) 
+				   THEN 0
+				   ELSE - interface.Outflow[S_Al]/state.Q_In ;
+	
+	/*interface.Outflow[S_Al]= IF ((-interface.Inflow[S_Al]+state.RatioPrec*(interface.Inflow[S_PO]+interface.Outflow[S_PO])) < 0)
+	 THEN -interface.Inflow[S_Al]+state.RatioPrec*(interface.Inflow[S_PO]+interface.Outflow[S_PO])
+	 ELSE  0 ;
+	*/
+	interface.Outflow[X_TSS]=-interface.Inflow[X_TSS]-state.MW_prec/parameters.MW_P*(interface.Inflow[S_PO]+interface.Outflow[S_PO]); // inflow TSS + what is being generated
+//	interface.Outflow[X_TSS]=-interface.Inflow[X_TSS]+interface.Outflow[X_I_i]
+
+   };
+
+ :};
+
+#endif // ASM2dModTemp
+
+#endif // WWTP_BASE_CHEMICAL_DOSING_UNITS_ALUM

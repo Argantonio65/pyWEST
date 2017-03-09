@@ -1,0 +1,20 @@
+CLASS SewFlow
+
+  (* icon = "Sensor" *)
+  "sensor"
+  EXTENDS SewSensor WITH 
+  {:
+    comments <- "A model for a sensor measuring the flow rate";
+
+    interface <-
+    {
+      OBJ y_M (* terminal = "out_2" *) "Sensor measured output" :
+         Real := {: causality <- "COUT"  :};
+    };
+
+    equations <-
+    {
+      {interface.y_M = state.Q_In ;};
+    };
+ :};
+ 

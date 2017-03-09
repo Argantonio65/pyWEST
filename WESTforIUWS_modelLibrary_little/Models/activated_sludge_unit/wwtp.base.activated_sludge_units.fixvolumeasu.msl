@@ -1,0 +1,232 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 29. juni 2012 15:45:31$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_BASE_ACTIVATED_SLUDGE_UNITS_FIXVOLUMEASU
+#define WWTP_BASE_ACTIVATED_SLUDGE_UNITS_FIXVOLUMEASU
+
+ CLASS FixVolumeASU 
+ (* icon = "activated_sludge_unit" ; is_default = "true" *)
+ SPECIALISES FixVolumeASMConversionModel :=
+ {:
+   comments <- "Model for an activated sludge unit with a fixed volume";
+   interface <-  
+   {
+     OBJ Kla (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Oxygen transfer coefficient" : OxygenTransferCoefficient 
+     := {: causality <- "CIN" ; value <- 0 ; group <- "Operational" :};   
+#if (defined ASM1Temp || defined ASM2dModTemp || defined ASM3Temp || defined ASM3P_EAWAG || defined ASM1_AN || defined ASMG1)
+   OBJ Temp (* terminal = "in_2"; manip = "1" *)  "Temperature of the activated sludge"
+  : CelsiusTemperature  := {: causality <- "CIN" ; value <- 15 ; group <- "Operational" :}; 
+#endif
+  // OBJ AerationEnergy (* terminal = "out_2" *)"Aeration energy" : ElectricalEnergy := {: causality <- "COUT"; group <- "Energy" :};
+ //  OBJ MixingEnergy (* terminal = "out_2" *)"Mixing energy" : ElectricalEnergy := {: causality <- "COUT"; group <- "Energy" :};
+   };   
+   parameters <- 
+   {
+// AERATION ENERGY (through KLa)
+ // OBJ OTR_Energy  "Oxygen transfer rate per energy input" : TransferRateEnergy := {: value <- 1800 ; group <- "Aeration" :}; 
+// MIXING ENERGY
+//  OBJ ME_unit "Energy requirement per unit of volume for mixing in a AS tank" : Real := {: value <- 0.005; group <- "Mixing energy":};
+ // OBJ Kla_Min "Lowest kLa value that ensures adequate mixing" : OxygenTransferCoefficient :={: value <- 20.0; group <- "Mixing energy":};
+ //   OBJ Mixing_When_Aerated "Mixing activity during aeration" : Real := {: value <- 0 ; group <- "Mixing energy":};
+   };
+   state <-
+   {/*
+// AERATION ENERGY (through KLa)
+    OBJ Integ_AE (* hidden = "1" *)"Integral aeration energy" : ElectricalEnergy ;
+// MIXING ENERGY
+    OBJ Integ_ME (* hidden = "1" *)"Integral mixing energy" : ElectricalEnergy ;
+  OBJ ME_Instant (* hidden = "1" *)"Instantaneous mixing energy" : Real:= {: group <- "Mixing":};*/
+   };
+   initial <-
+   {
+   };
+   equations <- 
+   {
+    state.Kla_Actual = interface.Kla;
+#if (defined ASM1Temp || defined ASM2dModTemp || defined ASM3Temp || defined ASM3P_EAWAG || defined ASM1_AN || defined ASMG1)
+    state.Temp_Actual = interface.Temp;
+#endif //  ASM1Temp or ASM2dModTemp or ASM3Temp or ASM3P_EAWAG)
+/*
+// AERATION ENERGY
+  DERIV(state.Integ_AE,[independent.t])= state.Kla_Actual * state.V ;
+  interface.AerationEnergy = state.S_O_Saturation / (parameters.OTR_Energy) * state.Integ_AE ; 
+// MIXING ENERGY
+  state.ME_Instant = IF ((state.Kla_Actual < parameters.Kla_Min) || (state.Kla_Actual == 0))
+               THEN parameters.ME_unit * state.V
+             ELSE 
+               IF (parameters.Mixing_When_Aerated)
+               THEN parameters.ME_unit * state.V
+               ELSE 0;    
+
+  DERIV(state.Integ_ME,[independent.t])= state.ME_Instant;
+  interface.MixingEnergy = state.Integ_ME ;*/
+   };   
+ :};
+	 
+	 CLASS reaeration_tank 
+ (* icon = "activated_sludge_unit" ; is_default = "" *)
+ SPECIALISES PhysicalDAEModelType :=
+ {:
+   comments <- "Model for an effluent reaeration unit with a fixed volume";
+		 
+		   independent <- 
+  { 
+    OBJ t "Time"  : Time := {: group <- "Time" :}; 
+   };
+
+   interface <-
+   {
+     OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+       InWWTPTerminal := {: causality <- "CIN" ; group <- "Influent" :};
+     OBJ Outflow (* terminal = "out_1" *)"Outflow" : 
+       OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent" :};
+		 OBJ Kla (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Oxygen transfer coefficient" : OxygenTransferCoefficient 
+     := {: causality <- "CIN" ; value <- 0 ; group <- "Operational" :};   
+#if (defined ASM1Temp || defined ASM2dModTemp || defined ASM3Temp || defined ASM3P_EAWAG || defined ASM1_AN || defined ASMG1)
+   OBJ Temp (* terminal = "in_2"; manip = "1" *)  "Temperature of the activated sludge"
+  : CelsiusTemperature  := {: causality <- "CIN" ; value <- 15 ; group <- "Operational" :}; 
+#endif
+		 OBJ DO (* terminal = "out_2" *) "Dissolved oxygen concentration measurement"
+	: DissolvedOxygen := {: causality <- "COUT" ; group <- "Measurement data" :}; 
+		 OBJ TSS (* terminal = "out_2" *) "Total suspended solids concentration"
+	: Concentration := {: causality <- "COUT" ; group <- "Measurement data" :}; 
+		 OBJ V_ASU (* terminal = "out_2" *) "Volume measurement data"
+	: Volume := {: causality <- "COUT" ; group <- "Measurement data" :}; 
+   };
+		 
+   parameters <- 
+   {
+		 OBJ Vol (* is_favorite = "1" *) "Volume of the tank" : Volume := {: value <- 1000; group <- "Dimension" :};
+   };
+   state <-
+   {
+		 OBJ M "Vector containing masses for all the components" : MassVector 
+#if (defined ASM1Temp)
+         := [{: value <- 1000000000:},{: value <- 1 :},
+                  {: value <- 2 :},{: value <- 1 :},
+                {: value <- 2 :}, {: value <- 1 :},
+                {: value <- 1 :},{: value <- 1 :},
+                {: value <- 1 :},{: value <- 1 :},
+                                {: value <- 1000 :},{: value <- 100 :},
+                {: value <- 1 :},{: value <- 1 :}; ]
+#endif // ASM1Temp
+#if (defined ASM2dModTemp)
+   := [{: value <- 1000000000 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},
+          {: value <- 1 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},
+          {: value <- 1 :},{: value <- 1 :},{: value <- 100 :},{: value <- 10 :},{: value <- 1 :},
+          {: value <- 1 :},{: value <- 10 :},{: value <- 113.33 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :};]
+#endif // ASM2dModTemp
+#if (defined ASM3Temp)
+   := [{: value <- 1000000000 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},
+          {: value <- 1 :},{: value <- 1 :},{: value <- 1 :},
+          {: value <- 1 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},
+          {: value <- 84.9 :};]
+#endif // ASM3Temp
+#ifdef ASM3P_EAWAG
+   := [{: value <- 1000000000 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},
+          {: value <- 1 :},{: value <- 1 :},{: value <- 10 :},{: value <- 1 :},{: value <- 100 :},
+          {: value <- 1 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},
+          {: value <- 1 :},{: value <- 1 :},{: value <- 165.23 :};]
+#endif // ASM3P_EAWAG
+#if (defined ASM1_AN)
+         := [{: value <- 1000000000:}, {: value <- 1 :}, {: value <- 2 :}, {: value <- 1 :},
+		 {: value <- 1 :}, {: value <- 1 :}, {: value <- 1 :},
+		 {: value <- 1 :}, {: value <- 1 :},
+		 {: value <- 1 :}, {: value <- 1 :}, {: value <- 1000 :},
+		 {: value <- 100 :}, {: value <- 100 :}, {: value <- 100 :},
+		 {: value <- 1 :}; ]
+#endif
+#if (defined ASMG1)
+         := [{: value <- 1000000000:}, {: value <- 1 :}, {: value <- 2 :}, {: value <- 1 :},
+		 {: value <- 1 :}, {: value <- 1 :}, {: value <- 1 :}, {: value <- 1 :}, {: value <- 1 :},
+		 {: value <- 1 :}, {: value <- 1 :},
+		 {: value <- 1 :},
+		 {: value <- 1 :}, {: value <- 1 :}, {: value <- 1000 :},
+		 {: value <- 50 :}, {: value <- 50 :},
+		 {: value <- 1 :},{: value <- 1 :}; ]
+#endif
+;
+    OBJ FluxPerComponent (* hidden = "1" *) "Vector containing fluxes for all the components, the sum of all incoming and outgoing fluxes" : MassFluxVector;
+    OBJ InFluxPerComponent (* hidden = "1" *) "Vector containing incoming fluxes for all the components": MassFluxVector;
+    OBJ ConversionTermPerComponent (* hidden = "1" *) "Vector containing conversionterms for all the components": MassFluxVector;
+    OBJ Q_In (* is_favorite = "1" *) "Influent flow rate" : FlowRate := {: group <- "Operational" :};
+		 
+		 OBJ Kla_Actual (* is_favorite = "1" *) "The actual Kla in the system" : OxygenTransferCoefficient := {: group <- "Operational" :};
+   OBJ Temp_Actual (* is_favorite = "1" *) "Actual temperature of the activated sludge" : CelsiusTemperature  := {: group <- "Operational" :};
+		 OBJ S_O_Saturation "Oxygen saturation concentration"
+  : Concentration := {: group <- "Kinetic" :}; 
+		 		 
+		  OBJ V (* is_favorite = "1" *) "Volume" : Volume := {: group <- "Dimension" :};
+      OBJ C "Vector containing concentrations for all the components" : ConcentrationVector := {: group <- "Concentration" :};
+		 
+		   };
+
+initial <-  
+  {
+  state.M[IndexOfSolvent] = parameters.Vol / 0.000001;
+  };   
+		 
+   equations <- 
+   {
+		  {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+      state.FluxPerComponent[Comp_Index] =
+		 
+		 (SUMOVER In_Terminal IN {SelectByType(interface,InWWTPTerminal)}:
+    In_Terminal[Comp_Index])+
+    (SUMOVER Out_Terminal IN {SelectByType(interface,OutWWTPTerminal)}:
+    Out_Terminal[Comp_Index]);};
+		 
+		 {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+      DERIV(state.M[Comp_Index],[independent.t]) = 
+      state.FluxPerComponent[Comp_Index]
+      +state.ConversionTermPerComponent[Comp_Index];};
+		 
+		 {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+      state.InFluxPerComponent[Comp_Index] =
+         SUMOVER In_Terminal IN {SelectByType(interface,InWWTPTerminal)}:
+            (In_Terminal[Comp_Index]);
+    };
+
+    {state.Q_In = (0.000001 
+                  * state.InFluxPerComponent[IndexOfSolvent]);
+    };
+		 
+		 state.V = state.M[IndexOfSolvent] * 0.000001;
+		 
+		 {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+     state.C[Comp_Index] = IF (state.V == 0)
+           THEN 0
+           ELSE state.M[Comp_Index]/state.V;};
+
+   {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+      interface.Outflow[Comp_Index] =
+       - state.C[Comp_Index] * state.Q_In ;};
+		 
+		 state.Kla_Actual = interface.Kla;
+#if (defined ASM1Temp || defined ASM2dModTemp || defined ASM3Temp || defined ASM3P_EAWAG || defined ASM1_AN || defined ASMG1)
+    state.Temp_Actual = interface.Temp;
+#endif //  ASM1Temp or ASM2dModTemp or ASM3Temp or ASM3P_EAWAG)
+		 state.S_O_Saturation = 14.65 - 0.41 * state.Temp_Actual + 0.00799 * state.Temp_Actual * state.Temp_Actual - 0.0000778 * state.Temp_Actual * state.Temp_Actual * state.Temp_Actual;
+    state.ConversionTermPerComponent[S_O] = state.Kla_Actual * (state.S_O_Saturation - state.C[S_O]) * state.V;
+		 
+		 interface.DO = state.C[S_O];
+		 interface.TSS = state.C[X_TSS];
+		 interface.V_ASU = state.V;
+   };   
+ :};
+	
+#endif // WWTP_BASE_ACTIVATED_SLUDGE_UNITS_FIXVOLUMEASU
+

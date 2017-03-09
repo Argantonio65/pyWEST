@@ -1,0 +1,28 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 5. september 2011 16:01:08$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_BASE_CONTROLLERS
+#define WWTP_BASE_CONTROLLERS
+
+#include "controller/wwtp.base.controllers.onoffideal.msl"
+#include "controller/wwtp.base.controllers.onoffband.msl"
+#include "controller/wwtp.base.controllers.constantratio.msl"
+#include "controller/wwtp.base.controllers.p_saturation.msl"
+#include "controller/wwtp.base.controllers.pi_saturation.msl"
+#include "controller/wwtp.base.controllers.pid_saturation.msl"
+ 
+#endif // WWTP_BASE_CONTROLLERS
+

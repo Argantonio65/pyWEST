@@ -1,0 +1,142 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 5. september 2011 16:01:14$
+ *
+ ******************************************************************************/
+
+#ifdef ASM3P_EAWAG
+/*  OBJ S_O_Saturation "Oxygen saturation concentration"
+  : Concentration := {: group <- "Kinetic" :};  
+  OBJ b_A_Temp "Maximum endogenous respiration rate of X_A"
+  : RateConstant := {: group <- "Kinetic" :};
+  OBJ b_H_Temp "Maximum endogenous respiration rate of X_H"
+  : RateConstant := {: group <- "Kinetic" :};
+  OBJ b_PAO_Temp "Maximum endogenous respiration rate of X_PAO"
+  : RateConstant := {: group <- "Kinetic" :};
+  OBJ b_PHA_Temp "Respiration rate for X_PHA"
+  : RateConstant := {: group <- "Kinetic" :};
+  OBJ b_PP_Temp "Lysis rate of X_PP"
+  : RateConstant := {: group <- "Kinetic" :};
+  OBJ k_h_Temp "Hydrolysis rate constant"
+  : MaxSpecificHydrolysisRate := {: group <- "Kinetic" :};
+  OBJ k_STO_Temp "Aerobic storage rate constant of X_STO"
+  : GrowthRate := {: group <- "Kinetic" :};
+  OBJ K_X_Temp "Hydrolysis saturation constant"
+  : SaturationCoefficient := {: group <- "Kinetic" :};
+  OBJ mu_A_Temp "Maximum aerobic growth rate of X_A"
+  : MaxGrowthRate := {: group <- "Kinetic" :};
+  OBJ mu_H_Temp "Maximum aerobic growth rate of X_H"
+  : MaxGrowthRate := {: group <- "Kinetic" :};
+  OBJ mu_PAO_Temp "Maximum growth rate of X_PAO"
+  : MaxGrowthRate := {: group <- "Kinetic" :};
+  OBJ q_PHA_Temp "Rate constant for storage of X_PHA"
+  : RateConstant := {: group <- "Kinetic" :};
+  OBJ q_PP_Temp "Rate constant for storage of X_PP"
+  : RateConstant := {: group <- "Kinetic" :};
+*/
+  OBJ S_O_InhibitionTerm_X_H_Biofilm (*  hidden = "1" *) "The oxygen inhibition term for X_H"
+  : InhibitionTerm[NrOfLayers;];
+  OBJ S_O_InhibitionTerm_X_PAO_Biofilm (*  hidden = "1" *) "The oxygen inhibition term for X_PAO"
+  : InhibitionTerm[NrOfLayers;];
+  OBJ S_ALK_MonodTerm_X_A_Biofilm (*  hidden = "1" *) "S_ALK MonodTerm for X_A"
+  : MonodTerm[NrOfLayers;];
+  OBJ S_ALK_MonodTerm_X_H_Biofilm (*  hidden = "1" *) "S_ALK MonodTerm for X_H"
+  : MonodTerm[NrOfLayers;];
+  OBJ S_ALK_MonodTerm_X_PAO_Biofilm (*  hidden = "1" *) "S_ALK MonodTerm for X_PAO"
+  : MonodTerm[NrOfLayers;];
+  OBJ X_PP_X_PAO_Max_MonodTerm_Biofilm (*  hidden = "1" *) "(K_max_PAO-X_PP/X_PAO) MonodTerm"
+  : MonodTerm[NrOfLayers;];
+  OBJ S_NH_MonodTerm_X_A_Biofilm (*  hidden = "1" *) "S_NH4 MonodTerm for X_A"
+  : MonodTerm[NrOfLayers;];
+  OBJ S_NH_MonodTerm_X_H_Biofilm (*  hidden = "1" *) "S_NH4 MonodTerm for X_H"
+  : MonodTerm[NrOfLayers;];
+  OBJ S_NH_MonodTerm_X_PAO_Biofilm (*  hidden = "1" *) "S_NH4 MonodTerm for X_PAO"
+  : MonodTerm[NrOfLayers;];
+  OBJ S_NO_MonodTerm_X_H_Biofilm (*  hidden = "1" *) "S_NO3 MonodTerm for X_H"
+  : MonodTerm[NrOfLayers;];
+  OBJ S_NO_MonodTerm_X_PAO_Biofilm (*  hidden = "1" *) "S_NO3 MonodTerm for X_PAO"
+  : MonodTerm[NrOfLayers;];
+  OBJ S_O_MonodTerm_X_A_Biofilm (*  hidden = "1" *) "S_O2 MonodTerm for X_A"
+  : MonodTerm[NrOfLayers;];
+  OBJ S_O_MonodTerm_X_H_Biofilm (*  hidden = "1" *) "S_O2 MonodTerm for X_H"
+  : MonodTerm[NrOfLayers;];
+  OBJ S_O_MonodTerm_X_PAO_Biofilm (*  hidden = "1" *) "S_O2 MonodTerm for X_PAO"
+  : MonodTerm[NrOfLayers;];
+  OBJ S_PHA_MonodTerm_X_PAO_Biofilm (*  hidden = "1" *) "X_PHA/X_PAO MonodTerm for X_PAO"
+  : MonodTerm[NrOfLayers;];
+  OBJ S_PO_MonodTerm_X_A_Biofilm (*  hidden = "1" *) "S_PO MonodTerm for X_A"
+  : MonodTerm[NrOfLayers;];
+  OBJ S_PO_MonodTerm_X_H_Biofilm (*  hidden = "1" *) "S_PO MonodTerm for X_H"
+  : MonodTerm[NrOfLayers;];
+  OBJ S_PO_MonodTerm_X_PAO_Biofilm (*  hidden = "1" *) "S_PO MonodTerm for X_PAO"
+  : MonodTerm[NrOfLayers;];
+  OBJ S_PO_MonodTerm_X_PP_Biofilm (*  hidden = "1" *) "S_PO MonodTerm for X_PP"
+  : MonodTerm[NrOfLayers;];
+  OBJ X_PP_X_PAO_MonodTerm_Biofilm (*  hidden = "1" *) "X_PP/X_PAO MonodTerm"
+  : MonodTerm[NrOfLayers;];
+  OBJ S_S_MonodTerm_X_H_Biofilm (*  hidden = "1" *) "S_S MonodTerm for X_H"
+  : MonodTerm[NrOfLayers;];
+  OBJ S_S_MonodTerm_X_PAO_Biofilm (*  hidden = "1" *) "S_S MonodTerm for X_PAO"
+  : MonodTerm[NrOfLayers;];
+  OBJ X_STO_MonodTerm_X_H_Biofilm (*  hidden = "1" *) "X_STO MonodTerm for X_H"
+  : MonodTerm[NrOfLayers;];
+  OBJ X_S_MonodTerm_HYD_Biofilm (*  hidden = "1" *) "X_S MonodTerm for Hydrolysis"
+  : MonodTerm[NrOfLayers;];
+
+  OBJ rate01_Biofilm (*  hidden = "1" *) "Kinetic Process Rate 1, Hydrolyse"
+  : ProcessRate[NrOfLayers;];
+  OBJ rate02_Biofilm (*  hidden = "1" *) "Kinetic Process Rate 2, Aerobic storage of S_S as X_STO"
+  : ProcessRate[NrOfLayers;];
+  OBJ rate03_Biofilm (*  hidden = "1" *) "Kinetic Process Rate 3, Anoxic storage of S_S as X_STO"
+  : ProcessRate[NrOfLayers;];
+  OBJ rate04_Biofilm (*  hidden = "1" *) "Kinetic Process Rate 4, Aerobic growth with XSTO"
+  : ProcessRate[NrOfLayers;];
+  OBJ rate05_Biofilm (*  hidden = "1" *) "Kinetic Process Rate 5, Anoxic growth with XSTO"
+  : ProcessRate[NrOfLayers;];
+  OBJ rate06_Biofilm (*  hidden = "1" *) "Kinetic Process Rate 6, Aerobic endogenous respiration of Heterotrophs"
+  : ProcessRate[NrOfLayers;];
+  OBJ rate07_Biofilm (*  hidden = "1" *) "Kinetic Process Rate 7, Anoxic endogenous respiration of Heterotrophs"
+  : ProcessRate[NrOfLayers;];
+  OBJ rate08_Biofilm (*  hidden = "1" *) "Kinetic Process Rate 8, Aerobic endogenous respiration of XSTO"
+  : ProcessRate[NrOfLayers;];
+  OBJ rate09_Biofilm (*  hidden = "1" *) "Kinetic Process Rate 9, Anoxische endogenous respiration of XSTO"
+  : ProcessRate[NrOfLayers;];
+  OBJ rate10_Biofilm (*  hidden = "1" *) "Kinetic Process Rate 10, Nitrification"
+  : ProcessRate[NrOfLayers;];
+  OBJ rate11_Biofilm (*  hidden = "1" *) "Kinetic Process Rate 11, Aerobic endogenous respiration of Autotrophs"
+  : ProcessRate[NrOfLayers;];
+  OBJ rate12_Biofilm (*  hidden = "1" *) "Kinetic Process Rate 12, Anoxic endogenous respiration of Autotrophs"
+  : ProcessRate[NrOfLayers;];
+  OBJ rateP01_Biofilm (*  hidden = "1" *) "Kinetic Process Rate P1, Storage of S_S as X_PHA"
+  : ProcessRate[NrOfLayers;];
+  OBJ rateP02_Biofilm (*  hidden = "1" *) "Kinetic Process Rate P2, Aerobic storage of X_PP"
+  : ProcessRate[NrOfLayers;];
+  OBJ rateP03_Biofilm (*  hidden = "1" *) "Kinetic Process Rate P3, Anoxic storage of X_PP"
+  : ProcessRate[NrOfLayers;];
+  OBJ rateP04_Biofilm (*  hidden = "1" *) "Kinetic Process Rate P4, Aerobic growth of X_PAO on X_PHA"
+  : ProcessRate[NrOfLayers;];
+  OBJ rateP05_Biofilm (*  hidden = "1" *) "Kinetic Process Rate P5, Anoxic growth of X_PAO on X_PHA"
+  : ProcessRate[NrOfLayers;];
+  OBJ rateP06_Biofilm (*  hidden = "1" *) "Kinetic Process Rate P6, Aerobic endogenous respiration of X_PAO"
+  : ProcessRate[NrOfLayers;];
+  OBJ rateP07_Biofilm (*  hidden = "1" *) "Kinetic Process Rate P7, Anoxic endogenous respiration of X_PAO"
+  : ProcessRate[NrOfLayers;];
+  OBJ rateP08_Biofilm (*  hidden = "1" *) "Kinetic Process Rate P8, Aerobic lysis of X_PP"
+  : ProcessRate[NrOfLayers;];
+  OBJ rateP09_Biofilm (*  hidden = "1" *) "Kinetic Process Rate P9, Anoxic lysis of X_PP"
+  : ProcessRate[NrOfLayers;];
+  OBJ rateP10_Biofilm (*  hidden = "1" *) "Kinetic Process Rate P10, Aerobic respiration of X_PHA"
+  : ProcessRate[NrOfLayers;];
+  OBJ rateP11_Biofilm (*  hidden = "1" *) "Kinetic Process Rate P11, Anoxic respiration of X_PHA"
+  : ProcessRate[NrOfLayers;];
+#endif // ASM3P_EAWAG

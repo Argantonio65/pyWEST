@@ -1,0 +1,138 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 23. april 2012 08:05:15$
+ *
+ ******************************************************************************/
+ 
+#ifndef WWTP_BASE_SENSORS_SENSORTKN
+#define WWTP_BASE_SENSORS_SENSORTKN
+
+#if (defined ASM1Temp || defined ASM2dModTemp || defined ASM3Temp || defined ASM3P_EAWAG)
+CLASS Sensor_TKN
+  (* icon = "sensor_tkn" ; is_default = "true" *)
+  "Total Kjeldal nitrogen sensor"
+  EXTENDS Sensor WITH 
+  {:
+    comments <- "A model for a sensor measuring the total Kjeldal nitrogen concentration";
+
+    interface <-
+    {
+      OBJ y_M (* terminal = "out_2"; is_favorite = "1" *) "Sensor measured output" :
+         Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    };
+    
+    parameters <-
+    {
+#if (defined ASM1Temp)
+     OBJ i_X_B     "Mass Of Nitrogen Per Mass Of COD In Biomass"
+      : MassOfNitrogenPerMassOfCODInBiomass := {:value <- 0.086 ; group <- "Composition parameters" :};
+     OBJ i_X_P     "Mass Of Nitrogen Per Mass Of COD In Products Formed"
+      : MassOfNitrogenPerMassOfCODInProdFromBiomass := {:value <- 0.06 ; group <- "Composition parameters" :};
+#endif // ASM1Temp
+
+#if (defined ASM2dModTemp)
+     OBJ i_N_S_I "Nitrogen content of inert soluble COD S_I"
+      : NitrogenConversionFactor := {:value <- 0.01 ; group <- "Composition parameters" :};
+     OBJ i_N_S_F "Nitrogen content of soluble substrate S_F"
+      : NitrogenConversionFactor := {:value <- 0.03 ; group <- "Composition parameters" :};
+     OBJ i_N_X_I "Nitrogen content of inert particulate COD X_I"
+      : NitrogenConversionFactor := {:value <- 0.03 ; group <- "Composition parameters" :};
+     OBJ i_N_X_S "Nitrogen content of particulate substrate X_S"
+      : NitrogenConversionFactor := {:value <- 0.04 ; group <- "Composition parameters" :};
+     OBJ i_N_BM "Nitrogen content of biomass X_H, X_PAO, X_AUT"
+      : NitrogenConversionFactor := {:value <- 0.07 ; group <- "Composition parameters" :};
+#endif // ASM2dModTemp
+
+#if (defined ASM3Temp)
+     OBJ i_N_S_I "Nitrogen content of inert soluble COD S_I"
+      : NitrogenConversionFactor := {:value <- 0.01 ; group <- "Composition parameters" :};
+     OBJ i_N_S_S "Nitrogen content of soluble substrate S_S"
+      : NitrogenConversionFactor := {:value <- 0.03 ; group <- "Composition parameters" :};
+     OBJ i_N_X_I "Nitrogen content of inert particulate COD X_I"
+      : NitrogenConversionFactor := {:value <- 0.03 ; group <- "Composition parameters" :};
+     OBJ i_N_X_S "Nitrogen content of particulate substrate X_S"
+      : NitrogenConversionFactor := {:value <- 0.04 ; group <- "Composition parameters" :};
+     OBJ i_N_BM "Nitrogen content of biomass X_H, X_A"
+      : NitrogenConversionFactor := {:value <- 0.07 ; group <- "Composition parameters" :};
+#endif // ASM3Temp
+
+#ifdef ASM3P_EAWAG
+  OBJ i_N_BM  "Nitrogen content of the biomass"
+  : ConversionFactor  := {: value <- 0.07 ; group <- "Composition parameters" :}; 
+  OBJ i_N_S_I "Nitrogen content of S_I"
+  : ConversionFactor  := {: value <- 0.01 ; group <- "Composition parameters" :}; 
+  OBJ i_N_S_S "Nitrogen content of S_S"
+  : ConversionFactor  := {: value <- 0.03 ; group <- "Composition parameters" :}; 
+  OBJ i_N_X_I "Nitrogen content of X_I"
+  : ConversionFactor  := {: value <- 0.03 ; group <- "Composition parameters" :}; 
+  OBJ i_N_X_S "Nitrogen content of X_S"
+  : ConversionFactor  := {: value <- 0.02 ; group <- "Composition parameters" :}; 
+#endif // ASM3P_EAWAG
+     };
+
+    equations <-
+    {
+#if (defined ASM1Temp)
+      {interface.y_M = IF (state.Q_In == 0)
+           THEN 0
+           ELSE 
+  (interface.Inflow[S_NH] + interface.Inflow[S_ND] + interface.Inflow[X_ND]
+   + parameters.i_X_B * (interface.Inflow[X_BH] + interface.Inflow[X_BA]) 
+       + parameters.i_X_P * (interface.Inflow[X_P] + interface.Inflow[X_I])) 
+  / state.Q_In ; };
+#endif //ASM1Temp
+
+#if (defined ASM2dModTemp)
+  {interface.y_M = IF (state.Q_In == 0)
+           THEN 0
+           ELSE 
+    (+ interface.Inflow[S_NH]
+     + parameters.i_N_S_I * interface.Inflow[S_I] 
+     + parameters.i_N_S_F * interface.Inflow[S_F] 
+     + parameters.i_N_X_I * interface.Inflow[X_I] 
+     + parameters.i_N_X_S * interface.Inflow[X_S] 
+     + parameters.i_N_BM * (interface.Inflow[X_H] + interface.Inflow[X_AUT] + interface.Inflow[X_PAO]) ) 
+    / state.Q_In ; };
+#endif // ASM2dModTemp
+
+#if (defined ASM3Temp)
+  {interface.y_M = IF (state.Q_In == 0)
+           THEN 0
+           ELSE 
+    ( interface.Inflow[S_NH]
+     + parameters.i_N_S_I * interface.Inflow[S_I] 
+     + parameters.i_N_S_S * interface.Inflow[S_S] 
+     + parameters.i_N_X_I * interface.Inflow[X_I] 
+     + parameters.i_N_X_S * interface.Inflow[X_S] 
+     + parameters.i_N_BM * (interface.Inflow[X_H] + interface.Inflow[X_A] ) ) 
+    / state.Q_In ; };
+#endif // ASM3Temp
+
+#ifdef ASM3P_EAWAG
+  {interface.y_M = IF (state.Q_In == 0)
+           THEN 0
+           ELSE 
+    (interface.Inflow[S_NH]
+     + parameters.i_N_S_I * interface.Inflow[S_I] 
+     + parameters.i_N_S_S * interface.Inflow[S_S] 
+     + parameters.i_N_X_I * interface.Inflow[X_I] 
+     + parameters.i_N_X_S * interface.Inflow[X_S] 
+     + parameters.i_N_BM * (interface.Inflow[X_H] + interface.Inflow[X_A] + interface.Inflow[X_PAO]) ) 
+    / state.Q_In ; };
+#endif // ASM3P_EAWAG
+    };
+  :};
+#endif // (defined ASM1Temp || defined ASM2dModTemp || defined ASM3Temp || defined ASM3P_EAWAG)
+
+#endif // WWTP_BASE_SENSORS_SENSORTKN
+

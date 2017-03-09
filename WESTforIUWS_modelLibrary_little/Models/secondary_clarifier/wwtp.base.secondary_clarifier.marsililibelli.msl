@@ -1,0 +1,213 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 23. marts 2012 12:41:33$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_BASE_SECONDARY_CLARIFIER_MARSILILIBELI
+#define WWTP_BASE_SECONDARY_CLARIFIER_MARSILILIBELI
+
+#ifdef StandardCategoryModels
+ CLASS MarsiliLibelli
+ (* icon = "secondary_clarifier" *)
+ "secondary clarifier"
+ EXTENDS WWTPAtomicModelWithoutVolume WITH
+  {:
+// The Marsili-Libelli model is based on the solid flux theory and the settling velocity model of Cole. In the model of Cole the settling   
+// velocity depends on the clarifier sludge concentration X.  
+//
+// The model of Cole is defined as :   v = v0 * X^(-n)  
+// The model of Cole is written for X (kg SS/m^3). In the Westpp modelbase X is expressed as g SS/m^3. This explains the correction   
+// factor of 1000.  
+// The sludge blanket height is calculated on the basis of the total mass of sludge in the decantor.  
+// The sludge concentration in the effluent is assumed zero as long as the sludge blanket height is smaller than the  
+// effective height of the decantor. It is assumed that there is no biological activity in the secondary clarifier  
+//
+// Literature :
+// o  Marsili-Libelli S. (1989), Modelling, identification and control of the activated sludge process, 
+// Adv. in Biochemical Engineering / Biotechnology, 38, 89-148.
+   Comments <- "A model for a secondary settler by Marsili Libelli";
+   interface <-
+   { 
+    OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+         InWWTPTerminal := {: causality <- "CIN" ; group <- "Influent" :};
+    OBJ Overflow (* terminal = "out_1" *) "Overflow" : 
+         OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent" :};
+    OBJ Underflow (* terminal = "out_2" *) "Underflow" : 
+         OutWWTPTerminal := {: causality <- "COUT" ; group <- "Underflow" :};
+    OBJ Q_Under (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Underflow rate" : 
+    FlowRate := {: causality <- "CIN" ; value <- 200 ; group <- "Operational" :}; 
+    OBJ TSS(* terminal = "out_3" *) "Total suspended solids concentration" : 
+        Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ V_Clarifier (* terminal = "out_3" *)"Volume measurement data" : 
+        Volume := {: causality <- "COUT" ; group <- "Measurement data" :};
+   OBJ PumpingEnergy (* terminal = "out_3" *)"Pumping energy" : ElectricalEnergy := {: causality <- "COUT"; group <- "Energy" :};
+   };
+
+  parameters <- 
+   { 
+    OBJ F_TSS_COD "Fraction TSS/COD" : Fraction := {: value <- 0.75 ; group <- "Conversion factors" :};
+    OBJ A (* is_favorite = "1" *) "Surface of secondary clarifier" : Area := {: value <- 400 ; group <- "Dimension" :};
+    OBJ H (* is_favorite = "1" *) "Height of secondary clarifier" : Length := {: value <- 4 ; group <- "Dimension" :};
+    OBJ v0 "Limit sedimentation velocity for diluted suspensions" : Velocity := {: value <- 4 ; group <- "Settling" :};
+    OBJ N "Cole sludge concentration dependency parameter" : Real := {: value <- 2.75 ; group <- "Settling" :};
+// PUMPING ENERGY
+    OBJ F_Energy_FlowRate "Conversion factor Energy needed/Pump flow rate" : Ratio := {: value <- 0.04 ; group <- "Energy":};
+   };
+
+  state <-
+   {
+    OBJ Q_Under_Actual (* is_favorite = "1" *) "Actual underflow rate" : FlowRate := {: group <- "Operational" :};
+    OBJ J_T "Total sludge flux" : ArealFlux := {: group <- "Settling" :};
+    OBJ help (* hidden = "1" *) "Help variable" : Real;
+    OBJ AA (* hidden = "1" *) "Help variable" : Real;
+    OBJ U "Underflow velocity" : Velocity := {: group <- "Settling" :};
+    OBJ H_S "Height of sludge blanket" : Length := {: group <- "Settling" :}; 
+    OBJ M "Mass of sludge in secondary clarifier" : Mass := {: group <- "Mass" :};
+    OBJ Q_Out (* is_favorite = "1" *) "Effluent flow rate" : FlowRate := {: group <- "Operational" :};
+    OBJ X_In (* is_favorite = "1" *) "Influent suspended solids concentration" : Concentration := {: group <- "Concentration" :};
+    OBJ X_Out (* is_favorite = "1" *) "Effluent suspended solids concentration" : Concentration := {: group <- "Concentration" :};
+    OBJ X_Under (* is_favorite = "1" *) "Underflow suspended solids concentration" : Concentration := {: group <- "Concentration" :};
+    OBJ X_L "Limiting sludge biomass concentration" : Concentration := {: group <- "Settling" :};
+    OBJ SolidFlux_In (* hidden = "1" *) "Sum of massfluxes of particulates" : MassFlux ;
+    OBJ SolidFlux_Out (* hidden = "1" *) "Fraction of influx that goes to the effluent" : MassFlux ;
+    OBJ SolidFlux_Under (* hidden = "1" *) "Fraction of influx that goes to the underflow" : MassFlux ;
+// PUMPING ENERGY
+    OBJ Integ_PE (* hidden = "1" *)"Integral Pumping energy" : ElectricalEnergy ;
+   };
+
+  equations <-
+   {           
+    state.Q_Under_Actual = IF (state.Q_In <= interface.Q_Under)
+         THEN state.Q_In
+         ELSE interface.Q_Under; 
+    
+    state.U = state.Q_Under_Actual / parameters.A;
+
+    state.AA = 1 - parameters.N;
+    state.help = IF (state.U == 0)
+         THEN 0
+         ELSE log(-state.U / (state.AA * parameters.v0)) ;
+
+    state.J_T = 1000 * (parameters.v0 * exp(state.AA / (state.AA - 1) * state.help) + state.U *
+               exp(1 / (state.AA - 1) * state.help));
+    state.X_L = 1000 * exp(1 / (state.AA - 1) * state.help);
+
+    state.Q_Out = state.Q_In - state.Q_Under_Actual;
+
+    state.H_S = state.M / state.X_L / parameters.A;
+
+    state.X_Out = IF (state.H_S <= parameters.H)
+                THEN 0
+                ELSE state.X_L;
+
+// Calculation of the fluxes of all components in the influent
+
+#ifdef CalculateTSSComponent
+    { state.SolidFlux_In =
+       (SUMOVER Comp_Index IN {IndexOfFirstTSSComponent .. IndexOfLastTSSComponent}:
+       state.InFluxPerComponent[Comp_Index] * parameters.F_TSS_COD)  ;
+    };
+#endif // CalculateTSSComponent
+
+#ifdef UseTSSComponent
+    state.SolidFlux_In =  state.InFluxPerComponent[IndexOfTSSComponent];
+#endif // UseTSSComponent
+
+    {state.X_In = IF (state.Q_In == 0)
+      THEN 0
+      ELSE state.SolidFlux_In / state.Q_In;
+     };
+
+// Calculation of the fluxes of all particulate components in the effluent
+ 
+    state.SolidFlux_Out = state.X_Out * state.Q_Out;
+
+    { FOREACH Comp_Index IN {IndexOfFirstParticulateComponent .. IndexOfLastParticulateComponent}:
+      interface.Overflow[Comp_Index] = 
+      IF (state.Q_In == 0)
+      THEN 0 
+      ELSE - (state.InFluxPerComponent[Comp_Index] / state.SolidFlux_In) * state.SolidFlux_Out ;
+    };
+
+// Calculation of the fluxes of all particulate components in the underflow
+
+    state.SolidFlux_Under = state.X_Under * state.Q_Under_Actual;
+
+    
+
+    { FOREACH Comp_Index IN {IndexOfFirstParticulateComponent .. IndexOfLastParticulateComponent}:
+      interface.Underflow[Comp_Index] = 
+      IF (state.Q_In == 0)
+      THEN 0 
+      ELSE - (state.InFluxPerComponent[Comp_Index] / state.SolidFlux_In) * state.SolidFlux_Under ;
+    };
+
+    state.X_Under = IF (( state.SolidFlux_In) >= (parameters.A *state.J_T))   
+          THEN
+              IF (state.Q_Under_Actual == 0)
+          THEN 0 
+          ELSE (parameters.A *state.J_T) / state.Q_Under_Actual
+                    ELSE
+                      IF (state.H_S > 0)
+                      THEN
+        IF (state.Q_Under_Actual == 0)
+        THEN 0 
+        ELSE (parameters.A *state.J_T) / state.Q_Under_Actual
+                      ELSE
+        IF (state.Q_Under_Actual == 0)
+        THEN 0 
+        ELSE state.SolidFlux_In / state.Q_Under_Actual;
+
+    {DERIV(state.M,[independent.t]) =
+             IF (state.SolidFlux_In >= (parameters.A * state.J_T))
+             THEN state.SolidFlux_In - state.SolidFlux_Under - state.SolidFlux_Out
+             ELSE
+               IF (state.H_S > 0)
+               THEN state.SolidFlux_In - state.SolidFlux_Under - state.SolidFlux_Out
+               ELSE 0;
+    };
+
+// Calculation of solubles
+
+    {FOREACH Comp_Index IN {IndexOfSolvent .. IndexOfLastSolubleComponent}:
+interface.Overflow[Comp_Index] = 
+IF (state.Q_In == 0)
+    THEN 0 
+    ELSE
+- state.InFluxPerComponent[Comp_Index] * state.Q_Out / state.Q_In;
+      };
+
+       interface.Underflow[IndexOfSolvent] = 
+              - state.Q_Under_Actual / 0.000001;
+
+    {FOREACH Comp_Index IN {IndexOfFirstSolubleComponent .. IndexOfLastSolubleComponent}:
+       interface.Underflow[Comp_Index] = 
+ - (state.InFluxPerComponent[Comp_Index]
+        + interface.Overflow[Comp_Index]) ;
+     };
+
+    interface.TSS = state.M /(parameters.A * parameters.H);
+
+    interface.V_Clarifier = parameters.A * parameters.H;  
+
+// PUMPING ENERGY
+  DERIV(state.Integ_PE,[independent.t])=  state.Q_Under_Actual;
+  interface.PumpingEnergy = parameters.F_Energy_FlowRate * state.Integ_PE ;
+
+   };
+ :};
+#endif // StandardCategoryModels
+
+#endif // WWTP_BASE_SECONDARY_CLARIFIER_MARSILILIBELI
+

@@ -1,0 +1,54 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 23. april 2012 08:05:07$
+ *
+ ******************************************************************************/
+
+ OBJ D_x "Diffusivity coefficient for biomass" : Diffusivity := {: value <- 1e-10 ; group <- "Transport" :};
+ OBJ D_i "Diffusivity coefficient" : Diffusivity[NrOfComponents;] 
+ 
+ #if (defined ASM1Temp)
+   :=[{: value <- 1.0e-10 ; group <- "Transport":},{: value <- 1.0e-4 ;group <- "Transport":} , {: value <- 5.8e-5 ;group <- "Transport":},
+   {: value <- 2.2e-4 ;group <- "Transport":} ,{: value <- 1.7e-4 ;group <- "Transport":} , {: value <- 1.7e-4 ;group <- "Transport":} ,
+   {: value <- 1.4e-4 ;group <- "Transport":} ,{: value <- 2.2e-4 ;group <- "Transport":} , {: value <- 0 ;group <- "Transport":} ,
+   {: value <- 0 ;group <- "Transport":} ,{: value <- 0 ;group <- "Transport":} , {: value <- 0 ;group <- "Transport":} ,
+   {: value <- 0 ;group <- "Transport":} , {: value <- 0 ;group <- "Transport":}; ] 
+ #endif // ASM1Temp
+ 
+ #if (defined ASM2dModTemp)
+   :=[{: value <- 1.0e-10 ; group <- "Transport":},{: value <- 1.0e-4 ;group <- "Transport":} , {: value <- 2.0e-4 ;group <- "Transport":}, {: value <- 2.0e-4 ;group <- "Transport":},
+   {: value <- 2.2e-4 ;group <- "Transport":} ,{: value <- 2.0e-4 ;group <- "Transport":} , {: value <- 2.0e-4 ;group <- "Transport":} ,
+   {: value <- 1.7e-4 ;group <- "Transport":} ,{: value <- 2.0e-4 ;group <- "Transport":} , {: value <- 1.4e-4 ;group <- "Transport":} ,
+   {: value <- 2.2e-4 ;group <- "Transport":} ,{: value <- 0 ;group <- "Transport":} , {: value <- 0 ;group <- "Transport":} ,
+   {: value <- 0 ;group <- "Transport":} , {: value <- 0 ;group <- "Transport":} , {: value <- 0 ;group <- "Transport":} ,
+   {: value <- 0 ;group <- "Transport":} , {: value <- 0 ;group <- "Transport":} , {: value <- 0 ;group <- "Transport":} ,
+   {: value <- 0 ;group <- "Transport":} , {: value <- 0 ;group <- "Transport":}, {: value <- 0 ;group <- "Transport":}; ] 
+ #endif // ASM2dModTemp
+ 
+ #if (defined ASM3Temp)
+   :=[{: value <- 1.0e-10 ; group <- "Transport":},{: value <- 1.0e-4 ;group <- "Transport":} , {: value <- 1.0e-4 ;group <- "Transport":},
+   {: value <- 2.0e-4 ;group <- "Transport":} ,{: value <- 1.4e-4 ;group <- "Transport":} , {: value <- 2.2e-4 ;group <- "Transport":} ,
+   {: value <- 1.7e-4 ;group <- "Transport":} ,{: value <- 2.2e-4 ;group <- "Transport":} , {: value <- 0 ;group <- "Transport":} ,
+   {: value <- 0 ;group <- "Transport":} ,{: value <- 0 ;group <- "Transport":} , {: value <- 0 ;group <- "Transport":} ,
+   {: value <- 0 ;group <- "Transport":} , {: value <- 0 ;group <- "Transport":}; ] 
+ #endif //ASM1Temp
+ 
+ #ifdef ASM3P_EAWAG
+   :=[{: value <- 1.0e-10 ; group <- "Transport":},{: value <- 1.0e-4 ;group <- "Transport":} , {: value <- 1.0e-4 ;group <- "Transport":},
+   {: value <- 2.2e-4 ;group <- "Transport":} ,{: value <- 1.4e-4 ;group <- "Transport":} , {: value <- 1.7e-4 ;group <- "Transport":} ,
+   {: value <- 2.0e-4 ;group <- "Transport":} ,{: value <- 2.0e-4 ;group <- "Transport":} , {: value <- 2.2e-4 ;group <- "Transport":} ,
+   {: value <- 0 ;group <- "Transport":} ,{: value <- 0 ;group <- "Transport":} , {: value <- 0 ;group <- "Transport":} ,
+   {: value <- 0 ;group <- "Transport":} , {: value <- 0 ;group <- "Transport":} , {: value <- 0 ;group <- "Transport":} ,
+   {: value <- 0 ;group <- "Transport":} , {: value <- 0 ;group <- "Transport":} , {: value <- 0 ;group <- "Transport":}; ] 
+ #endif // ASM3P_EAWAG 
+ ;

@@ -1,0 +1,115 @@
+// ------------------------------------------------------------------------
+//  MOSTforWATER - Ghent University, BIOMATH
+//  Implementation: Code generator Petersen's Matrix
+//  Description: MSL-USER/WWTP/DefinitionsASM2dModTemp
+// ------------------------------------------------------------------------
+
+
+#ifndef WWTP_DEFINITIONSASM2DMODTEMP
+#define WWTP_DEFINITIONSASM2DMODTEMP
+
+
+#ifdef ASM2dModTemp
+TYPE Components
+"
+The biological components considered in the WWTP models
+"
+	= ENUM {H2O, 
+		S_I, 
+		S_O, 
+		S_N2, 
+		S_F, 
+		S_A, 
+		S_Al, 
+		S_NO, 
+		S_PO, 
+		S_NH, 
+		S_ALK, 
+		X_I, 
+		X_S, 
+		X_H, 
+		X_PAO, 
+		X_PP, 
+		X_PHA, 
+		X_AUT, 
+		X_TSS, 
+		X_MEOH, 
+		X_MEP, 
+		X_I_i, 
+		};
+#endif // ASM2dModTemp
+
+
+#ifdef ASM2dModTemp
+TYPE Reactions
+"
+The reactions between biological components considered in the WWTP models
+"
+	= ENUM {AerHydrol, 
+		AnHydrol, 
+		AnaerHydrol, 
+		AerGrowthOnSf, 
+		AerGrowthOnSa, 
+		AnGrowthOnSfDenitrif, 
+		AnGrowthOnSaDenitrif, 
+		Fermentation, 
+		LysisOfHetero, 
+		StorageOfXPHA, 
+		AerStorageOfXPP, 
+		AnStorageOfXPP, 
+		AerGrowthOnXPHA, 
+		AnGrowthOnXPHADenitrif, 
+		LysisOfXPAO, 
+		LysisOfXPP, 
+		LysisOfXPHA, 
+		GrowthOfAuto, 
+		LysisOfAuto, 
+		Precipitation, 
+		Redissolution, 
+		Aeration, };
+#endif // ASM2dModTemp
+
+
+
+
+#ifdef ASM2dModTemp
+	OBJ IndexOfSolvent
+	"The index of the solvent in the components vector considered in the WWTP models"
+	: Integer := 1;
+
+
+#define SolublesPresent
+	OBJ IndexOfFirstSolubleComponent
+	"The index of the first soluble component in the components vector considered in the WWTP models"
+	: Integer := 2;
+
+
+	OBJ IndexOfLastSolubleComponent
+	"The index of the last soluble component in the components vector considered in the WWTP models"
+	: Integer := 11;
+
+
+#define ParticulatesPresent
+	OBJ IndexOfFirstParticulateComponent
+	"The index of the first particulate component in the components vector considered in the WWTP models"
+	: Integer := 12;
+
+
+	OBJ IndexOfLastParticulateComponent
+	"The index of the last particulate component in the components vector considered in the WWTP models"
+	: Integer := 22;
+
+
+#define UseTSSComponent
+	OBJ IndexOfTSSComponent
+	"The index of the TSS component in the components vector considered in the WWTP models"
+	: Integer := 19;
+
+
+#define StandardCategoryModels
+
+
+#endif // ASM2dModTemp
+
+
+#endif //WWTP_DEFINITIONSASM2DMODTEMP

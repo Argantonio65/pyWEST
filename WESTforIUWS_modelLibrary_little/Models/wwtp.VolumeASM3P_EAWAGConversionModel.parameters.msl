@@ -1,0 +1,188 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 5. september 2011 16:01:14$
+ *
+ ******************************************************************************/
+
+#ifdef ASM3P_EAWAG
+//  OBJ Temp  "Temperature of the activated sludge"
+//  : CelsiusTemperature  := {: value <- 15 ; group <- "Operational" :}; 
+  OBJ Temp_Ref  "Reference temperature of the activated sludge"
+  : CelsiusTemperature  := {: value <- 20 ; group <- "Kinetic" :}; 
+  OBJ theta_b_A "Temperature correction factor for b_A"
+  : Real  := {: value <- 0.105 ; group <- "Kinetic" :}; 
+  OBJ theta_b_H "Temperature correction factor for b_H"
+  : Real  := {: value <- 0.07 ; group <- "Kinetic" :}; 
+  OBJ theta_b_PAO "Temperature correction factor for b_PAO"
+  : Real  := {: value <- 0.07 ; group <- "Kinetic" :}; 
+  OBJ theta_b_PHA "Temperature correction factor for b_PHA"
+  : Real  := {: value <- 0.07 ; group <- "Kinetic" :}; 
+  OBJ theta_b_PP  "Temperature correction factor for b_PP"
+  : Real  := {: value <- 0.07 ; group <- "Kinetic" :}; 
+  OBJ theta_k_h "Temperature correction factor for k_h"
+  : Real  := {: value <- 0.04 ; group <- "Kinetic" :}; 
+  OBJ theta_K_X "Temperature correction factor for K_X"
+  : Real  := {: value <- 0 ; group <- "Kinetic" :}; 
+  OBJ theta_k_STO "Temperature correction factor for k_STO"
+  : Real  := {: value <- 0.07 ; group <- "Kinetic" :}; 
+  OBJ theta_mu_A  "Temperature correction factor for mu_A"
+  : Real  := {: value <- 0.105 ; group <- "Kinetic" :}; 
+  OBJ theta_mu_H  "Temperature correction factor for mu_H"
+  : Real  := {: value <- 0.07 ; group <- "Kinetic" :}; 
+  OBJ theta_mu_PAO  "Temperature correction factor for mu_PAO"
+  : Real  := {: value <- 0.07 ; group <- "Kinetic" :}; 
+  OBJ theta_q_PHA "Temperature correction factor for q_PHA"
+  : Real  := {: value <- 0.04 ; group <- "Kinetic" :}; 
+  OBJ theta_q_PP  "Temperature correction factor for q_PP"
+  : Real  := {: value <- 0.04 ; group <- "Kinetic" :}; 
+  OBJ b_A "Maximum endogenous respiration rate of X_A at the reference temperature"
+  : RateConstant  := {: value <- 0.2 ; group <- "Kinetic" :}; 
+  OBJ b_H "Maximum endogenous respiration rate of X_H at the reference temperature"
+  : RateConstant  := {: value <- 0.3 ; group <- "Kinetic" :}; 
+  OBJ b_PAO "Maximum endogenous respiration rate of X_PAO at the reference temperature"
+  : RateConstant  := {: value <- 0.2 ; group <- "Kinetic" :}; 
+  OBJ b_PHA "Respiration rate for X_PHA at the reference temperature"
+  : RateConstant  := {: value <- 0.2 ; group <- "Kinetic" :}; 
+  OBJ b_PP  "Lysis rate of X_PP at the reference temperature"
+  : RateConstant  := {: value <- 0.2 ; group <- "Kinetic" :}; 
+  OBJ n_NO_end_H  "Anoxic reduction factor for endog. respiration of X_H"
+  : ReductionFactor := {: value <- 0.33 ; group <- "Kinetic" :}; 
+  OBJ n_NO_end_A  "Anoxic reduction factor for endog. respiration of X_A"
+  : ReductionFactor := {: value <- 0.5 ; group <- "Kinetic" :}; 
+  OBJ n_NO_end_PAO  "Anoxic reduction factor for endog. respiration of X_PAO"
+  : ReductionFactor := {: value <- 0.33 ; group <- "Kinetic" :}; 
+  OBJ n_NO  "Anoxic reduction factor for growth/storage"
+  : ReductionFactor := {: value <- 0.8 ; group <- "Kinetic" :}; 
+  OBJ n_NO_lys_PP "Anoxic reduction factor for lysis"
+  : ReductionFactor := {: value <- 0.33 ; group <- "Kinetic" :}; 
+  OBJ n_NO_PAO  "Anoxic reduction factor growth of X_PAO"
+  : ReductionFactor := {: value <- 0.6 ; group <- "Kinetic" :}; 
+  OBJ n_NO_resp_PHA "Anoxic reduction factor for respiration"
+  : ReductionFactor := {: value <- 0.33 ; group <- "Kinetic" :}; 
+  OBJ f_S_I "Production of S_I in hydrolysis"
+  : Fraction  := {: value <- 0 ; group <- "Stoichiometry" :}; 
+  OBJ f_X_I "Production of X_I in endog. biomass respiration"
+  : Fraction  := {: value <- 0.2 ; group <- "Stoichiometry" :}; 
+  OBJ i_N_BM  "Nitrogen content of the biomass"
+  : ConversionFactor  := {: value <- 0.07 ; group <- "Composition parameters" :}; 
+  OBJ i_N_S_I "Nitrogen content of S_I"
+  : ConversionFactor  := {: value <- 0.01 ; group <- "Composition parameters" :}; 
+  OBJ i_N_S_S "Nitrogen content of S_S"
+  : ConversionFactor  := {: value <- 0.03 ; group <- "Composition parameters" :}; 
+  OBJ i_N_X_I "Nitrogen content of X_I"
+  : ConversionFactor  := {: value <- 0.03 ; group <- "Composition parameters" :}; 
+  OBJ i_N_X_S "Nitrogen content of X_S"
+  : ConversionFactor  := {: value <- 0.02 ; group <- "Composition parameters" :}; 
+  OBJ i_P_BM  "Phosphorus content of the biomass"
+  : ConversionFactor  := {: value <- 0.014 ; group <- "Composition parameters" :}; 
+  OBJ i_P_S_I "Phosphorus content of S_I"
+  : ConversionFactor  := {: value <- 0 ; group <- "Composition parameters" :}; 
+  OBJ i_P_S_S "Phosphorus content of S_S"
+  : ConversionFactor  := {: value <- 0 ; group <- "Composition parameters" :}; 
+  OBJ i_P_X_I "Phosphorus content of X_I"
+  : ConversionFactor  := {: value <- 0.01 ; group <- "Composition parameters" :}; 
+  OBJ i_P_X_S "Phosphorus content of X_S"
+  : ConversionFactor  := {: value <- 0.005 ; group <- "Composition parameters" :}; 
+  OBJ i_TS_BM "TSS to COD ratio for the biomass"
+  : ConversionFactor  := {: value <- 0.9 ; group <- "Composition parameters" :}; 
+  OBJ i_TS_PP "TSS to P ratio for X_PP"
+  : PhosphorusConversionFactor  := {: value <- 3.23 ; group <- "Composition parameters" :}; 
+  OBJ i_TS_STO  "TSS to COD ratio for X_STO"
+  : ConversionFactor  := {: value <- 0.6 ; group <- "Composition parameters" :}; 
+  OBJ i_TS_X_I  "TSS to COD ratio for X_I"
+  : ConversionFactor  := {: value <- 0.75 ; group <- "Composition parameters" :}; 
+  OBJ i_TS_X_S  "TSS to COD ratio for X_S"
+  : ConversionFactor  := {: value <- 0.75 ; group <- "Composition parameters" :}; 
+  OBJ F_BOD_COD "Conversion factor BOD/COD"
+  : Fraction  := {: value <- 0.65 ; group <- "Conversion factors" :};
+  OBJ K_HCO_A "Saturation constant for S_ALK"
+  : SaturationCoefficient := {: value <- 0.5 ; group <- "Kinetic" :}; 
+  OBJ K_HCO "Saturation constant for S_ALK"
+  : SaturationCoefficient := {: value <- 0.1 ; group <- "Kinetic" :}; 
+  OBJ K_HCO_PAO "Saturation constant for S_ALK"
+  : SaturationCoefficient := {: value <- 0.1 ; group <- "Kinetic" :}; 
+  OBJ k_h "Hydrolysis rate constant at the reference temperature"
+  : MaxSpecificHydrolysisRate := {: value <- 9 ; group <- "Kinetic" :}; 
+  OBJ K_iPP_PAO "Saturation constant for [K_max_PAO-(X_PP/X_PAO)]"
+  : SaturationCoefficient := {: value <- 0.05 ; group <- "Kinetic" :}; 
+  OBJ K_MAX_PAO "Maximum ratio of X_PP/X_PAO"
+  : SaturationCoefficient := {: value <- 0.2 ; group <- "Kinetic" :}; 
+  OBJ K_NH_A  "Saturation constant for S_NH4"
+  : SaturationCoefficient := {: value <- 1 ; group <- "Kinetic" :}; 
+  OBJ K_NH  "Saturation constant for S_NH4"
+  : SaturationCoefficient := {: value <- 0.01 ; group <- "Kinetic" :}; 
+  OBJ K_NH_PAO  "Saturation constant for S_NH4 PAOs"
+  : SaturationCoefficient := {: value <- 0.05 ; group <- "Kinetic" :}; 
+  OBJ K_NO "Saturation constant for S_NO3"
+  : SaturationCoefficient := {: value <- 0.5 ; group <- "Kinetic" :}; 
+  OBJ K_NO_PAO  "Saturation constant for S_NO3 PAOs"
+  : SaturationCoefficient := {: value <- 0.5 ; group <- "Kinetic" :}; 
+  OBJ K_O_A "Saturation constant for S_O2"
+  : SaturationCoefficient := {: value <- 0.5 ; group <- "Kinetic" :}; 
+  OBJ K_O "Saturation constant for O2 Heterotrophe"
+  : SaturationCoefficient := {: value <- 0.2 ; group <- "Kinetic" :}; 
+  OBJ K_O_PAO "Saturation constant for O2"
+  : SaturationCoefficient := {: value <- 0.2 ; group <- "Kinetic" :}; 
+  OBJ K_PHA "Saturation constant for X_PHA/X_PAO"
+  : SaturationCoefficient := {: value <- 0.1 ; group <- "Kinetic" :}; 
+  OBJ K_PO_A  "Saturation constant for S_PO"
+  : SaturationCoefficient := {: value <- 0.01 ; group <- "Kinetic" :}; 
+  OBJ K_PO_H  "Saturation constant for S_PO"
+  : SaturationCoefficient := {: value <- 0.01 ; group <- "Kinetic" :}; 
+  OBJ K_PO_PAO  "Saturation constant for S_PO (X_PAO-growth)"
+  : SaturationCoefficient := {: value <- 0.01 ; group <- "Kinetic" :}; 
+  OBJ K_PO_PP "Saturation constant for S_PO (X_PP-storage)"
+  : SaturationCoefficient := {: value <- 0.2 ; group <- "Kinetic" :}; 
+  OBJ K_PP_PAO  "Saturation constant for X_PP/X_PAO"
+  : SaturationCoefficient := {: value <- 0.05 ; group <- "Kinetic" :}; 
+  OBJ K_SS_H  "Saturation constant for storage of SS"
+  : SaturationCoefficient := {: value <- 10 ; group <- "Kinetic" :}; 
+  OBJ K_SS_PAO  "Saturation constant for S_S"
+  : SaturationCoefficient := {: value <- 10 ; group <- "Kinetic" :}; 
+  OBJ k_STO "Aerobic storage rate constant of X_STO at the reference temperature"
+  : GrowthRate  := {: value <- 12.5 ; group <- "Kinetic" :}; 
+  OBJ K_STO_H "Saturation constant for storage X_STO/X_H"
+  : SaturationCoefficient := {: value <- 0.1 ; group <- "Kinetic" :}; 
+  OBJ K_X "Hydrolysis saturation constant at the reference temperature"
+  : SaturationCoefficient := {: value <- 1 ; group <- "Kinetic" :}; 
+  OBJ mu_A  "Maximum aerobic growth rate of X_A at the reference temperature"
+  : MaxGrowthRate := {: value <- 0.9 ; group <- "Kinetic" :}; 
+  OBJ mu_H  "Maximum aerobic growth rate of X_H at the reference temperature"
+  : MaxGrowthRate := {: value <- 3 ; group <- "Kinetic" :}; 
+  OBJ mu_PAO  "Maximum growth rate of X_PAO at the reference temperature"
+  : MaxGrowthRate := {: value <- 1 ; group <- "Kinetic" :}; 
+  OBJ q_PHA "Rate constant for storage of X_PHA at the reference temperature"
+  : RateConstant  := {: value <- 6 ; group <- "Kinetic" :}; 
+  OBJ q_PP  "Rate constant for storage of X_PP at the reference temperature"
+  : RateConstant  := {: value <- 1.5 ; group <- "Kinetic" :}; 
+  OBJ Y_A "Yield growth X_A on S_NO"
+  : Yield := {: value <- 0.24 ; group <- "Stoichiometry" :}; 
+  OBJ Y_H_O2  "Aerobic yield growth X_H on X_STO"
+  : Yield := {: value <- 0.8 ; group <- "Stoichiometry" :}; 
+  OBJ Y_H_NO  "Anoxic yield growth X_H on X_STO"
+  : Yield := {: value <- 0.65 ; group <- "Stoichiometry" :}; 
+  OBJ Y_PAO_O2  "Aerobic Yield biomass/X_PHA"
+  : Yield := {: value <- 0.6 ; group <- "Stoichiometry" :}; 
+  OBJ Y_PAO_NO  "Anoxic Yield biomass/X_PHA"
+  : Yield := {: value <- 0.5 ; group <- "Stoichiometry" :}; 
+  OBJ Y_PHA_O2  "Requirement of X_PHA per X_PP storage (P-storage)"
+  : Yield := {: value <- 0.2 ; group <- "Stoichiometry" :}; 
+  OBJ Y_PHA_NO  "Requirement of X_PHA per X_PP storage (P-storage)" 
+  : Yield := {: value <- 0.2 ; group <- "Stoichiometry" :}; 
+  OBJ Y_PO  "Requirement of X_PP per X_PHA storage (P-release)"
+  : Yield := {: value <- 0.35 ; group <- "Stoichiometry" :}; 
+  OBJ Y_STO_O2  "Aerobic yield of stored products per S_S"
+  : Yield := {: value <- 0.8 ; group <- "Stoichiometry" :}; 
+  OBJ Y_STO_NO  "Anoxic yield of stored products per S_S"
+  : Yield := {: value <- 0.7 ; group <- "Stoichiometry" :}; 
+#endif // ASM3P_EAWAG

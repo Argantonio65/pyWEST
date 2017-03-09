@@ -1,0 +1,40 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 5. september 2011 16:01:15$
+ *
+ ******************************************************************************/
+
+#ifdef ASM3Temp
+  OBJ S_O_Saturation "Oxygen saturation concentration"
+  : Concentration := {: group <- "Kinetic" :};
+  OBJ k_h_Temp  "k_h at the system temperature"
+  : Real := {: group <- "Kinetic" :};
+  OBJ k_STO_Temp  "k_STO at the system temperature"
+  : Real := {: group <- "Kinetic" :};
+  OBJ mu_H_Temp "mu_H at the system temperature"
+  : Real := {: group <- "Kinetic" :};
+  OBJ b_H_O2_Temp "b_H_O2 at the system temperature"
+  : Real := {: group <- "Kinetic" :};
+  OBJ b_H_NO_Temp "b_H_NO at the system temperature"
+  : Real := {: group <- "Kinetic" :};
+  OBJ b_STO_O2_Temp "b_STO_O2 at the system temperature"
+  : Real := {: group <- "Kinetic" :};
+  OBJ b_STO_NO_Temp "b_STO_NO at the system temperature"
+  : Real := {: group <- "Kinetic" :};
+  OBJ mu_A_Temp "mu_A at the system temperature"
+  : Real := {: group <- "Kinetic" :};
+  OBJ b_A_O2_Temp "b_A_O2 at the system temperature"
+  : Real := {: group <- "Kinetic" :};
+  OBJ b_A_NO_Temp "b_A_NO at the system temperature"
+  : Real := {: group <- "Kinetic" :};
+#endif // ASM3Temp

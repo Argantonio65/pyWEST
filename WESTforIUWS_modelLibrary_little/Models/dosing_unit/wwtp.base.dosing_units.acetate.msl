@@ -1,0 +1,65 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 30. marts 2012 12:15:09$
+ *
+ ******************************************************************************/
+ 
+#ifndef WWTP_BASE_CHEMICAL_DOSING_UNITS_ACETATE
+#define WWTP_BASE_CHEMICAL_DOSING_UNITS_ACETATE
+
+#if (defined StandardCategoryModels)
+ CLASS Acetate
+ (* icon = "dosing_unit_acetate"; is_default = "true" *)
+ "A simple model for dosage of acetate"
+ EXTENDS AdditionOfFermentationProducts WITH
+ {:
+  comments <- "A model for the addition of acetate as external carbon source";
+  
+  interface <-
+  {
+  OBJ M_Acetate (* terminal = "out_2" *) "Amount of acetate dosed" : MassFlux
+  := {: causality <- "COUT" ; group <- "Measurement data" :};
+  OBJ Q_Acetate (* terminal = "out_2" *) "Flow rate of acetate dosed" : FlowRate
+  := {: causality <- "COUT" ; group <- "Measurement data" :};
+  };
+
+  parameters <-
+  {
+  #if (defined ASM1Temp || defined ASM3Temp || defined ASM3P_EAWAG)
+  OBJ C_Alk (* hidden = "1" *) "1/Alkalinity 'released' by acetate uptake" : 
+       Mass := {: value <- 64.0 ; group <- "Concentration" :};
+  #endif
+  };
+  
+  initial <-
+  {
+  parameters.COD = 64;
+  parameters.MW = 60;
+  };
+
+  equations <-
+  {
+  #if (defined ASM1Temp || defined ASM3Temp || defined ASM3P_EAWAG)
+  interface.Outflow[S_ALK] = interface.Outflow[S_S] / parameters.C_Alk ;
+  #endif
+  //
+  interface.M_Acetate = interface.Q_Dose * parameters.C_Dose ;
+  interface.Q_Acetate = interface.Q_Dose ;
+  };
+
+:};
+#endif //(defined StandardCategoryModels)
+
+ 
+
+#endif // WWTP_BASE_CHEMICAL_DOSING_UNITS_ACETATE

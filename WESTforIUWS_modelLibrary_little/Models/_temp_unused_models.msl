@@ -1,0 +1,2066 @@
+CLASS SewPumpedVolumeBuffer
+ (* class = "retention_basin"; category = "" *)
+ "A tank with pump and overflow when full"
+ EXTENDS SewerAtomicModelWithVolume WITH
+ {:
+  interface <-
+   {
+     OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+       InSewTerminal := {: causality <- "CIN" :};
+     OBJ Outflow1 (* terminal = "out_1" *) "Outflow1" : 
+         OutSewTerminal := {: causality <- "COUT" :};
+    OBJ Outflow2 (* terminal = "out_2" *) "Outflow2" : 
+         OutSewTerminal := {: causality <- "COUT" :};
+   };
+
+  parameters <-
+   {
+     OBJ Q_Pump "Desired effluent flow rate" : FlowRate := {: group <- "Tank characteristics" :};
+     OBJ V_Max "Maximum volume of the tank" : Volume := {: group <- "Tank characteristics"; value <- 10 :};
+	 OBJ f_on "Fraction of V_max switching on pump" : Fraction := {: group <- "Tank characteristics"; value <- 0.9 :};
+     OBJ V_Min "Minimum volume of the tank" : Volume := {: group <- "Tank characteristics"; value <- 1 :};
+	 OBJ beta "Overflow = (V-V_Max)^beta" : Real := {: group <- "Tank characteristics"; value <- 3 :};
+   };
+
+  state <-
+   {
+     OBJ Q_Out "Actual effluent flow rate" : FlowRate ;
+	 OBJ Q_over "Overflow Rate" : FlowRate;
+   };
+
+  equations <-
+   {
+   
+    interface.Outflow1[H2O_sew] = - state.Q_Out / parameters.SewSpecificVolume[H2O_sew] ; 
+	interface.Outflow2[H2O_sew] = - state.Q_over / parameters.SewSpecificVolume[H2O_sew] ;
+    state.V = state.SewM[H2O_sew] * parameters.SewSpecificVolume[H2O_sew];
+
+    state.Q_Out = IF (state.V < parameters.V_Min) 
+                THEN 0
+                ELSE  
+                  IF (state.V >= parameters.f_on*parameters.V_Max)
+                  THEN parameters.Q_Pump
+                  ELSE previous(state.Q_Out) ;    
+					
+	state.Q_over = IF (state.V <= parameters.V_Max)
+				   THEN 0
+				   ELSE pow((state.V-parameters.V_Max),parameters.beta);
+
+    {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+     		  state.SewC[s_comp_index] = IF (state.V == 0)
+			   			       		   	 THEN 0 
+							  			 ELSE state.SewM[s_comp_index] / state.V ;};
+   	 
+	 {FOREACH s_comp_index IN {2 .. NrOfSewComponents}:
+      interface.Outflow1[s_comp_index] = 
+      		- state.SewC[s_comp_index] * state.Q_Out;};
+	  
+	 {FOREACH s_comp_index IN {2 .. NrOfSewComponents}:
+      interface.Outflow2[s_comp_index] = 
+	  		- state.SewC[s_comp_index] * state.Q_over ;};
+   };
+ :};
+ 
+ 
+ CLASS KosimCSO
+  (* class = "two_splitter"; category = "" *)
+  "CSO"
+  EXTENDS SewerAtomicModelWithoutVolume WITH
+  {:
+   comments <- "A model for an absolute splitter into two flows";
+   interface <-
+    { 
+     OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+          InSewTerminal := {: causality <- "CIN" :};
+     OBJ Outflow1 (* terminal = "out_1" *) "Outflow1" : 
+          OutSewTerminal := {: causality <- "COUT" :};
+     OBJ Outflow2 (* terminal = "out_2" *) "Outflow2" : 
+          OutSewTerminal := {: causality <- "COUT" :};
+    };
+   parameters <- 
+    { 
+    OBJ SplittingPotential "" : Real:= {: value <- 1.1:};
+     OBJ Q_Out2 "Outflow 2 rate" : FlowRate := {: value <- 5000:};
+    };
+    
+   state <-
+    {
+     OBJ Q_Out1 "Outflow 1 rate" : FlowRate ;
+     OBJ f_Out2 (* hidden = "1" *) "Fraction of the influent flux going to outflow2" : Fraction ;
+     OBJ Q_Out2_Help (* hidden = "1" *) "Help variable for outflow2 rate" : FlowRate ;
+    };
+ 
+  
+   equations <-
+    { 
+     state.Q_Out2_Help = IF(parameters.Q_Out2 > state.Q_i)
+                       	THEN state.Q_i
+                       	ELSE ((parameters.SplittingPotential -1) / 4) * state.Q_i 
+ 						+ ((5-parameters.SplittingPotential) / 4) 
+ 						* parameters.Q_Out2 ;
+     state.Q_Out1 = IF(parameters.Q_Out2 > state.Q_i)
+                  THEN 0
+                  ELSE (state.Q_i - state.Q_Out2_Help);
+     state.f_Out2 = IF (state.Q_i == 0)
+ 			 THEN 0
+ 			 ELSE state.Q_Out2_Help / state.Q_i ;
+ 
+     interface.Outflow2[H2O_sew] = - state.Q_Out1 
+       / parameters.SewSpecificVolume[H2O_sew] ; 
+     interface.Outflow1[H2O_sew] = - state.Q_Out2_Help
+       / parameters.SewSpecificVolume[H2O_sew] ;
+ 
+     {FOREACH s_comp_index IN {2 .. NrOfSewComponents}:
+       interface.Outflow2[s_comp_index] =
+       - state.inFluxPerSewComponent[s_comp_index] * (1 - state.f_Out2) ;};
+ 
+     {FOREACH s_comp_index IN {2 .. NrOfSewComponents}:
+       interface.Outflow1[s_comp_index] =
+       - state.inFluxPerSewComponent[s_comp_index] * state.f_Out2 ;};
+  
+    }; 
+  :};
+ 
+  CLASS KosimTank
+  (* class = "pipe"; category = "" *)
+  "A buffertank with linear outflow equation" 
+  //One tank pipe, containing the FullPipe variable to display an error 
+  //message during simulation to tell the user that the pipe is carrying more than
+  //it can take and that backwater effects are happening.
+  
+  
+  EXTENDS SewerKosimVolumeASMConversionModel WITH
+  {:
+   interface <-
+    {
+      OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+        InSewTerminal := {: causality <- "CIN" :};
+      OBJ Outflow (* terminal = "out_1" *)"Outflow" : 
+        OutSewTerminal := {: causality <- "COUT" :};
+    };
+    initial <-
+    {
+    };
+   parameters <-
+   {
+     //OBJ Q_max "Maximum flow through the pipe": FlowRate:= {: group <- "Hydraulic" :};
+     OBJ k "reservoir constant" : Time := {:value <- 0.005787 ; group <- "Hydraulic":};
+ 	OBJ m "exponent (1 corresponds to linearity)" : Real := {:value <- 1 ; group <- "Hydraulic" :};
+     OBJ Vmin (*hidden = "0" *) 
+        "Minimum volume of the tank, to avoid problems with to low numbers" : 
+        Volume := {: value <- 1 ; group <- "Hydraulic":};
+   };
+ 
+   state <-
+    {
+     // OBJ Q_Out "Effluent flow rate" : FlowRate ; // duplicate
+ 	// OBJ FullPipe (*hidden ="1" *) "The pipe is full": Full;
+    };
+ 
+   equations <-
+    {
+    state.V = parameters.SewSpecificVolume[H2O_sew]*state.SewM[H2O_sew];
+    state.Q_Out =  IF (state.V < parameters.Vmin)
+                   THEN 0
+                   ELSE pow(state.V/parameters.k,1/parameters.m);
+  //  state.FullPipe = IF (state.Q_Out < parameters.Q_max)
+    		//		  	THEN 1
+ 			//		ELSE 0;  
+    {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+      state.SewC[s_comp_index] = state.SewM[s_comp_index]/state.V;};
+    {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+       interface.Outflow[s_comp_index] =
+        - state.SewC[s_comp_index] * state.Q_Out ;};
+    };
+  :};
+  
+  
+  CLASS PumpingStation
+  (* class = "transformer"; category = "" *)
+  "A pump"
+  /*A pump with a volume
+  */
+  EXTENDS SewerAtomicModelWithVolume WITH
+  {:
+   interface <-
+    {
+      OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+        InSewTerminal := {: causality <- "CIN" :};
+      OBJ Outflow (* terminal = "out_1" *)"Outflow" : 
+        OutSewTerminal := {: causality <- "COUT" :};
+ 
+    };
+    initial <-
+    {
+    };
+   parameters <-
+   { 
+  // 	OBJ V_max "Volume when overflow activates": Volume := {:value <- 9:};
+     OBJ V_start "Volume when pump starts": Volume := {:value <- 3:};
+     OBJ V_stop "Volume when pump stops" : Volume := {:value <- 1:};
+ 	OBJ Q_pump "Pumping rate" : FlowRate := {:value <- 3024:};
+ 	OBJ Q_min (*hidden="1"*) "Minimum pumping rate to avoid loggings" : FlowRate := {:value <- 1:};
+     OBJ Vmin (*hidden = "1" *) 
+        "Minimum volume of the tank, to avoid problems with to low numbers" : 
+        Volume := {: value <- 0.001:};
+   };
+ 
+   state <-
+    {
+      //OBJ Q_Out "Effluent flow rate" : FlowRate ; //duplicate
+ 	// OBJ Q_Over "Effluent flow rate" : FlowRate ;
+ 	// OBJ FullPipe (*hidden ="1" *) "The pipe is full": Full;
+    };
+ 
+   equations <-
+    {
+    state.V = parameters.SewSpecificVolume[H2O_sew]*state.SewM[H2O_sew];
+    state.Q_Out =  IF (state.V > parameters.V_start)
+                   THEN parameters.Q_pump
+                   ELSE parameters.Q_min; 
+    
+    {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+      state.SewC[s_comp_index] = state.SewM[s_comp_index]/state.V;};
+    {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+       interface.Outflow[s_comp_index] =
+        - state.SewC[s_comp_index] * state.Q_Out ;};
+ 	   
+   
+    };
+ :};
+ 
+ CLASS CircularPipe
+  (* class = "pipe"; category = "" *)
+  "A pipe with circular shape; The outflow is calculated by using the outflow-volume relationship for circular pipes" 
+   
+  EXTENDS SewerPipeVolumeASMConversionModel WITH
+  {:
+   interface <-
+    {
+      OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+        InSewTerminal := {: causality <- "CIN" :};
+      OBJ Outflow (* terminal = "out_1" *)"Outflow" : 
+        OutSewTerminal := {: causality <- "COUT" :};
+    };
+    
+   parameters <-
+   {
+ //    OBJ D "Diameter" : Length := {: value <- 0.3:};
+ //	  OBJ L "Length" : Length := {: value <- 1:};
+ //	  OBJ s "Slope" : Fraction := {: value <- 0.001:};
+ 	OBJ ks "Pipe Roughness" : Length := {: value <- 0.0015 ; group <- "Hydraulic":};
+ 	OBJ nue (*hidden="1"*) "kinematic viscosity in m2/days": KinematicViscosity := {:group <- "Hydraulic":};	
+ 	OBJ Qfull  "Flow through the completely filled pipe" : FlowRate:= {:group <- "Hydraulic":};
+         OBJ Vfull  "Volume of the completely filled pipe" : Volume:= {:group <- "Hydraulic":}; 
+ 	OBJ Vmax  "Maximum volume of the pipe": Volume:= {:group <- "Hydraulic":};
+ 	OBJ Hinit "Initial level of the tank" : Length := {: value <- 0.01; group <- "Hydraulic" :};
+ 	OBJ Pi (*hidden = "1" *) : Real;	
+ 	OBJ Qmax (*hidden = "1" *) "Maximum outflow of the pipe": FlowRate:= {: value <- 5.5; group <- "Hydraulic":};
+ 	OBJ a "slope in the volume-outflow relationship above Vfull": Real := {: value <- 1; group <- "Hydraulic":};
+ 	OBJ Hmin "Minimum heigth of the tank, to avoid problems with to low numbers" : 
+         Length := {: value <- 0.01; group <- "Hydraulic":};	
+ 	OBJ Vmin "Minimum volume of the tank, to avoid problems with to low numbers" : 
+         Volume := {: group <- "Hydraulic":};
+   };
+ 
+   state <-
+    {   	
+ //	 OBJ Arel "relative area" : Fraction;
+ 	 OBJ Qrel "relative flow rate" : Real;	 
+ //     OBJ Q_Out "Effluent flow rate" : FlowRate ; //duplicate
+ //	 OBJ tau "filling level" : Fraction;
+ //	 OBJ phi "filling angle" : Angle;
+ 	 OBJ xsi "filling area" : Fraction;
+ 	 OBJ eta "relative surface" : Fraction;
+ //	 OBJ zeta "relative hydraulic radius" : Real;	
+    };
+ initial <-
+    {
+    parameters.Pi = 2 * asin(1);
+    parameters.Vfull = parameters.L * parameters.Pi * pow(parameters.D, 2) / 4;
+       
+    //calculating Qfull using the Prandtl-Colebrook equation 
+    parameters.Qfull = - 2 * log10(2.51 * parameters.nue / (parameters.D * sqrt(2 * 9.81 * 86400 * 86400 * parameters.D * parameters.slp)) 
+    + ( parameters.ks / (3.71 * parameters.D))) * sqrt(2 * 9.81 * 86400 * 86400 * parameters.D * parameters.slp) * parameters.Vfull / parameters.L;     
+       
+    parameters.Qmax = parameters.Qfull * 100;
+    parameters.Vmax = IF (parameters.Qmax > parameters.Qfull)
+    				   	 THEN ((parameters.Qmax - parameters.Qfull)/(parameters.a * 86.4)) + parameters.Vfull
+ 					 ELSE parameters.Vfull; 
+   // state.SewM[H2O_sew] = parameters.UnitLength * parameters.UnitWidth * parameters.Hinit
+   // / parameters.SewSpecificVolume[H2O_sew] ;
+    parameters.UnitLength = parameters.L;
+    parameters.UnitWidth = parameters.D / 4;
+    parameters.Vmin = parameters.Hmin * parameters.UnitLength * parameters.UnitWidth;
+    state.V = parameters.UnitLength * parameters.UnitWidth * parameters.Hinit;
+    };
+    
+   equations <-
+    {
+     state.V = parameters.SewSpecificVolume[H2O_sew]*state.SewM[H2O_sew];
+    
+     state.Arel =  IF (state.V > parameters.Vfull)
+ 				  THEN 1
+ 				  ELSE IF (state.V < parameters.Vmin)
+ 				  THEN 0
+ 				  ELSE state.V / parameters.Vfull;	
+ 	
+ 	// The function calCircularTau is implemented in the files External.h and External.cpp located in the Externallib-Directory of WEST
+ 	// The file External.cpp has to be added in the Configuration Builder!!!	
+ 	state.tau = calCircularTau(state.Arel, previous(state.tau), 0.00001);
+ 	state.phi =  2 * asin(sqrt(state.tau));
+ 	state.xsi = 1 / parameters.Pi * (state.phi - sin(2 * state.phi) / 2);
+ 	state.eta = state.phi / parameters.Pi;
+ 	state.zeta = IF (state.eta == 0)
+ 			   	 THEN 0
+ 				 ELSE state.xsi / state.eta;
+ 	state.Qrel = state.xsi * pow(state.zeta, 0.625);  
+    	   
+     state.Q_Out = IF (state.V > parameters.Vmax)
+ 				  THEN parameters.Qmax
+ 				  ELSE IF (state.V > parameters.Vfull)
+ 				  THEN parameters.a * 86.4* (state.V - parameters.Vfull) + parameters.Qfull
+    			   //	  ELSE IF (state.V < parameters.Vmin)
+                  // THEN 0
+ 				  ELSE parameters.Qfull * state.Qrel;
+   
+    {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+      state.SewC[s_comp_index] = state.SewM[s_comp_index]/state.V;};
+    {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+       interface.Outflow[s_comp_index] =
+        - state.SewC[s_comp_index] * state.Q_Out ;};
+    };
+  :};
+  
+  CLASS CircularPipe_noMP
+  (* class = "pipe"; category = "" *)
+  "A pipe with circular shape; The outflow is calculated by using the outflow-volume relationship for circular pipes" 
+   
+  EXTENDS SewerAtomicModelWithVolume WITH
+  {:
+   interface <-
+    {
+      OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+        InSewTerminal := {: causality <- "CIN" :};
+      OBJ Outflow (* terminal = "out_1" *)"Outflow" : 
+        OutSewTerminal := {: causality <- "COUT" :};
+    };
+    
+   parameters <-
+   {
+     OBJ D "Diameter" : Length := {: value <- 0.3:};
+ 	OBJ L "Length" : Length := {: value <- 1:};
+ 	OBJ s "Slope" : Fraction := {: value <- 0.001:};
+ 	OBJ ks "Pipe Roughness" : Length := {: value <- 0.0015 ; group <- "Hydraulic":};
+ 	OBJ nue (*hidden="1"*) "kinematic viscosity in m2/days": KinematicViscosity := {:group <- "Hydraulic":};	
+ 	OBJ Qfull  "Flow through the completely filled pipe" : FlowRate:= {:group <- "Hydraulic":};
+     OBJ Vfull  "Volume of the completely filled pipe" : Volume:= {:group <- "Hydraulic":}; 
+ 	OBJ Vmax  "Maximum volume of the pipe": Volume:= {:group <- "Hydraulic":};
+     OBJ Hmin "Minimum heigth of the tank, to avoid problems with to low numbers" : 
+        Length := {: value <- 0.01; group <- "Hydraulic":};	
+ 	OBJ Hinit "Initial level of the tank" : Length := {: value <- 0.1; group <- "Hydraulic" :};
+ 	OBJ Vmin "Minimum volume of the tank, to avoid problems with to low numbers" : 
+        Volume := {: group <- "Hydraulic":};
+ 	OBJ Pi (*hidden = "1" *) : Real;	
+ 	OBJ Qmax (*hidden = "1" *) "Maximum outflow of the pipe": FlowRate:= {:group <- "Hydraulic":};
+ 	OBJ a "slope in the volume-outflow relationship above Vfull": Real := {: value <- 1; group <- "Hydraulic":};
+   };
+ 
+   state <-
+    {   	
+ 	 OBJ Arel "relative area" : Fraction;
+ 	 OBJ Qrel "relative flow rate" : Real;	 
+  OBJ tau "filling level" : Fraction;
+ 	 OBJ phi "filling angle" : Angle;
+ 	 OBJ xsi "filling area" : Fraction;
+ 	 OBJ eta "relative surface" : Fraction;
+ 	 OBJ zeta "relative hydraulic radius" : Real;	
+    };
+ initial <-
+    {
+    parameters.Pi = 2 * asin(1);
+    parameters.Vfull = parameters.L * parameters.Pi * pow(parameters.D, 2) / 4;
+       
+    //calculating Qfull using the Prandtl-Colebrook equation 
+    parameters.Qfull = - 2 * log10(2.51 * parameters.nue / (parameters.D * sqrt(2 * 9.81 * 86400 * 86400 * parameters.D * parameters.s)) 
+    + ( parameters.ks / (3.71 * parameters.D))) * sqrt(2 * 9.81 * 86400 * 86400 * parameters.D * parameters.s) * parameters.Vfull / parameters.L;     
+       
+    parameters.Qmax = parameters.Qfull * 100;
+    parameters.Vmax = IF (parameters.Qmax > parameters.Qfull)
+    				   	 THEN ((parameters.Qmax - parameters.Qfull)/(parameters.a * 86.4)) + parameters.Vfull
+ 					 ELSE parameters.Vfull; 
+    parameters.Vmin = parameters.Hmin * parameters.L * parameters.D/4;
+    state.SewM[H2O_sew] = parameters.L * parameters.D/4 * parameters.Hinit
+    / parameters.SewSpecificVolume[H2O_sew] ;
+    };
+    
+   equations <-
+    {
+     state.V = parameters.SewSpecificVolume[H2O_sew]*state.SewM[H2O_sew];
+    
+     state.Arel =  IF (state.V > parameters.Vfull)
+ 				  THEN 1
+ 				  ELSE IF (state.V < parameters.Vmin)
+ 				  THEN 0
+ 				  ELSE state.V / parameters.Vfull;	
+ 	
+ 	// The function calCircularTau is implemented in the files External.h and External.cpp located in the Externallib-Directory of WEST
+ 	// The file External.cpp has to be added in the Configuration Builder!!!	
+ 	state.tau = calCircularTau(state.Arel, previous(state.tau), 0.00001);
+ 	state.phi =  2 * asin(sqrt(state.tau));
+ 	state.xsi = 1 / parameters.Pi * (state.phi - sin(2 * state.phi) / 2);
+ 	state.eta = state.phi / parameters.Pi;
+ 	state.zeta = IF (state.eta == 0)
+ 			   	 THEN 0
+ 				 ELSE state.xsi / state.eta;
+ 	state.Qrel = state.xsi * pow(state.zeta, 0.625);  
+    	   
+     state.Q_Out = IF (state.V > parameters.Vmax)
+ 				  THEN parameters.Qmax
+ 				  ELSE IF (state.V > parameters.Vfull)
+ 				  THEN parameters.a * 86.4* (state.V - parameters.Vfull) + parameters.Qfull
+    			   	  ELSE IF (state.V < parameters.Vmin)
+                   THEN 0
+ 				  ELSE parameters.Qfull * state.Qrel;
+   
+    {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+      state.SewC[s_comp_index] = state.SewM[s_comp_index]/state.V;};
+    {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+       interface.Outflow[s_comp_index] =
+        - state.SewC[s_comp_index] * state.Q_Out ;};
+    };
+  :};
+ 
+ CLASS CircularPipe2 EXTENDS SewerPipeVolumeASMConversionModel WITH
+  {:
+    // A submodel for the backwater circular pipe 
+   interface <-
+    {
+      OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+        InSewTerminal := {: causality <- "CIN" :};
+      OBJ Outflow (* terminal = "out_1" *)"Outflow" : 
+        OutSewTerminal := {: causality <- "COUT" :};
+    };
+    
+   parameters <-
+   {
+ //    OBJ D "Diameter" : Length := {: value <- 0.3:};
+ //	OBJ L "Length" : Length := {: value <- 1:};
+ 	OBJ s "Slope" : Fraction := {: value <- 0.001:};
+ 	OBJ ks "Pipe Roughness" : Length := {: value <- 0.0015:};
+ 	OBJ nue (*hidden="1"*) "kinematic viscosity in m2/days": KinematicViscosity;	
+ 	OBJ Qfull (*hidden = "1" *) "Flow through the completely filled pipe" : FlowRate;
+     OBJ Vfull (*hidden = "1" *) "Maximum Volume of the pipe" : Volume; 
+     OBJ Vmin (*hidden = "1" *) 
+        "Minimum volume of the tank, to avoid problems with to low numbers" : 
+        Volume := {: value <- 0.001:};	
+ 	OBJ Pi (*hidden = "1" *) : Real;	
+ 	OBJ a "slope in the volume-outflow relationship above Vfull": Real := {: value <- 1:};
+   };
+ 
+   state <-
+    {   	
+ // 	 OBJ Arel "relative area" : Fraction; //duplicate
+ 	 OBJ Qrel "relative flow rate" : Real;	 
+ //     OBJ Q_Out "Effluent flow rate" : FlowRate ; //duplicate
+ 	// OBJ tau "filling level" : Fraction;//duplicate
+ 	// OBJ phi "filling angle" : Angle;//duplicate
+ 	 OBJ xsi "filling area" : Fraction;
+ 	 OBJ eta "relative surface" : Fraction;
+ 	// OBJ zeta "relative hydraulic radius" : Real;	//duplicate
+    };
+ initial <-
+    {
+    parameters.Pi = 2 * asin(1);
+    parameters.Vfull = parameters.L * parameters.Pi * pow(parameters.D, 2) / 4;	 
+    
+    //calculating Qfull using the Prandtl-Colebrook equation 
+    parameters.Qfull = - 2 * log10(2.51 * parameters.nue / (parameters.D * sqrt(2 * 9.81 * 86400 * 86400 * parameters.D * parameters.slp)) 
+    + ( parameters.ks / (3.71 * parameters.D))) * sqrt(2 * 9.81 * 86400 * 86400 * parameters.D * parameters.slp) * parameters.Vfull / parameters.L;     
+    };
+    
+   equations <-
+    {
+     state.V = parameters.SewSpecificVolume[H2O_sew]*state.SewM[H2O_sew];
+    
+     state.Arel =  IF (state.V > parameters.Vfull)
+ 				  THEN 1
+ 				  ELSE IF (state.V < parameters.Vmin)
+ 				  THEN 0
+ 				  ELSE state.V / parameters.Vfull;	
+ 	
+ 	// The function calCircularTau is implemented in the files External.h and External.cpp located in the Externallib-Directory of WEST
+ 	// The file External.cpp has to be added in the Configuration Builder!!!	
+ 	state.tau = calCircularTau(state.Arel, previous(state.tau), 0.0001);
+ 	state.phi =  2 * asin(sqrt(state.tau));
+ 	state.xsi = 1 / parameters.Pi * (state.phi - sin(2 * state.phi) / 2);
+ 	state.eta = state.phi / parameters.Pi;
+ 	state.zeta = IF (state.eta == 0)
+ 			   	 THEN 0
+ 				 ELSE state.xsi / state.eta;
+ 	state.Qrel = state.xsi * pow(state.zeta, 0.625);  
+    		
+    
+     state.Q_Out = IF (state.V > parameters.Vfull)
+    			   	  THEN parameters.Qfull + parameters.a * 86.4 *(state.V - parameters.Vfull)					  
+ 				  ELSE IF (state.V < parameters.Vmin)
+                   THEN 0
+ 				  ELSE parameters.Qfull * state.Qrel;
+   
+    {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+      state.SewC[s_comp_index] = state.SewM[s_comp_index]/state.V;};
+    {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+       interface.Outflow[s_comp_index] =
+        - state.SewC[s_comp_index] * state.Q_Out ;};
+    };
+  :}; 
+  
+ CLASS BackwaterCircularPipe
+ (* class = "pipe"; category = "" *) SPECIALISES CoupledModelType :=
+ {:
+ comments <- "";
+ interface <-
+ {
+  OBJ in (* terminal = "In_1" *) "" : InSewTerminal := {: causality <- CIN ; group <- "Control action" :};
+  OBJ out (* terminal = "Out_1" *) "" : OutSewTerminal := {: causality <- COUT ; group <- "" :};
+  OBJ backflow (* terminal = "in_2" *) "" : InSewTerminal := {: causality <- CIN ; group <- "" :};
+  OBJ overflow (* terminal = "out_2" *) "" : OutSewTerminal := {: causality <- COUT ; group <- "" :};
+ };
+ parameters <-
+ {
+   OBJ Q_max "maximum outflow from the pipe" : FlowRate:={:value <- 86400; group <- "":};
+ };
+ sub_models <-
+ {
+  OBJ Pipe : CircularPipe2;
+  OBJ Well_1 : SewTwoCombiner;
+  OBJ CV_1 : SewAbsTwoSplitter;
+ };
+ coupling <-
+ {
+  // parameter coupling
+  sub_models.CV_1.parameters.Q_Out2.value := parameters.Q_max.value,
+  // sub-model coupling
+  connect(interface.in, sub_models.Pipe.interface.Inflow),
+  connect(sub_models.Pipe.interface.Outflow, sub_models.Well_1.interface.Inflow1),
+  connect(sub_models.Well_1.interface.Outflow, sub_models.CV_1.interface.Inflow),
+  connect(sub_models.CV_1.interface.Outflow1, interface.overflow),
+  connect(interface.backflow, sub_models.Well_1.interface.Inflow2),
+  connect(sub_models.CV_1.interface.Outflow2, interface.out),
+ };
+ :}; 
+ 
+ CLASS BackwaterCircularPipe_noMP
+ (* class = "pipe"; category = "" *) SPECIALISES CoupledModelType :=
+ {:
+ comments <- "";
+ interface <-
+ {
+  OBJ in (* terminal = "In_1" *) "" : InSewTerminal := {: causality <- CIN ; group <- "Control action" :};
+  OBJ out (* terminal = "Out_1" *) "" : OutSewTerminal := {: causality <- COUT ; group <- "" :};
+  OBJ backflow (* terminal = "in_2" *) "" : InSewTerminal := {: causality <- CIN ; group <- "" :};
+  OBJ overflow (* terminal = "out_2" *) "" : OutSewTerminal := {: causality <- COUT ; group <- "" :};
+ };
+ parameters <-
+ {
+   OBJ Q_max "maximum outflow from the pipe" : FlowRate:={:value <- 86400; group <- "":};
+ };
+ sub_models <-
+ {
+  OBJ Pipe : CircularPipe_noMP;
+  OBJ Well_1 : SewTwoCombiner;
+  OBJ CV_1 : SewAbsTwoSplitter;
+ };
+ coupling <-
+ {
+  // parameter coupling
+  sub_models.CV_1.parameters.Q_Out2.value := parameters.Q_max.value,
+  // sub-model coupling
+  connect(interface.in, sub_models.Pipe.interface.Inflow),
+  connect(sub_models.Pipe.interface.Outflow, sub_models.Well_1.interface.Inflow1),
+  connect(sub_models.Well_1.interface.Outflow, sub_models.CV_1.interface.Inflow),
+  connect(sub_models.CV_1.interface.Outflow1, interface.overflow),
+  connect(interface.backflow, sub_models.Well_1.interface.Inflow2),
+  connect(sub_models.CV_1.interface.Outflow2, interface.out),
+ };
+ :}; 
+  
+ CLASS  TwoTankCascade
+ (* class = "pipe" *)
+ SPECIALISES CoupledModelType :=
+ {:
+  interface <-
+  {
+   OBJ Inflow1 (* terminal = "in_1" *) "Inflow1" : InSewTerminal := {:causality <- CIN:},
+   OBJ Outflow1 (* terminal = "out_1" *) "Outflow1" : OutSewTerminal := {:causality <- COUT:},
+  };
+ 
+  parameters <-
+  {
+  OBJ k "linear reservoir constant" : Time := {: value <- 0.005787; group <- "" :};
+  OBJ m "exponent (1 corresponds to linearity)" : Real := {:value <- 1; group <- "":};
+  OBJ Q_max (* hidden ="1" *) : FlowRate;
+  };
+ 
+  sub_models <-
+  {
+   OBJ Tank1 : KosimTank,
+   OBJ Tank2 : KosimTank,
+  };
+ 
+  coupling <-
+  {
+  // parameter coupling
+  sub_models.Tank1.parameters.k.value := parameters.k.value,
+  sub_models.Tank2.parameters.k.value := parameters.k.value,
+  sub_models.Tank1.parameters.m.value := parameters.m.value,
+  sub_models.Tank2.parameters.m.value := parameters.m.value,
+  // sub-model coupling
+   connect(interface.Inflow1, sub_models.Tank1.interface.Inflow),
+   connect(sub_models.Tank1.interface.Outflow, sub_models.Tank2.interface.Inflow),
+   connect(sub_models.Tank2.interface.Outflow, interface.Outflow1),
+  };
+ :};
+ 
+ 
+ 
+  CLASS  ThreeTankCascade
+ (* class = "pipe" *)
+ EXTENDS TwoTankCascade WITH
+ {:
+ 
+  interface <-
+  {
+   OBJ Outflow2 (* terminal = "out_1" *) "Outflow1" : OutSewTerminal := {:causality <- COUT:},
+  };
+ 
+  parameters <-
+  {
+  OBJ k "linear reservoir constant" : Time := {: value <- 0.005787; group <- "" :};
+  OBJ m "exponent (1 corresponds to linearity)" : Real := {:value <- 1; group <- "":};
+  };
+ 
+  sub_models <-
+  {
+   OBJ Tank3 : KosimTank,
+  };
+ 
+  coupling <-
+  {
+   sub_models.Tank1.parameters.k.value := parameters.k.value,
+   sub_models.Tank2.parameters.k.value := parameters.k.value,
+   sub_models.Tank3.parameters.k.value := parameters.k.value,
+   sub_models.Tank1.parameters.m.value := parameters.m.value,
+   sub_models.Tank2.parameters.m.value := parameters.m.value,
+   sub_models.Tank3.parameters.m.value := parameters.m.value,
+   connect(sub_models.Tank2.interface.Outflow, sub_models.Tank3.interface.Inflow),
+   connect(sub_models.Tank3.interface.Outflow, interface.Outflow2),
+  };
+ :};
+ 
+ 
+ CLASS  FourTankCascade
+ (* class = "pipe" *)
+ EXTENDS ThreeTankCascade WITH
+ {:
+ 
+  interface <-
+  {
+   OBJ Outflow3 (* terminal = "out_1" *) "Outflow1" : OutSewTerminal := {:causality <- COUT:},
+  };
+ 
+  parameters <-
+  {
+  OBJ k "linear reservoir constant" : Time := {: value <- 0.005787; group <- "" :};
+  OBJ m "exponent (1 corresponds to linearity)" : Real := {:value <- 1; group <- "":};
+  };
+ 
+  sub_models <-
+  {
+   OBJ Tank4 : KosimTank,
+  };
+ 
+  coupling <-
+  {
+   sub_models.Tank1.parameters.k.value := parameters.k.value,
+   sub_models.Tank2.parameters.k.value := parameters.k.value,
+   sub_models.Tank3.parameters.k.value := parameters.k.value,
+   sub_models.Tank4.parameters.k.value := parameters.k.value,
+   sub_models.Tank1.parameters.m.value := parameters.m.value,
+   sub_models.Tank2.parameters.m.value := parameters.m.value,
+   sub_models.Tank3.parameters.m.value := parameters.m.value,
+   sub_models.Tank4.parameters.m.value := parameters.m.value,
+   connect(sub_models.Tank3.interface.Outflow, sub_models.Tank4.interface.Inflow),
+   connect(sub_models.Tank4.interface.Outflow, interface.Outflow3),
+  };
+ :};
+ 
+ CLASS  FiveTankCascade
+ (* class = "pipe" *)
+ EXTENDS FourTankCascade WITH
+ {:
+ 
+  interface <-
+  {
+   OBJ Outflow4 (* terminal = "out_1" *) "Outflow1" : OutSewTerminal := {:causality <- COUT:},
+  };
+ 
+  parameters <-
+  {
+  OBJ k "linear reservoir constant" : Time := {: value <- 0.005787; group <- "" :};
+  OBJ m "exponent (1 corresponds to linearity)" : Real := {:value <- 1; group <- "":};
+  };
+ 
+  sub_models <-
+  {
+   OBJ Tank5 : KosimTank,
+  };
+ 
+  coupling <-
+  {
+   sub_models.Tank1.parameters.k.value := parameters.k.value,
+   sub_models.Tank2.parameters.k.value := parameters.k.value,
+   sub_models.Tank3.parameters.k.value := parameters.k.value,
+   sub_models.Tank4.parameters.k.value := parameters.k.value,
+   sub_models.Tank5.parameters.k.value := parameters.k.value,
+   sub_models.Tank1.parameters.m.value := parameters.m.value,
+   sub_models.Tank2.parameters.m.value := parameters.m.value,
+   sub_models.Tank3.parameters.m.value := parameters.m.value,
+   sub_models.Tank4.parameters.m.value := parameters.m.value,
+   sub_models.Tank5.parameters.m.value := parameters.m.value,
+   connect(sub_models.Tank4.interface.Outflow, sub_models.Tank5.interface.Inflow),
+   connect(sub_models.Tank5.interface.Outflow, interface.Outflow4),
+  };
+ :};
+ CLASS  SixTankCascade
+ (* class = "pipe" *)
+ EXTENDS FiveTankCascade WITH
+ {:
+  interface <-
+  {
+   OBJ Outflow5 (* terminal = "out_1" *) "Outflow1" : OutSewTerminal := {:causality <- COUT:},
+  };
+ 
+  parameters <-
+  {
+  OBJ k "linear reservoir constant" : Time := {: value <- 0.005787; group <- "" :};
+  OBJ m "exponent (1 corresponds to linearity)" : Real := {:value <- 1; group <- "":};
+  };
+ 
+  sub_models <-
+  {
+   OBJ Tank6 : KosimTank,
+  };
+ 
+  coupling <-
+  {
+   sub_models.Tank1.parameters.k.value := parameters.k.value,
+   sub_models.Tank2.parameters.k.value := parameters.k.value,
+   sub_models.Tank3.parameters.k.value := parameters.k.value,
+   sub_models.Tank4.parameters.k.value := parameters.k.value,
+   sub_models.Tank5.parameters.k.value := parameters.k.value,
+   sub_models.Tank6.parameters.k.value := parameters.k.value,
+   sub_models.Tank1.parameters.m.value := parameters.m.value,
+   sub_models.Tank2.parameters.m.value := parameters.m.value,
+   sub_models.Tank3.parameters.m.value := parameters.m.value,
+   sub_models.Tank4.parameters.m.value := parameters.m.value,
+   sub_models.Tank5.parameters.m.value := parameters.m.value,
+   sub_models.Tank6.parameters.m.value := parameters.m.value,
+   connect(sub_models.Tank5.interface.Outflow, sub_models.Tank6.interface.Inflow),
+   connect(sub_models.Tank6.interface.Outflow, interface.Outflow5),
+  };
+ :};
+ 
+ CLASS  SevenTankCascade
+ (* class = "pipe" *)
+ EXTENDS SixTankCascade WITH
+ {:
+ 
+  interface <-
+  {
+   OBJ Outflow6 (* terminal = "out_1" *) "Outflow1" : OutSewTerminal := {:causality <- COUT:},
+  };
+ 
+  parameters <-
+  {
+  OBJ k "linear reservoir constant" : Time := {: value <- 0.005787; group <- "" :};
+  OBJ m "exponent (1 corresponds to linearity)" : Real := {:value <- 1; group <- "":};
+  };
+ 
+  sub_models <-
+  {
+   OBJ Tank7 : KosimTank,
+  };
+ 
+  coupling <-
+  {
+   sub_models.Tank1.parameters.k.value := parameters.k.value,
+   sub_models.Tank2.parameters.k.value := parameters.k.value,
+   sub_models.Tank3.parameters.k.value := parameters.k.value,
+   sub_models.Tank4.parameters.k.value := parameters.k.value,
+   sub_models.Tank5.parameters.k.value := parameters.k.value,
+   sub_models.Tank6.parameters.k.value := parameters.k.value,
+   sub_models.Tank7.parameters.k.value := parameters.k.value,
+   sub_models.Tank1.parameters.m.value := parameters.m.value,
+   sub_models.Tank2.parameters.m.value := parameters.m.value,
+   sub_models.Tank3.parameters.m.value := parameters.m.value,
+   sub_models.Tank4.parameters.m.value := parameters.m.value,
+   sub_models.Tank5.parameters.m.value := parameters.m.value,
+   sub_models.Tank6.parameters.m.value := parameters.m.value,
+   sub_models.Tank7.parameters.m.value := parameters.m.value,
+   connect(sub_models.Tank6.interface.Outflow, sub_models.Tank7.interface.Inflow),
+   connect(sub_models.Tank7.interface.Outflow, interface.Outflow6),
+  };
+ :};
+ 
+ CLASS EightTankCascade
+ (* class = "pipe" *)
+ EXTENDS SevenTankCascade WITH
+ {:
+ 
+  interface <-
+  {
+   OBJ Outflow7 (* terminal = "out_1" *) "Outflow1" : OutSewTerminal := {:causality <- COUT:},
+  };
+ 
+  parameters <-
+  {
+  OBJ k "linear reservoir constant" : Time := {: value <- 0.005787; group <- "" :};
+  OBJ m "exponent (1 corresponds to linearity)" : Real := {:value <- 1; group <- "":};
+  };
+ 
+  sub_models <-
+  {
+   OBJ Tank8 : KosimTank,
+  };
+ 
+  coupling <-
+  {
+   sub_models.Tank1.parameters.k.value := parameters.k.value,
+   sub_models.Tank2.parameters.k.value := parameters.k.value,
+   sub_models.Tank3.parameters.k.value := parameters.k.value,
+   sub_models.Tank4.parameters.k.value := parameters.k.value,
+   sub_models.Tank5.parameters.k.value := parameters.k.value,
+   sub_models.Tank6.parameters.k.value := parameters.k.value,
+   sub_models.Tank7.parameters.k.value := parameters.k.value,
+   sub_models.Tank8.parameters.k.value := parameters.k.value,
+   sub_models.Tank1.parameters.m.value := parameters.m.value,
+   sub_models.Tank2.parameters.m.value := parameters.m.value,
+   sub_models.Tank3.parameters.m.value := parameters.m.value,
+   sub_models.Tank4.parameters.m.value := parameters.m.value,
+   sub_models.Tank5.parameters.m.value := parameters.m.value,
+   sub_models.Tank6.parameters.m.value := parameters.m.value,
+   sub_models.Tank7.parameters.m.value := parameters.m.value,
+   sub_models.Tank8.parameters.m.value := parameters.m.value,
+   connect(sub_models.Tank7.interface.Outflow, sub_models.Tank8.interface.Inflow),
+   connect(sub_models.Tank8.interface.Outflow, interface.Outflow7),
+  };
+ :};
+ 
+ CLASS NineTankCascade
+ (* class = "pipe" *)
+ EXTENDS EightTankCascade WITH
+ {:
+ 
+  interface <-
+  {
+   OBJ Outflow8 (* terminal = "out_1" *) "Outflow1" : OutSewTerminal := {:causality <- COUT:},
+  };
+ 
+  parameters <-
+  {
+  OBJ k "linear reservoir constant" : Time := {: value <- 0.005787; group <- "" :};
+  OBJ m "exponent (1 corresponds to linearity)" : Real := {:value <- 1; group <- "":};
+  };
+ 
+  sub_models <-
+  {
+   OBJ Tank9 : KosimTank,
+  };
+ 
+  coupling <-
+  {
+   sub_models.Tank1.parameters.k.value := parameters.k.value,
+   sub_models.Tank2.parameters.k.value := parameters.k.value,
+   sub_models.Tank3.parameters.k.value := parameters.k.value,
+   sub_models.Tank4.parameters.k.value := parameters.k.value,
+   sub_models.Tank5.parameters.k.value := parameters.k.value,
+   sub_models.Tank6.parameters.k.value := parameters.k.value,
+   sub_models.Tank7.parameters.k.value := parameters.k.value,
+   sub_models.Tank8.parameters.k.value := parameters.k.value,
+   sub_models.Tank9.parameters.k.value := parameters.k.value,
+   sub_models.Tank1.parameters.m.value := parameters.m.value,
+   sub_models.Tank2.parameters.m.value := parameters.m.value,
+   sub_models.Tank3.parameters.m.value := parameters.m.value,
+   sub_models.Tank4.parameters.m.value := parameters.m.value,
+   sub_models.Tank5.parameters.m.value := parameters.m.value,
+   sub_models.Tank6.parameters.m.value := parameters.m.value,
+   sub_models.Tank7.parameters.m.value := parameters.m.value,
+   sub_models.Tank8.parameters.m.value := parameters.m.value,
+   sub_models.Tank9.parameters.m.value := parameters.m.value,
+   connect(sub_models.Tank8.interface.Outflow, sub_models.Tank9.interface.Inflow),
+   connect(sub_models.Tank9.interface.Outflow, interface.Outflow8),
+  };
+ :};
+ 
+ CLASS TenTankCascade
+ (* class = "pipe" *)
+ EXTENDS NineTankCascade WITH
+ {:
+ 
+  interface <-
+  {
+   OBJ Outflow9 (* terminal = "out_1" *) "Outflow1" : OutSewTerminal := {:causality <- COUT:},
+  };
+ 
+  parameters <-
+  {
+  OBJ k "linear reservoir constant" : Time := {: value <- 0.005787; group <- "" :};
+  OBJ m "exponent (1 corresponds to linearity)" : Real := {:value <- 1; group <- "":};
+  };
+ 
+  sub_models <-
+  {
+   OBJ Tank10 : KosimTank,
+  };
+ 
+  coupling <-
+  {
+   sub_models.Tank1.parameters.k.value := parameters.k.value,
+   sub_models.Tank2.parameters.k.value := parameters.k.value,
+   sub_models.Tank3.parameters.k.value := parameters.k.value,
+   sub_models.Tank4.parameters.k.value := parameters.k.value,
+   sub_models.Tank5.parameters.k.value := parameters.k.value,
+   sub_models.Tank6.parameters.k.value := parameters.k.value,
+   sub_models.Tank7.parameters.k.value := parameters.k.value,
+   sub_models.Tank8.parameters.k.value := parameters.k.value,
+   sub_models.Tank9.parameters.k.value := parameters.k.value,
+   sub_models.Tank10.parameters.k.value := parameters.k.value,
+   sub_models.Tank1.parameters.m.value := parameters.m.value,
+   sub_models.Tank2.parameters.m.value := parameters.m.value,
+   sub_models.Tank3.parameters.m.value := parameters.m.value,
+   sub_models.Tank4.parameters.m.value := parameters.m.value,
+   sub_models.Tank5.parameters.m.value := parameters.m.value,
+   sub_models.Tank6.parameters.m.value := parameters.m.value,
+   sub_models.Tank7.parameters.m.value := parameters.m.value,
+   sub_models.Tank8.parameters.m.value := parameters.m.value,
+   sub_models.Tank9.parameters.m.value := parameters.m.value,
+   sub_models.Tank10.parameters.m.value := parameters.m.value,
+   connect(sub_models.Tank9.interface.Outflow, sub_models.Tank10.interface.Inflow),
+   connect(sub_models.Tank10.interface.Outflow, interface.Outflow9),
+  };
+ :};
+ 
+ CLASS BackwaterOneTank (* class = "pipe"; category = "" *) SPECIALISES CoupledModelType :=
+ {:
+ comments <- "";
+ interface <-
+ {
+  OBJ in (* terminal = "In_1" *) "" : InSewTerminal := {: causality <- CIN ; group <- "Control action" :};
+  OBJ out (* terminal = "Out_1" *) "" : OutSewTerminal := {: causality <- COUT ; group <- "" :};
+  OBJ backflow (* terminal = "in_2" *) "" : InSewTerminal := {: causality <- CIN ; group <- "" :};
+  OBJ overflow (* terminal = "out_2" *) "" : OutSewTerminal := {: causality <- COUT ; group <- "" :};
+ };
+ parameters <-
+ {
+  OBJ k "linear reservoir constant" : Time := {: value <- 0.005787; group <- "" :};
+  OBJ m "exponent (1 corresponds to linearity)" : Real := {:value <- 1; group <- "":};
+  OBJ Q_back "maximum outflow from the pipe" : FlowRate:={:value <- 86400; group <- "":};
+ };
+ sub_models <-
+ {
+  OBJ Tank_1 : KosimTank;
+  OBJ Well_1 : SewTwoCombiner;
+  OBJ CV_1 : SewAbsTwoSplitter;
+ };
+ coupling <-
+ {
+  // parameter coupling
+  sub_models.Tank_1.parameters.k.value := parameters.k.value,
+  sub_models.Tank_1.parameters.m.value := parameters.m.value,
+  sub_models.Tank_1.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.CV_1.parameters.Q_Out2.value := parameters.Q_back.value,
+  // sub-model coupling
+  connect(interface.in, sub_models.Tank_1.interface.Inflow),
+  connect(sub_models.Tank_1.interface.Outflow, sub_models.Well_1.interface.Inflow1),
+  connect(sub_models.Well_1.interface.Outflow, sub_models.CV_1.interface.Inflow),
+  connect(sub_models.CV_1.interface.Outflow1, interface.overflow),
+  connect(interface.backflow, sub_models.Well_1.interface.Inflow2),
+  connect(sub_models.CV_1.interface.Outflow2, interface.out),
+ };
+ :};
+ 
+ 
+ CLASS BackwaterTwoTankCascade (* class = "pipe"; category = "" *) SPECIALISES CoupledModelType :=
+ {:
+ comments <- "";
+ interface <-
+ {
+  OBJ in (* terminal = "In_1" *) "" : InSewTerminal := {: causality <- CIN ; group <- "Control action" :};
+  OBJ out (* terminal = "Out_1" *) "" : OutSewTerminal := {: causality <- COUT ; group <- "" :};
+  OBJ backflow (* terminal = "in_2" *) "" : InSewTerminal := {: causality <- CIN ; group <- "" :};
+  OBJ overflow (* terminal = "out_2" *) "" : OutSewTerminal := {: causality <- COUT ; group <- "" :};
+ };
+ parameters <-
+ {
+  OBJ k "linear reservoir constant" : Time := {: value <- 0.005787; group <- "" :};
+  OBJ m "exponent (1 corresponds to linearity)" : Real := {:value <- 1; group <- "":};
+  OBJ Q_back "maximum outflow from the pipe" : FlowRate:={:value <- 86400; group <- "":};
+ };
+ sub_models <-
+ {
+  OBJ Tank_1 : KosimTank;
+  OBJ Tank_2 : KosimTank;
+  OBJ Well_1 : SewTwoCombiner;
+  OBJ CV_1 : SewAbsTwoSplitter;
+ };
+ coupling <-
+ {
+  // parameter coupling
+  sub_models.Tank_1.parameters.k.value := parameters.k.value,
+  sub_models.Tank_1.parameters.m.value := parameters.m.value,
+  sub_models.Tank_1.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.Tank_2.parameters.k.value := parameters.k.value,
+  sub_models.Tank_2.parameters.m.value := parameters.m.value,
+  sub_models.Tank_2.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.CV_1.parameters.Q_Out2.value := parameters.Q_back.value,
+  // sub-model coupling
+  connect(interface.in, sub_models.Tank_1.interface.Inflow),
+  connect(sub_models.Tank_1.interface.Outflow, sub_models.Tank_2.interface.Inflow),
+  connect(sub_models.Tank_2.interface.Outflow, sub_models.Well_1.interface.Inflow1),
+  connect(sub_models.Well_1.interface.Outflow, sub_models.CV_1.interface.Inflow),
+  connect(sub_models.CV_1.interface.Outflow1, interface.overflow),
+  connect(interface.backflow, sub_models.Well_1.interface.Inflow2),
+  connect(sub_models.CV_1.interface.Outflow2, interface.out),
+ };
+ :};
+ 
+ CLASS BackwaterThreeTankCascade (* class = "pipe"; category = "" *) SPECIALISES CoupledModelType :=
+ {:
+ comments <- "";
+ interface <-
+ {
+  OBJ in (* terminal = "In_1" *) "" : InSewTerminal := {: causality <- CIN ; group <- "Control action" :};
+  OBJ out (* terminal = "Out_1" *) "" : OutSewTerminal := {: causality <- COUT ; group <- "" :};
+  OBJ backflow (* terminal = "in_2" *) "" : InSewTerminal := {: causality <- CIN ; group <- "" :};
+  OBJ overflow (* terminal = "out_2" *) "" : OutSewTerminal := {: causality <- COUT ; group <- "" :};
+ };
+ parameters <-
+ {
+  OBJ k "linear reservoir constant" : Time := {: value <- 0.005787; group <- "" :};
+  OBJ m "exponent (1 corresponds to linearity)" : Real := {:value <- 1; group <- "":};
+  OBJ Q_back "maximum outflow from the pipe" : FlowRate:={:value <- 86400; group <- "":};
+ };
+ sub_models <-
+ {
+  OBJ Tank_1 : KosimTank;
+  OBJ Tank_2 : KosimTank;
+  OBJ Tank_3 : KosimTank;
+  OBJ Well_1 : SewTwoCombiner;
+  OBJ CV_1 : SewAbsTwoSplitter;
+ };
+ coupling <-
+ {
+  // parameter coupling
+  sub_models.Tank_1.parameters.k.value := parameters.k.value,
+  sub_models.Tank_1.parameters.m.value := parameters.m.value,
+  sub_models.Tank_1.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.Tank_2.parameters.k.value := parameters.k.value,
+  sub_models.Tank_2.parameters.m.value := parameters.m.value,
+  sub_models.Tank_2.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.Tank_3.parameters.k.value := parameters.k.value,
+  sub_models.Tank_3.parameters.m.value := parameters.m.value,
+  sub_models.Tank_3.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.CV_1.parameters.Q_Out2.value := parameters.Q_back.value,
+  // sub-model coupling
+  connect(interface.in, sub_models.Tank_1.interface.Inflow),
+  connect(sub_models.Tank_1.interface.Outflow, sub_models.Tank_2.interface.Inflow),
+  connect(sub_models.Tank_2.interface.Outflow, sub_models.Tank_3.interface.Inflow),
+  connect(sub_models.Tank_3.interface.Outflow, sub_models.Well_1.interface.Inflow1),
+  connect(sub_models.Well_1.interface.Outflow, sub_models.CV_1.interface.Inflow),
+  connect(sub_models.CV_1.interface.Outflow1, interface.overflow),
+  connect(interface.backflow, sub_models.Well_1.interface.Inflow2),
+  connect(sub_models.CV_1.interface.Outflow2, interface.out),
+ };
+ :};
+ 
+ CLASS BackwaterFourTankCascade (* class = "pipe"; category = "" *) SPECIALISES CoupledModelType :=
+ {:
+ comments <- "";
+ interface <-
+ {
+  OBJ in (* terminal = "In_1" *) "" : InSewTerminal := {: causality <- CIN ; group <- "Control action" :};
+  OBJ out (* terminal = "Out_1" *) "" : OutSewTerminal := {: causality <- COUT ; group <- "" :};
+  OBJ backflow (* terminal = "in_2" *) "" : InSewTerminal := {: causality <- CIN ; group <- "" :};
+  OBJ overflow (* terminal = "out_2" *) "" : OutSewTerminal := {: causality <- COUT ; group <- "" :};
+ };
+ parameters <-
+ {
+  OBJ k "linear reservoir constant" : Time := {: value <- 0.005787; group <- "" :};
+  OBJ m "exponent (1 corresponds to linearity)" : Real := {:value <- 1; group <- "":};
+  OBJ Q_back "maximum outflow from the pipe" : FlowRate:={:value <- 86400; group <- "":};
+ };
+ sub_models <-
+ {
+  OBJ Tank_1 : KosimTank;
+  OBJ Tank_2 : KosimTank;
+  OBJ Tank_3 : KosimTank;
+  OBJ Tank_4 : KosimTank;
+  OBJ Well_1 : SewTwoCombiner;
+  OBJ CV_1 : SewAbsTwoSplitter;
+ };
+ coupling <-
+ {
+  // parameter coupling
+  sub_models.Tank_1.parameters.k.value := parameters.k.value,
+  sub_models.Tank_1.parameters.m.value := parameters.m.value,
+  sub_models.Tank_1.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.Tank_2.parameters.k.value := parameters.k.value,
+  sub_models.Tank_2.parameters.m.value := parameters.m.value,
+  sub_models.Tank_2.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.Tank_3.parameters.k.value := parameters.k.value,
+  sub_models.Tank_3.parameters.m.value := parameters.m.value,
+  sub_models.Tank_3.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.Tank_4.parameters.k.value := parameters.k.value,
+  sub_models.Tank_4.parameters.m.value := parameters.m.value,
+  sub_models.Tank_4.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.CV_1.parameters.Q_Out2.value := parameters.Q_back.value,
+  // sub-model coupling
+  connect(interface.in, sub_models.Tank_1.interface.Inflow),
+  connect(sub_models.Tank_1.interface.Outflow, sub_models.Tank_2.interface.Inflow),
+  connect(sub_models.Tank_2.interface.Outflow, sub_models.Tank_3.interface.Inflow),
+  connect(sub_models.Tank_3.interface.Outflow, sub_models.Tank_4.interface.Inflow),
+  connect(sub_models.Tank_4.interface.Outflow, sub_models.Well_1.interface.Inflow1),
+  connect(sub_models.Well_1.interface.Outflow, sub_models.CV_1.interface.Inflow),
+  connect(sub_models.CV_1.interface.Outflow1, interface.overflow),
+  connect(interface.backflow, sub_models.Well_1.interface.Inflow2),
+  connect(sub_models.CV_1.interface.Outflow2, interface.out),
+ };
+ :};
+ 
+ CLASS BackwaterFiveTankCascade (* class = "pipe"; category = "" *) SPECIALISES CoupledModelType :=
+ {:
+ comments <- "";
+ interface <-
+ {
+  OBJ in (* terminal = "In_1" *) "" : InSewTerminal := {: causality <- CIN ; group <- "Control action" :};
+  OBJ out (* terminal = "Out_1" *) "" : OutSewTerminal := {: causality <- COUT ; group <- "" :};
+  OBJ backflow (* terminal = "in_2" *) "" : InSewTerminal := {: causality <- CIN ; group <- "" :};
+  OBJ overflow (* terminal = "out_2" *) "" : OutSewTerminal := {: causality <- COUT ; group <- "" :};
+ };
+ parameters <-
+ {
+  OBJ k "linear reservoir constant" : Time := {: value <- 0.005787; group <- "" :};
+  OBJ m "exponent (1 corresponds to linearity)" : Real := {:value <- 1; group <- "":};
+  OBJ Q_back "maximum outflow from the pipe" : FlowRate:={:value <- 86400; group <- "":};
+ };
+ sub_models <-
+ {
+  OBJ Tank_1 : KosimTank;
+  OBJ Tank_2 : KosimTank;
+  OBJ Tank_3 : KosimTank;
+  OBJ Tank_4 : KosimTank;
+  OBJ Tank_5 : KosimTank;
+  OBJ Well_1 : SewTwoCombiner;
+  OBJ CV_1 : SewAbsTwoSplitter;
+ };
+ coupling <-
+ {
+  // parameter coupling
+  sub_models.Tank_1.parameters.k.value := parameters.k.value,
+  sub_models.Tank_1.parameters.m.value := parameters.m.value,
+  sub_models.Tank_1.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.Tank_2.parameters.k.value := parameters.k.value,
+  sub_models.Tank_2.parameters.m.value := parameters.m.value,
+  sub_models.Tank_2.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.Tank_3.parameters.k.value := parameters.k.value,
+  sub_models.Tank_3.parameters.m.value := parameters.m.value,
+  sub_models.Tank_3.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.Tank_4.parameters.k.value := parameters.k.value,
+  sub_models.Tank_4.parameters.m.value := parameters.m.value,
+  sub_models.Tank_4.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.Tank_5.parameters.k.value := parameters.k.value,
+  sub_models.Tank_5.parameters.m.value := parameters.m.value,
+  sub_models.Tank_5.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.CV_1.parameters.Q_Out2.value := parameters.Q_back.value,
+  // sub-model coupling
+  connect(interface.in, sub_models.Tank_1.interface.Inflow),
+  connect(sub_models.Tank_1.interface.Outflow, sub_models.Tank_2.interface.Inflow),
+  connect(sub_models.Tank_2.interface.Outflow, sub_models.Tank_3.interface.Inflow),
+  connect(sub_models.Tank_3.interface.Outflow, sub_models.Tank_4.interface.Inflow),
+  connect(sub_models.Tank_4.interface.Outflow, sub_models.Tank_5.interface.Inflow),
+  connect(sub_models.Tank_5.interface.Outflow, sub_models.Well_1.interface.Inflow1),
+  connect(sub_models.Well_1.interface.Outflow, sub_models.CV_1.interface.Inflow),
+  connect(sub_models.CV_1.interface.Outflow1, interface.overflow),
+  connect(interface.backflow, sub_models.Well_1.interface.Inflow2),
+  connect(sub_models.CV_1.interface.Outflow2, interface.out),
+ };
+ :};
+ 
+ CLASS BackwaterSixTankCascade (* class = "pipe"; category = "" *) SPECIALISES CoupledModelType :=
+ {:
+ comments <- "";
+ interface <-
+ {
+  OBJ in (* terminal = "In_1" *) "" : InSewTerminal := {: causality <- CIN ; group <- "Control action" :};
+  OBJ out (* terminal = "Out_1" *) "" : OutSewTerminal := {: causality <- COUT ; group <- "" :};
+  OBJ backflow (* terminal = "in_2" *) "" : InSewTerminal := {: causality <- CIN ; group <- "" :};
+  OBJ overflow (* terminal = "out_2" *) "" : OutSewTerminal := {: causality <- COUT ; group <- "" :};
+ };
+ parameters <-
+ {
+  OBJ k "linear reservoir constant" : Time := {: value <- 0.005787; group <- "" :};
+  OBJ m "exponent (1 corresponds to linearity)" : Real := {:value <- 1; group <- "":};
+  OBJ Q_back "maximum outflow from the pipe" : FlowRate:={:value <- 86400; group <- "":};
+ };
+ sub_models <-
+ {
+  OBJ Tank_1 : KosimTank;
+  OBJ Tank_2 : KosimTank;
+  OBJ Tank_3 : KosimTank;
+  OBJ Tank_4 : KosimTank;
+  OBJ Tank_5 : KosimTank;
+  OBJ Tank_6 : KosimTank;
+  OBJ Well_1 : SewTwoCombiner;
+  OBJ CV_1 : SewAbsTwoSplitter;
+ };
+ coupling <-
+ {
+  // parameter coupling
+  sub_models.Tank_1.parameters.k.value := parameters.k.value,
+  sub_models.Tank_1.parameters.m.value := parameters.m.value,
+  sub_models.Tank_1.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.Tank_2.parameters.k.value := parameters.k.value,
+  sub_models.Tank_2.parameters.m.value := parameters.m.value,
+  sub_models.Tank_2.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.Tank_3.parameters.k.value := parameters.k.value,
+  sub_models.Tank_3.parameters.m.value := parameters.m.value,
+  sub_models.Tank_3.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.Tank_4.parameters.k.value := parameters.k.value,
+  sub_models.Tank_4.parameters.m.value := parameters.m.value,
+  sub_models.Tank_4.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.Tank_5.parameters.k.value := parameters.k.value,
+  sub_models.Tank_5.parameters.m.value := parameters.m.value,
+  sub_models.Tank_5.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.Tank_6.parameters.k.value := parameters.k.value,
+  sub_models.Tank_6.parameters.m.value := parameters.m.value,
+  sub_models.Tank_6.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.CV_1.parameters.Q_Out2.value := parameters.Q_back.value,
+  // sub-model coupling
+  connect(interface.in, sub_models.Tank_1.interface.Inflow),
+  connect(sub_models.Tank_1.interface.Outflow, sub_models.Tank_2.interface.Inflow),
+  connect(sub_models.Tank_2.interface.Outflow, sub_models.Tank_3.interface.Inflow),
+  connect(sub_models.Tank_3.interface.Outflow, sub_models.Tank_4.interface.Inflow),
+  connect(sub_models.Tank_4.interface.Outflow, sub_models.Tank_5.interface.Inflow),
+  connect(sub_models.Tank_5.interface.Outflow, sub_models.Tank_6.interface.Inflow),
+  connect(sub_models.Tank_6.interface.Outflow, sub_models.Well_1.interface.Inflow1),
+  connect(sub_models.Well_1.interface.Outflow, sub_models.CV_1.interface.Inflow),
+  connect(sub_models.CV_1.interface.Outflow1, interface.overflow),
+  connect(interface.backflow, sub_models.Well_1.interface.Inflow2),
+  connect(sub_models.CV_1.interface.Outflow2, interface.out),
+ };
+ :};
+ CLASS BackwaterSevenTankCascade (* class = "pipe"; category = "" *) SPECIALISES CoupledModelType :=
+ {:
+ comments <- "";
+ interface <-
+ {
+  OBJ in (* terminal = "In_1" *) "" : InSewTerminal := {: causality <- CIN ; group <- "Control action" :};
+  OBJ out (* terminal = "Out_1" *) "" : OutSewTerminal := {: causality <- COUT ; group <- "" :};
+  OBJ backflow (* terminal = "in_2" *) "" : InSewTerminal := {: causality <- CIN ; group <- "" :};
+  OBJ overflow (* terminal = "out_2" *) "" : OutSewTerminal := {: causality <- COUT ; group <- "" :};
+ };
+ parameters <-
+ {
+  OBJ k "linear reservoir constant" : Time := {: value <- 0.005787; group <- "" :};
+  OBJ m "exponent (1 corresponds to linearity)" : Real := {:value <- 1; group <- "":};
+  OBJ Q_back "maximum outflow from the pipe" : FlowRate:={:value <- 86400; group <- "":};
+ };
+ sub_models <-
+ {
+  OBJ Tank_1 : KosimTank;
+  OBJ Tank_2 : KosimTank;
+  OBJ Tank_3 : KosimTank;
+  OBJ Tank_4 : KosimTank;
+  OBJ Tank_5 : KosimTank;
+  OBJ Tank_6 : KosimTank;
+  OBJ Tank_7 : KosimTank;
+  OBJ Well_1 : SewTwoCombiner;
+  OBJ CV_1 : SewAbsTwoSplitter;
+ };
+ coupling <-
+ {
+  // parameter coupling
+  sub_models.Tank_1.parameters.k.value := parameters.k.value,
+  sub_models.Tank_1.parameters.m.value := parameters.m.value,
+  sub_models.Tank_1.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.Tank_2.parameters.k.value := parameters.k.value,
+  sub_models.Tank_2.parameters.m.value := parameters.m.value,
+  sub_models.Tank_2.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.Tank_3.parameters.k.value := parameters.k.value,
+  sub_models.Tank_3.parameters.m.value := parameters.m.value,
+  sub_models.Tank_3.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.Tank_4.parameters.k.value := parameters.k.value,
+  sub_models.Tank_4.parameters.m.value := parameters.m.value,
+  sub_models.Tank_4.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.Tank_5.parameters.k.value := parameters.k.value,
+  sub_models.Tank_5.parameters.m.value := parameters.m.value,
+  sub_models.Tank_5.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.Tank_6.parameters.k.value := parameters.k.value,
+  sub_models.Tank_6.parameters.m.value := parameters.m.value,
+  sub_models.Tank_6.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.Tank_7.parameters.k.value := parameters.k.value,
+  sub_models.Tank_7.parameters.m.value := parameters.m.value,
+  sub_models.Tank_7.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.CV_1.parameters.Q_Out2.value := parameters.Q_back.value,
+  // sub-model coupling
+  connect(interface.in, sub_models.Tank_1.interface.Inflow),
+  connect(sub_models.Tank_1.interface.Outflow, sub_models.Tank_2.interface.Inflow),
+  connect(sub_models.Tank_2.interface.Outflow, sub_models.Tank_3.interface.Inflow),
+  connect(sub_models.Tank_3.interface.Outflow, sub_models.Tank_4.interface.Inflow),
+  connect(sub_models.Tank_4.interface.Outflow, sub_models.Tank_5.interface.Inflow),
+  connect(sub_models.Tank_5.interface.Outflow, sub_models.Tank_6.interface.Inflow),
+  connect(sub_models.Tank_6.interface.Outflow, sub_models.Tank_7.interface.Inflow),
+  connect(sub_models.Tank_7.interface.Outflow, sub_models.Well_1.interface.Inflow1),
+  connect(sub_models.Well_1.interface.Outflow, sub_models.CV_1.interface.Inflow),
+  connect(sub_models.CV_1.interface.Outflow1, interface.overflow),
+  connect(interface.backflow, sub_models.Well_1.interface.Inflow2),
+  connect(sub_models.CV_1.interface.Outflow2, interface.out),
+ };
+ :};
+ CLASS BackwaterEightTankCascade (* class = "pipe"; category = "" *) SPECIALISES CoupledModelType :=
+ {:
+ comments <- "";
+ interface <-
+ {
+  OBJ in (* terminal = "In_1" *) "" : InSewTerminal := {: causality <- CIN ; group <- "Control action" :};
+  OBJ out (* terminal = "Out_1" *) "" : OutSewTerminal := {: causality <- COUT ; group <- "" :};
+  OBJ backflow (* terminal = "in_2" *) "" : InSewTerminal := {: causality <- CIN ; group <- "" :};
+  OBJ overflow (* terminal = "out_2" *) "" : OutSewTerminal := {: causality <- COUT ; group <- "" :};
+ };
+ parameters <-
+ {
+  OBJ k "linear reservoir constant" : Time := {: value <- 0.005787; group <- "" :};
+  OBJ m "exponent (1 corresponds to linearity)" : Real := {:value <- 1; group <- "":};
+  OBJ Q_back "maximum outflow from the pipe" : FlowRate:={:value <- 86400; group <- "":};
+ };
+ sub_models <-
+ {
+  OBJ Tank_1 : KosimTank;
+  OBJ Tank_2 : KosimTank;
+  OBJ Tank_3 : KosimTank;
+  OBJ Tank_4 : KosimTank;
+  OBJ Tank_5 : KosimTank;
+  OBJ Tank_6 : KosimTank;
+  OBJ Tank_7 : KosimTank;
+  OBJ Tank_8 : KosimTank;
+  OBJ Well_1 : SewTwoCombiner;
+  OBJ CV_1 : SewAbsTwoSplitter;
+ };
+ coupling <-
+ {
+  // parameter coupling
+  sub_models.Tank_1.parameters.k.value := parameters.k.value,
+  sub_models.Tank_1.parameters.m.value := parameters.m.value,
+  sub_models.Tank_1.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.Tank_2.parameters.k.value := parameters.k.value,
+  sub_models.Tank_2.parameters.m.value := parameters.m.value,
+  sub_models.Tank_2.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.Tank_3.parameters.k.value := parameters.k.value,
+  sub_models.Tank_3.parameters.m.value := parameters.m.value,
+  sub_models.Tank_3.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.Tank_4.parameters.k.value := parameters.k.value,
+  sub_models.Tank_4.parameters.m.value := parameters.m.value,
+  sub_models.Tank_4.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.Tank_5.parameters.k.value := parameters.k.value,
+  sub_models.Tank_5.parameters.m.value := parameters.m.value,
+  sub_models.Tank_5.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.Tank_6.parameters.k.value := parameters.k.value,
+  sub_models.Tank_6.parameters.m.value := parameters.m.value,
+  sub_models.Tank_6.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.Tank_7.parameters.k.value := parameters.k.value,
+  sub_models.Tank_7.parameters.m.value := parameters.m.value,
+  sub_models.Tank_7.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.Tank_8.parameters.k.value := parameters.k.value,
+  sub_models.Tank_8.parameters.m.value := parameters.m.value,
+  sub_models.Tank_8.parameters.Q_max.value := parameters.Q_back.value,
+  sub_models.CV_1.parameters.Q_Out2.value := parameters.Q_back.value,
+  // sub-model coupling
+  connect(interface.in, sub_models.Tank_1.interface.Inflow),
+  connect(sub_models.Tank_1.interface.Outflow, sub_models.Tank_2.interface.Inflow),
+  connect(sub_models.Tank_2.interface.Outflow, sub_models.Tank_3.interface.Inflow),
+  connect(sub_models.Tank_3.interface.Outflow, sub_models.Tank_4.interface.Inflow),
+  connect(sub_models.Tank_4.interface.Outflow, sub_models.Tank_5.interface.Inflow),
+  connect(sub_models.Tank_5.interface.Outflow, sub_models.Tank_6.interface.Inflow),
+  connect(sub_models.Tank_6.interface.Outflow, sub_models.Tank_7.interface.Inflow),
+  connect(sub_models.Tank_7.interface.Outflow, sub_models.Tank_8.interface.Inflow),
+  connect(sub_models.Tank_8.interface.Outflow, sub_models.Well_1.interface.Inflow1),
+  connect(sub_models.Well_1.interface.Outflow, sub_models.CV_1.interface.Inflow),
+  connect(sub_models.CV_1.interface.Outflow1, interface.overflow),
+  connect(interface.backflow, sub_models.Well_1.interface.Inflow2),
+  connect(sub_models.CV_1.interface.Outflow2, interface.out),
+ };
+:};
+
+CLASS SewVarVolumeBuffer
+ (* class = "retention_basin" *)
+ "A class for buffertanks with variable volume for sewer"
+ EXTENDS SewerAtomicModelWithVariableVolume WITH
+ {:
+  comments <- "A model for a  tank with a variable volume caused by a weir";
+
+  interface <-
+   {
+     OBJ V_Buffer (* terminal = "out_2" *) "Buffertank volume measurement data" : 
+       Volume := {: causality <- "COUT" :};
+   };
+
+  equations <-
+   {
+    interface.V_Buffer = state.V;
+   };
+
+  initial <-
+   {
+   }; :};
+
+CLASS ConstantTank
+ (* class = "retention_basin"; category = "" *)
+ "A tank with lateral weir and overflow when full"
+/*
+Tank with a constant outflow
+*/
+ EXTENDS SewerAtomicModelWithVariableVolume WITH
+ {:
+  parameters <-
+  {
+  OBJ c_d "discharge coefficient of the weir" : Real := {: value <- 0.65:};
+  OBJ Vmin (*hidden = "1" *) 
+       "Minimum volume of the tank, to avoid problems with to low numbers" : 
+       Volume := {: value <- 0.001:};
+  OBJ Qmax : FlowRate;
+
+  };
+  initial <-
+   {
+   parameters.alph = 0.6666 * .parameters.c_d * parameters.UnitWidth *
+   					  sqrt(2*parameters.grav);
+   parameters.bet = 1.5;
+   };
+  
+  state <-
+   {
+  OBJ Delta_t (*hidden = "1" *) : Real;
+  OBJ Vstar  (*hidden = "1" *)  : Real;
+     };
+
+  equations <-
+   {
+   state.Delta_t = independent.t - previous(independent.t);
+   state.Vstar = parameters.Qmax * state.Delta_t;		
+   state.Q_Out = IF (state.V > parameters.Vmax)
+				 THEN parameters.Qmax
+		       	 ELSE IF (state.V > state.Vstar)
+					  THEN parameters.Qmax
+					  ELSE IF (state.V >= parameters.Vmin) 
+					  	   THEN IF (state.Q_i < parameters.Qmax)
+						   		THEN state.Q_i
+					  	   		ELSE parameters.Qmax
+						   ELSE 0;
+   state.Q_over = IF (state.V < parameters.Vmax)
+				   THEN 0
+				   ELSE parameters.alph * pow(((state.V-parameters.Vmax)/
+			   		(parameters.UnitWidth * parameters.UnitLength)),parameters.bet);
+   /*
+   {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:  
+    state.SewC[s_comp_index] = IF (state.V == 0)
+			   			       THEN 0 
+							   ELSE state.SewM[s_comp_index] / state.V ;}; 		
+							 
+	{FOREACH s_comp_index IN {2 .. NrOfSewComponents}:
+      interface.Outflow2[s_comp_index] = 
+	  			 - state.Q_over * state.SewC[s_comp_index]  ;};
+	  			
+
+	{FOREACH s_comp_index IN {2 .. NrOfSewComponents}:
+     interface.Outflow1[s_comp_index] = IF (state.Q_Out == state.Q_i)
+	 								  	THEN - interface.Inflow[s_comp_index]
+										ELSE - state.Q_Out * state.SewC[s_comp_index] ;}; */
+										
+	 {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:
+     		  state.SewC[s_comp_index] = IF (state.V == 0)
+			   			       		   	 THEN 0 
+							  			 ELSE state.SewM[s_comp_index] / state.V ;};
+   	 
+	 {FOREACH s_comp_index IN {2 .. NrOfSewComponents}:
+      interface.Outflow1[s_comp_index] = 
+	  		//- state.Q_Out * state.SewC[s_comp_index]  ;};					   
+      		- interface.Inflow[s_comp_index] * state.Q_Out / state.Q_i ;};
+	  
+	 {FOREACH s_comp_index IN {2 .. NrOfSewComponents}:
+      interface.Outflow2[s_comp_index] = 
+	  		//- state.Q_over * state.SewC[s_comp_index]  ;};				   
+	  		- state.Q_over / state.Q_i * interface.Inflow[s_comp_index]  ;};
+   };
+ :};
+  
+CLASS Basins
+ //(* class = "retention_basin"; category = "" *)
+ "A tank with lateral weir and overflow when full"
+/**/
+ EXTENDS SewerAtomicModelWithVariableVolume WITH
+ {:
+
+ interface <-
+   {
+   };
+  parameters <-
+  {
+  // the weir coeff. depends on shape of the weir and whether it fills the whole cross-section
+  OBJ c_d "discharge coefficient of the weir" : Real := {: value <- 0.65 ; group <- "Hydraulic" :};
+  OBJ Hmin (*hidden = "0" *) 
+       "Minimum height of the water in the tank, to avoid problems with too low numbers" : 
+       Length := {: value <- 0.01 ; group <- "Hydraulic" :};
+  OBJ Vmin (*hidden = "0" *) 
+       "Minimum volume of the tank, to avoid problems with to low numbers" : 
+       Volume := {: value <- 100 ; group <- "Hydraulic":};
+  OBJ PipeDiameter "diameter of the connected (circular) pipe downstream" : Length :=
+  	  {: value <- 0.6 ; group <- "Hydraulic" :};
+  OBJ c_o "throttle coefficient (1=total cross-section)" : Real := {: value <- 1 ; group <- "Hydraulic" :};
+  OBJ Qmax_Tank "calculated maximum outflow from the tank" : FlowRate:= {: group <- "Hydraulic" :};
+  OBJ WeirLength "Length of the weir" : Length:= {: value <- 5; group <- "Hydraulic" :};
+ 
+  };
+  initial <-
+   {
+   parameters.Vmin = parameters.Hmin * parameters.UnitLength * parameters.UnitWidth;
+   parameters.alph = 0.666 * parameters.c_d * parameters.WeirLength *
+   					  sqrt(2*parameters.grav);
+   parameters.bet = 1.5;
+   parameters.Qmax_Tank = sqrt(2 * 9.81 * parameters.UnitDepth) * 0.785 //for a circular pipe (cross-section)
+   						  * parameters.PipeDiameter * parameters.PipeDiameter
+						  * parameters.c_o * 86400;
+    };
+  state <-
+   {
+   OBJ Q_flow (*hidden="1"*): FlowRate;
+   //OBJ Q_over "Overflow Rate" : FlowRate; //duplicate
+   //OBJ f_out "" : Fraction; //duplicate
+       };
+
+  equations <-
+   {
+   state.WaterLevel = state.V / parameters.UnitWidth / parameters.UnitLength;			
+   state.Q_flow = IF (state.WaterLevel >= parameters.UnitDepth)
+				  THEN parameters.Qmax_Tank
+		       	  ELSE IF (state.WaterLevel < parameters.Hmin)  // Added by WDK20090609
+				       THEN 0
+					   ELSE IF (state.WaterLevel >= parameters.PipeDiameter)
+             // modified to account for Hmin (WDK20090610):					      
+					        THEN sqrt(2 * (state.WaterLevel-parameters.Hmin) * 9.81) * 86400 * 0.785 *
+					  	   	 	parameters.PipeDiameter * parameters.PipeDiameter
+								* parameters.c_o
+					        ELSE sqrt(2 * (state.WaterLevel-parameters.Hmin) * 9.81) * 86400  * 0.785 *
+					  	   	 	parameters.PipeDiameter * (state.WaterLevel-parameters.Hmin)
+								* parameters.c_o;
+             // original calculation:					      
+             /*		        THEN sqrt(2 * (state.WaterLevel) * 9.81) * 86400 * 0.785 *
+					  	   	 	parameters.PipeDiameter * parameters.PipeDiameter
+								* parameters.c_o
+					        ELSE sqrt(2 * state.WaterLevel * 9.81) * 86400  * 0.785 *
+					  	   	 	parameters.PipeDiameter * state.WaterLevel
+								* parameters.c_o;								
+             */
+			 
+{FOREACH s_comp_index IN {2 .. NrOfSewComponents}:  
+   state.SewC[s_comp_index] = IF (state.V == 0)
+				   			   THEN 0
+				   			   ELSE state.SewM[s_comp_index] / state.V ;};
+							   
+						   
+{FOREACH s_comp_index IN {2 .. NrOfSewComponents}:  
+  state.SewC[s_comp_index] = IF (state.V == 0)
+				   			   THEN 0
+				   			   ELSE state.SewM[s_comp_index] / state.V ;}; 
+											   
+{FOREACH s_comp_index IN {2 .. NrOfSewComponents}:
+      interface.Outflow2[s_comp_index] =
+      - state.Q_over * state.SewC[s_comp_index]  ;};
+
+{FOREACH s_comp_index IN {2 .. NrOfSewComponents}:
+     interface.Outflow1[s_comp_index] =
+      - state.Q_Out * state.SewC[s_comp_index]  ;}; 
+ 
+							   
+  };
+ :};
+
+ CLASS Tank
+ (* class = "retention_basin"; category = "" *)
+ "A tank with lateral weir and overflow when full"
+/*This tank has its outflow in function of the height of the water level
+inside it; this means that the outflow from the tank can be much higher than
+the maximum outflow calculated for the pipe downstream...*/
+ EXTENDS Basins WITH
+ {:
+
+ equations <-
+   {
+   state.Q_over = 0;
+   state.Q_Out = state.Q_flow;
+   interface.Outflow2[H2O_sew] = - state.Q_over / parameters.SewSpecificVolume[H2O_sew] ;
+   {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:  
+   state.SewC[s_comp_index] = IF (state.V == 0)
+				   			   THEN 0
+				   			   ELSE state.SewM[s_comp_index] / state.V ;};
+							   
+						   
+   {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:  
+   state.SewC[s_comp_index] = IF (state.V == 0)
+				   			   THEN 0
+				   			   ELSE state.SewM[s_comp_index] / state.V ;}; 
+											   
+    {FOREACH s_comp_index IN {2 .. NrOfSewComponents}:
+      interface.Outflow2[s_comp_index] =
+      - state.Q_over * state.SewC[s_comp_index]  ;};
+   {FOREACH s_comp_index IN {2 .. NrOfSewComponents}:
+      interface.Outflow1[s_comp_index] =
+      - state.Q_Out * state.SewC[s_comp_index]  ;}; 
+   };
+   
+  :};
+  
+CLASS StormwaterTank
+ (* class = "retention_basin"; category = "" *)
+ "A tank with lateral weir and overflow when full"
+/*This tank has its outflow in function of the height of the water level
+inside it; this means that the outflow from the tank can be much higher than
+the maximum outflow calculated for the pipe downstream...*/
+ EXTENDS Basins WITH
+ {:
+  parameters <-
+  {
+   OBJ sedimentation "Sedimentation fraction" : 
+       Fraction:= {: value <- 0.25:};
+   };
+ 
+ equations <-
+   {
+   state.Q_Out = state.Q_flow;
+   state.Q_over = IF (state.V < parameters.Vmax)
+				   THEN 0
+				   ELSE parameters.alph * pow(((state.V-parameters.Vmax)/
+			   		(parameters.UnitWidth * parameters.UnitLength)),parameters.bet);
+  interface.Outflow2[H2O_sew] = - state.Q_over / parameters.SewSpecificVolume[H2O_sew] ;
+
+/* 			   
+   {FOREACH s_comp_index IN {2 .. 4}:  
+   state.SewC[s_comp_index] = 
+   				IF (state.V == 0)
+				THEN 0
+				ELSE IF (state.V > parameters.Vmax/8)
+					 THEN (1-parameters.sedimentation) * state.SewM[s_comp_index] / state.V 
+					 ELSE state.SewM[s_comp_index] / state.V;
+					 }; 
+   {FOREACH s_comp_index IN {5 .. NrOfSewComponents}:  
+   state.SewC[s_comp_index] = IF (state.V == 0)
+				   			   THEN 0
+				   			   ELSE state.SewM[s_comp_index] / state.V ;};	
+							   
+							   			
+	{FOREACH s_comp_index IN {2 .. NrOfSewComponents}:
+      interface.Outflow2[s_comp_index] =
+      - state.Q_over * state.SewC[s_comp_index]  ;};
+
+	{FOREACH s_comp_index IN {2 .. NrOfSewComponents}:
+      interface.Outflow1[s_comp_index] =
+      - state.Q_Out * state.SewC[s_comp_index]  ;};  		
+*/
+	  
+	  {FOREACH s_comp_index IN {IndexOfFirstParticulateSewComponent .. 
+	  IndexOfLastParticulateSewComponent}:
+   	  		   interface.Outflow1[s_comp_index] = 
+	            IF (state.WaterLevel < parameters.Hmin) THEN 0 ELSE // Added by WDK20090609
+	  						IF (state.V > parameters.Vmax/8)
+					 		THEN - state.SewC[s_comp_index] * state.Q_Out * (1-parameters.sedimentation) 
+					 		ELSE - state.SewC[s_comp_index] * state.Q_Out ;
+	  };
+	  
+	  {FOREACH s_comp_index IN {IndexOfFirstSolubleSewComponent .. 
+	  IndexOfLastSolubleSewComponent}:  
+   	  		   interface.Outflow1[s_comp_index] =
+	            IF (state.WaterLevel < parameters.Hmin) THEN 0 ELSE // Added by WDK20090609			   
+				   			    - state.SewC[s_comp_index] * state.Q_Out ;
+	  };
+	  
+	  {FOREACH s_comp_index IN {IndexOfFirstParticulateSewComponent .. 
+	  IndexOfLastParticulateSewComponent}:
+   	  		   interface.Outflow2[s_comp_index] = 
+							IF (state.V > parameters.Vmax/8)
+					 		THEN - state.SewC[s_comp_index] * state.Q_over * (1-parameters.sedimentation) 
+					 		ELSE - state.SewC[s_comp_index] * state.Q_over ;	  		
+	  };		
+		
+	  {FOREACH s_comp_index IN {IndexOfFirstSolubleSewComponent .. 
+	  IndexOfLastSolubleSewComponent}: 
+   	  		   interface.Outflow2[s_comp_index] =
+				   			     - state.SewC[s_comp_index] * state.Q_over ;
+	  }; 	  		    
+ };
+  :};
+
+CLASS StormwaterTankPumpedOut
+ (* class = "retention_basin"; category = "" *)
+ "A tank with lateral weir and overflow when full"
+/*This tank has its outflow in function of the height of the water level
+inside it; this means that the outflow from the tank can be much higher than
+the maximum outflow calculated for the pipe downstream...*/
+ EXTENDS Basins WITH
+ {:
+  parameters <-
+  {
+   OBJ sedimentation "Sedimentation fraction" : 
+       Fraction:= {: value <- 0.25:};
+  OBJ Qpump "Outflow pumping rate" : 
+       FlowRate:= {: value <- 4320:};
+   };
+ 
+ equations <-
+   {
+   state.Q_Out = IF (state.Q_flow > parameters.Qpump)
+   			   	 THEN parameters.Qpump
+				 ELSE 0;
+   state.Q_over = IF (state.V < parameters.Vmax)
+				   THEN 0
+				   ELSE parameters.alph * pow(((state.V-parameters.Vmax)/
+			   		(parameters.UnitWidth * parameters.UnitLength)),parameters.bet);
+  interface.Outflow2[H2O_sew] = - state.Q_over / parameters.SewSpecificVolume[H2O_sew] ;
+  			   
+   {FOREACH s_comp_index IN { IndexOfFirstParticulateSewComponent .. 
+   IndexOfLastParticulateSewComponent }:  
+   state.SewC[s_comp_index] = 
+   				IF (state.V == 0)
+				THEN 0
+				ELSE IF (state.V > parameters.Vmax/8)
+					 THEN (1-parameters.sedimentation) * state.SewM[s_comp_index] / state.V 
+					 ELSE state.SewM[s_comp_index] / state.V;
+					 }; 
+   {FOREACH s_comp_index IN {IndexOfFirstSolubleSewComponent .. IndexOfLastSolubleSewComponent}:  
+   state.SewC[s_comp_index] = IF (state.V == 0)
+				   			   THEN 0
+				   			   ELSE state.SewM[s_comp_index] / state.V ;};	
+							   
+							   			
+	{FOREACH s_comp_index IN {2 .. NrOfSewComponents}:
+      interface.Outflow2[s_comp_index] =
+      - state.Q_over * state.SewC[s_comp_index]  ;};
+
+	{FOREACH s_comp_index IN {2 .. NrOfSewComponents}:
+      interface.Outflow1[s_comp_index] =
+      - state.Q_Out * state.SewC[s_comp_index]  ;};  				    
+ };
+  :};
+
+CLASS ConstantStormwaterTank
+ (* class = "retention_basin"; category = "" *)
+ "A tank with lateral weir and overflow when full"
+/*This tank has its outflow in function of the height of the water level
+inside it; this means that the outflow from the tank can be much higher than
+the maximum outflow calculated for the pipe downstream...*/
+ EXTENDS Basins WITH
+ {:
+  parameters <-
+  {
+   OBJ sedimentation "Sedimentation fraction" : 
+       Fraction:= {: value <- 0.25 ; group <- "Hydraulic":};
+	OBJ Qmax : FlowRate:= {: group <- "Hydraulic" :}; //only to use in UWREM exercise, Qmax_tank is available 
+   };
+ 
+ state <-
+ {
+  //OBJ Delta_t (*hidden = "0" *) : Real;
+  //OBJ Vstar  (*hidden = "0" *)  : Real;
+ };
+ 
+ equations <-
+   {
+  // state.Delta_t = independent.t - previous(independent.t);
+  // state.Vstar = parameters.Qmax * state.Delta_t;		
+   state.Q_Out = IF (state.WaterLevel > parameters.PipeDiameter)
+				 THEN parameters.Qmax
+					  ELSE IF (state.WaterLevel > parameters.Hmin)  // Added by WDK20090609
+					       THEN parameters.Qmax * (state.WaterLevel / parameters.PipeDiameter)
+						   ELSE 0;
+
+   state.Q_over = IF (state.V < parameters.Vmax)
+				   THEN 0
+				   ELSE parameters.alph * pow(((state.V-parameters.Vmax)/
+			   		(parameters.UnitWidth * parameters.UnitLength)),parameters.bet);
+  interface.Outflow2[H2O_sew] = - state.Q_over / parameters.SewSpecificVolume[H2O_sew] ;		
+			   
+   /*{FOREACH s_comp_index IN {2 .. 4}:  
+   state.SewC[s_comp_index] = 
+   				IF (state.V == 0)
+				THEN 0
+				ELSE IF (state.V > parameters.Vmax/8)
+					 THEN (1-parameters.sedimentation) * state.SewM[s_comp_index] / state.V 
+					 ELSE state.SewM[s_comp_index] / state.V;
+					 }; 
+   {FOREACH s_comp_index IN {5 .. NrOfSewComponents}:  
+   state.SewC[s_comp_index] = IF (state.V == 0)
+				   			   THEN 0
+				   			   ELSE state.SewM[s_comp_index] / state.V ;};	
+							   
+							   			
+	{FOREACH s_comp_index IN {2 .. NrOfSewComponents}:
+      interface.Outflow2[s_comp_index] = 
+	  			 - state.Q_over * state.SewC[s_comp_index]  ;};
+	  			
+
+	{FOREACH s_comp_index IN {2 .. NrOfSewComponents}:
+     interface.Outflow1[s_comp_index] = IF (state.Q_Out == state.Q_i)
+	 								  	THEN - interface.Inflow[s_comp_index]
+										ELSE - state.Q_Out * state.SewC[s_comp_index] ;}; */	
+										
+	  {FOREACH s_comp_index IN {IndexOfFirstParticulateSewComponent .. 
+	  IndexOfLastParticulateSewComponent}:
+   	  		   interface.Outflow1[s_comp_index] = 
+	            IF (state.WaterLevel < parameters.Hmin) THEN 0 ELSE // Added by WDK20090609
+	  						IF (state.V > parameters.Vmax/8)
+					 		THEN - state.SewC[s_comp_index] * state.Q_Out * (1-parameters.sedimentation) 
+					 		ELSE - state.SewC[s_comp_index] * state.Q_Out ;
+	  };
+	  
+	  {FOREACH s_comp_index IN {IndexOfFirstSolubleSewComponent .. 
+	  IndexOfLastSolubleSewComponent}:  
+   	  		   interface.Outflow1[s_comp_index] =
+	            IF (state.WaterLevel < parameters.Hmin) THEN 0 ELSE // Added by WDK20090609			   
+				   			    - state.SewC[s_comp_index] * state.Q_Out ;
+	  };
+	  
+	  {FOREACH s_comp_index IN {IndexOfFirstParticulateSewComponent .. 
+	  IndexOfLastParticulateSewComponent}:
+   	  		   interface.Outflow2[s_comp_index] = 
+							IF (state.V > parameters.Vmax/8)
+					 		THEN - state.SewC[s_comp_index] * state.Q_over * (1-parameters.sedimentation) 
+					 		ELSE - state.SewC[s_comp_index] * state.Q_over ;	  		
+	  };		
+		
+	  {FOREACH s_comp_index IN {IndexOfFirstSolubleSewComponent .. 
+	  IndexOfLastSolubleSewComponent}: 
+   	  		   interface.Outflow2[s_comp_index] =
+				   			     - state.SewC[s_comp_index] * state.Q_over ;
+	  }; 	     
+ };
+  :};
+
+CLASS FirstFlushTank (* class = "retention_basin"; category = "" *) 
+	  SPECIALISES CoupledModelType :=
+{:
+comments <- "";
+interface <-
+{
+ OBJ Inflow (* terminal = "in_1" *) "Inflow1" : InSewTerminal := {:causality <- CIN:},
+ OBJ Outflow1 (* terminal = "out_1" *) "Outflow1" : OutSewTerminal := {:causality <- COUT:},
+ OBJ Outflow2 (* terminal = "out_2" *) "Outflow2" : OutSewTerminal := {:causality <- COUT:},
+};
+parameters <-
+{
+OBJ Qmax "Maximum outflow of tank" : FlowRate;
+};
+sub_models <-
+{
+ OBJ Split : SewAbsTwoSplitter;
+ OBJ Tank1 : Tank;
+ };
+ state <-
+{
+ //OBJ Q_overff "Overflow Rate" : FlowRate;
+ // OBJ f_ff "Overflow fraction" : Fraction;
+ };
+coupling <-
+{
+sub_models.Split.parameters.Q_Out2 := parameters.Qmax,
+sub_models.Tank1.parameters.Qmax_Tank:= parameters.Qmax,
+ //sub_models.Tank1.parameters.Qmax_Tank := sub_models.Split.parameters.Q_Out2 ,
+ connect(interface.Inflow, sub_models.Split.interface.Inflow),
+ connect(sub_models.Split.interface.Outflow1, interface.Outflow2),
+ connect(sub_models.Split.interface.Outflow2, sub_models.Tank1.interface.Inflow),
+ connect(sub_models.Tank1.interface.Outflow1, interface.Outflow1)
+};
+
+equations <-
+{
+sub_models.Split.state.Q_Out2_Help = 
+				 IF ( sub_models.Tank1.state.V > sub_models.Tank1.parameters.Vmax)
+                 THEN sub_models.Split.state.Q_i - sub_models.Split.state.state.Q_Out1
+                 ELSE 0 ;
+
+};
+:};
+
+//##################################################################
+//begin of change 7
+
+CLASS FirstFlushTankOffline (* class = "retention_basin"; category = "" *) 
+	  SPECIALISES CoupledModelType :=
+{:
+comments <- "A tank with weir overflow, which gets filled when the flow is higher than the maximum outflow ";
+interface <-
+{
+ OBJ Inflow (* terminal = "in_1" *) "Inflow1" : InSewTerminal := {:causality <- CIN:},
+ OBJ Outflow1 (* terminal = "out_1" *) "Outflow1" : OutSewTerminal := {:causality <- COUT:},
+ OBJ Outflow2 (* terminal = "out_2" *) "Outflow2" : OutSewTerminal := {:causality <- COUT:},
+};
+parameters <-
+{
+OBJ Qmax "Maximum outflow of tank" : FlowRate;
+};
+sub_models <-
+{
+ OBJ Split1 : SewAbsTwoSplitter;
+ OBJ Split2 : SewAbsTwoSplitter;
+ OBJ Tank1 : StormwaterTank;
+ OBJ Combine1 : SewTwoCombiner;
+ OBJ Combine2 : SewTwoCombiner;
+ };
+ state <-
+{
+ //OBJ Q_overff "Overflow Rate" : FlowRate;
+ // OBJ f_ff "Overflow fraction" : Fraction;
+ };
+coupling <-
+{
+sub_models.Split1.parameters.Q_Out2 := parameters.Qmax,
+sub_models.Split2.parameters.Q_Out2:= parameters.Qmax,
+sub_models.Tank1.parameters.Qmax_Tank:= parameters.Qmax,
+
+ 
+ connect(interface.Inflow, sub_models.Split1.interface.Inflow),
+ connect(sub_models.Split1.interface.Outflow1, sub_models.Combine2.interface.Inflow1), 
+ connect(sub_models.Split1.interface.Outflow2, sub_models.Combine1.interface.Inflow1),
+ connect(sub_models.Combine2.interface.Outflow, sub_models.Tank1.interface.Inflow),
+ connect(sub_models.Tank1.interface.Outflow1, sub_models.Combine1.interface.Inflow2),
+ connect(sub_models.Tank1.interface.Outflow2, interface.Outflow2),
+ connect(sub_models.Combine1.interface.Outflow, sub_models.Split2.interface.Inflow),
+ connect(sub_models.Split2.interface.Outflow1, sub_models.Combine2.interface.Inflow2),
+ connect(sub_models.Split2.interface.Outflow2, interface.Outflow1)
+
+};
+
+:};
+//end of change 7
+//##################################################################
+ 
+ CLASS PumpWithVolume
+ (* class = "pump"; category = "" *)
+ "A pump with a volume"
+/**/
+ EXTENDS SewerAtomicModelWithVariableVolume WITH
+ {:
+ /*
+ interface <-
+   {
+     OBJ OutflowMeas (* terminal = "out_3" *) "Measurement data" : 
+       FlowRate := {: causality <- "COUT" :};
+   };*/
+  parameters <-
+  {
+  // the weir coeff. depends on shape of the weir and whether it fills the whole cross-section
+  
+  OBJ Q_pump "pumping outflow from the tank" : FlowRate:= {: value <- 3000:};
+  OBJ V_start "Volume when pump starts" : Volume:= {: value <- 2:};
+  OBJ Q_min (*hidden="1"*) "Minimum pumping rate " : FlowRate := {:value <- 1:};
+  OBJ c_d "discharge coefficient of the weir" : Real := {: value <- 0.65:};
+  OBJ WeirLength "Length of the weir" : Length := {:value <- 3:};
+  };
+  initial <-
+   {
+   parameters.alph = 0.666 * parameters.c_d * parameters.WeirLength *
+   					  sqrt(2*parameters.grav);
+   parameters.bet = 1.5;
+    };
+  state <-
+   {
+       };
+
+  equations <-
+   {
+   state.Q_Out = IF (state.V > parameters.V_start)
+			  	THEN parameters.Q_pump
+		       	 ELSE parameters.Q_min;       
+
+   state.Q_over = IF (state.V < parameters.Vmax)
+				   THEN 0
+				   ELSE parameters.alph * pow(((state.V-parameters.Vmax)/
+			   		(parameters.UnitWidth * parameters.UnitLength)),parameters.bet);
+  {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:  
+   state.SewC[s_comp_index] = IF (state.V == 0)
+				   			   THEN 0
+				   			   ELSE state.SewM[s_comp_index] / state.V ;}; 				    
+//##################################################################
+//begin of change 5
+	{FOREACH s_comp_index IN {2 .. NrOfSewComponents}:
+      interface.Outflow2[s_comp_index] =
+      - state.Q_over * state.SewC[s_comp_index]  ;};
+
+	{FOREACH s_comp_index IN {2 .. NrOfSewComponents}:
+      interface.Outflow1[s_comp_index] =
+      - state.Q_Out * state.SewC[s_comp_index]  ;}; 
+//end of change 5
+//##################################################################
+  };
+ :};
+ CLASS MaxPump
+ (* class = "pump"; category = "" *)
+ "A pump with a volume"
+ EXTENDS SewerAtomicModelWithVariableVolume WITH
+ {:
+ /*
+ interface <-
+   {
+     OBJ OutflowMeas (* terminal = "out_3" *) "Measurement data" : 
+       FlowRate := {: causality <- "COUT" :};
+   };*/
+  parameters <-
+  {
+  // the weir coeff. depends on shape of the weir and whether it fills the whole cross-section
+  
+  OBJ Q_pump "pumping outflow from the tank" : FlowRate:= {: value <- 3000:};
+  };
+  initial <-
+   {
+ 
+    };
+  state <-
+   {
+    OBJ Q_flow (*hidden="1"*): FlowRate;
+       };
+
+  equations <-
+   {
+//##################################################################
+//begin of change 5
+	state.Q_Out = IF (state.Q_i >= parameters.Q_pump)
+				  THEN parameters.Q_pump
+		       	  ELSE state.Q_i;
+//end of change 5
+//##################################################################    
+	state.Q_over =0;
+  {FOREACH s_comp_index IN {1 .. NrOfSewComponents}:  
+   state.SewC[s_comp_index] = IF (state.V == 0)
+				   			   THEN 0
+				   			   ELSE state.SewM[s_comp_index] / state.V ;};
+//##################################################################
+//begin of change 5
+	{FOREACH s_comp_index IN {2 .. NrOfSewComponents}:
+      interface.Outflow2[s_comp_index] =
+      - state.Q_over * state.SewC[s_comp_index]  ;};
+
+	{FOREACH s_comp_index IN {2 .. NrOfSewComponents}:
+      interface.Outflow1[s_comp_index] =
+      - state.Q_Out * state.SewC[s_comp_index]  ;}; 
+//end of change 5
+//##################################################################
+};
+ :};

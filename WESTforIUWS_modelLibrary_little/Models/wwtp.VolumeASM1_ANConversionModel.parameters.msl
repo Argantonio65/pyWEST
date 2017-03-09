@@ -1,0 +1,75 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$ EURE
+ * $Date: 29. juni 2012 15:54:05$
+ *
+ ******************************************************************************/
+
+
+#ifdef ASM1_AN
+
+	// Composition and Conversion
+	OBJ i_N_BM "Mass Of Nitrogen Per Mass Of COD In Biomass" : MassOfNitrogenPerMassOfCODInBiomass := {: value <- 0.0583; group <- "Composition" :}; 
+	OBJ i_N_XI "Mass Of Nitrogen Per Mass Of COD In Paticulate Inert Products Formed" : Fraction := {: value <- 0.02; group <- "Composition" :}; 
+	OBJ F_TSS_COD "Fraction TSS/COD" : Fraction	:= {: value <- 0.75; group <- "Conversion factors" :}; 
+	OBJ F_BOD_COD "Fraction BOD/COD" : Fraction	:= {: value <- 0.65; group <- "Conversion factors" :}; 
+	//
+	// Stoichiometry
+	OBJ Y_HO "Yield For Heterotrophic Biomass on O2" : Yield := {: value <- 0.52; group <- "Stoichiometry" :}; 
+	OBJ Y_HNO2 "Anoxic Yield For Heterotrophic Biomass on NO2 (nitrite)" : Yield := {: value <- 0.44; group <- "Stoichiometry" :}; 
+	OBJ Y_HNO3 "Anoxic Yield For Heterotrophic Biomass on NO3 (nitrate)" : Yield := {: value <- 0.44; group <- "Stoichiometry" :}; 
+	OBJ Y_NH "Yield For ammonium oxidizing Autotrophic Biomass" : Yield	:= {: value <- 0.15; group <- "Stoichiometry" :}; 
+	OBJ Y_NO "Yield For Nitrite oxidizing Autotrophic Biomass" : Yield := {: value <- 0.041; group <- "Stoichiometry" :}; 
+	OBJ Y_AN "Yield For Anammox (Anaerobic Ammonia Oxidisers) Biomass" : Yield := {: value <- 0.159; group <- "Stoichiometry" :}; 
+	OBJ f_XI "Fraction Of Biomass Converted To Particulate Inert Matter" : Fraction := {: value <- 0.1; group <- "Stoichiometry" :}; 
+	//
+	// Kinetics
+	OBJ mu_H "Maximum Specific Growth Rate For Heterotrophic Biomass" : MaxSpecifGrowthRateHetero := {: value <- 6; group <- "Kinetics" :}; 
+	OBJ b_H "Decay Coefficient For Heterotrophic Biomass" : DecayCoeffHeterotr := {: value <- 0.62; group <- "Kinetics" :}; 
+	OBJ mu_NH "Maximum Specific Growth Rate For NH4 Oxidizing Autotrophic Biomass" : MaxSpecifGrowthRateAutotr := {: value <- 0.8; group <- "Kinetics" :}; 
+	OBJ b_NH "Decay Coefficient For NH4 Oxidizing Autotrophic Biomass" : DecayCoeffAutotr := {: value <- 0.05; group <- "Kinetics" :}; 
+	OBJ mu_NO "Maximum Specific Growth Rate For NO Oxidizing Autotrophic Biomass" : MaxSpecifGrowthRateAutotr := {: value <- 0.79; group <- "Kinetics" :}; 
+	OBJ b_NO "Decay Coefficient For NO Oxidizing Autotrophic Biomass" : DecayCoeffAutotr	:= {: value <- 0.033; group <- "Kinetics" :}; 
+	OBJ mu_AN "Maximum Specific Growth Rate For Anammox Autotrophic Biomass" : MaxSpecifGrowthRateAutotr := {: value <- 0.019; group <- "Kinetics" :}; 
+	OBJ b_AN "Decay Coefficient For Anammox Autotrophic Biomass" : DecayCoeffAutotr	:= {: value <- 0.0025; group <- "Kinetics" :}; 
+	OBJ k_h	"Maximum Specific Hydrolysis Rate" : MaxSpecificHydrolysisRate := {: value <- 3; group <- "Kinetics" :}; 
+	OBJ K_X	"Half Saturation Coefficient For Hydrolysis Of Slowly Biodegradable Substrate" : HalfSatCoeffForHydrolSlowBioDegradeSubstr := {: value <- 0.03; group <- "Kinetics" :}; 
+	OBJ K_SH "Half-Saturation Coefficient For Heterotrophic Biomass" : HalfSatCoeff := {: value <- 20; group <- "Kinetics" :}; 
+	OBJ K_OH "Oxygen Half-Saturation Coefficient For Heterotrophic Biomass" : OxygenHalfSatCoeffForHetero := {: value <- 0.2; group <- "Kinetics" :}; 
+	OBJ K_NO3_H "Nitrate Half-Saturation Coefficient For Denitrifying Heterotrophic Biomass" : NitrateHalfSatCoeffForDenitrifHetero	:= {: value <- 1; group <- "Kinetics" :}; 
+	OBJ K_NO2_H	"Nitrite Half-Saturation Coefficient For Denitrifying Heterotrophic Biomass" : HalfSatCoeff	:= {: value <- 1; group <- "Kinetics" :}; 
+	OBJ K_O_NH "Oxygen Half-Saturation Coefficient For NH4 Oxidizing Autotrophic Biomass" : OxygenHalfSatCoeffForAutotr	:= {: value <- 0.6; group <- "Kinetics" :}; 
+	OBJ K_NH3_NH "Ammonia Half-Saturation Coefficient For NH4 Oxidizing Autotrophic Biomass" : AmmonHalfSatCoeffForAutotr := {: value <- 0.75; group <- "Kinetics" :}; 
+	OBJ K_O_NO "Oxygen Half-Saturation Coefficient For NO Oxidizing Autotrophic Biomass" : OxygenHalfSatCoeffForAutotr	:= {: value <- 1.5; group <- "Kinetics" :}; 
+	OBJ K_HNO2_NO "Nitrious oxide Half-Saturation Coefficient For NO Oxidizing Autotrophic Biomass" : HalfSatCoeff := {: value <- 0.000872; group <- "Kinetics" :}; 
+	OBJ K_NO2_AN "Nitrite Half-Saturation Coefficient For Anammox Biomass" : HalfSatCoeff := {: value <- 0.05; group <- "Kinetics" :}; 
+	OBJ K_NH_AN	"Ammonia Half-Saturation Coefficient For Anammox Biomass" : AmmonHalfSatCoeffForAutotr := {: value <- 0.07; group <- "Kinetics" :}; 
+	OBJ K_NO2_AN_I "Nitrite Inhibition Coefficient For Anammox Biomass" : Concentration := {: value <- 20; group <- "Kinetics" :}; 
+	OBJ K_O_AN "Oxygen Inhibition Coefficient For Anammox Autotrophic Biomass" : Concentration := {: value <- 0.01; group <- "Kinetics" :}; 
+	OBJ n_NO3 "Correction Factor For Anoxic Growth Of Heterotrophs on Nitrate" : CorrectionFactor := {: value <- 0.6; group <- "Kinetics" :}; 
+	OBJ n_NO2 "Correction Factor For Anoxic Growth Of Heterotrophs on Nitrite" : CorrectionFactor	:= {: value <- 0.6; group <- "Kinetics" :}; 
+	OBJ pH_tank "pH" : pH := {: value <- 7.9 ; group <- "Operational" :}; 
+	//
+	// Temperature
+	OBJ Temp_Ref "Temperature" : CelsiusTemperature	:= {: value <- 20; group <- "Temperature correction" :}; 
+	OBJ theta_mu_H "Arrhenius constant for mu_H" : Real := {: value <- 0.069; group <- "Temperature correction" :}; 
+	OBJ theta_b_H "Arrhenius constant for b_H" : Real := {: value <- 0.113; group <- "Temperature correction" :}; 
+	OBJ theta_mu_NH	"Arrhenius constant for mu_NH" : Real := {: value <- 0.094; group <- "Temperature correction" :}; 
+	OBJ theta_b_NH "Arrhenius constant for b_NH" : Real := {: value <- 0.094; group <- "Temperature correction" :}; 
+	OBJ theta_mu_NO "Arrhenius constant for mu_NO" : Real := {: value <- 0.061; group <- "Temperature correction" :}; 
+	OBJ theta_b_NO "Arrhenius constant for b_NO" : Real := {: value <- 0.061; group <- "Temperature correction" :}; 
+	OBJ theta_mu_AN "Arrhenius constant for mu_AN" : Real := {: value <- 0.096; group <- "Temperature correction" :}; 
+	OBJ theta_b_AN "Arrhenius constant for b_AN" : Real := {: value <- 0.096; group <- "Temperature correction" :}; 
+	OBJ theta_kla "Temperature factor for the Kla" : Real	:= {: value <- 1.02; group <- "Temperature correction" :}; 
+	OBJ theta_k_h "Arrhenius constant for k_h" : Real := {: value <- 0.110; group <- "Temperature correction" :}; 
+
+#endif // ASM1_AN

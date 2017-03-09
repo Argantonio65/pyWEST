@@ -1,0 +1,39 @@
+#ifndef SEWER_DEFINITIONS
+#define SEWER_DEFINITIONS
+
+
+TYPE SewComponents = ENUM {H2O_sew, NH4_sew, PO4_sew, COD_sol, X_TSS_sew, COD_part,};
+
+TYPE SewReactions = ENUM {
+		SewCOD_sol_removal, 
+		SewPO4removal, 
+		SewNH4removal,
+		SewCOD_part_removal,
+		};
+
+
+#define SolublesPresent
+	OBJ IndexOfFirstSolubleSewComponent
+	"The index of the first soluble component in the components vector considered in the KOSIM models"
+	: Integer := 2;
+
+
+	OBJ IndexOfLastSolubleSewComponent
+	"The index of the last soluble component in the components vector considered in the KOSIM models"
+	: Integer := 4;
+
+
+#define ParticulatesPresent
+	OBJ IndexOfFirstParticulateSewComponent
+	"The index of the first particulate component in the components vector considered in the KOSIM models"
+	: Integer := 5;
+
+
+	OBJ IndexOfLastParticulateSewComponent
+	"The index of the last particulate component in the components vector considered in the KOSIM models"
+	: Integer := 6;
+	
+
+
+
+#endif // SEWER_DEFINITIONS

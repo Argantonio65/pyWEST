@@ -1,0 +1,92 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 5. september 2011 16:01:08$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_BASE_BUFFERTANK
+#define WWTP_BASE_BUFFERTANK
+
+CLASS PumpedVolumeBuffer
+ "A class for buffertanks with a pumped variable volume"
+ EXTENDS WWTPAtomicModelWithPumpedVolume WITH
+ {:
+  comments <- "A model for a tank with a variable volume caused by a pump";
+
+  interface <-
+   {
+     OBJ V_Buffer (* terminal = "out_2" *) "Buffertank volume measurement data" : 
+       Volume := {: causality <- "COUT" ; group <- "Measurement data" :};
+   };
+
+  equations <-
+   {
+     interface.V_Buffer = state.V;
+   };
+  initial <-
+   {
+   };
+ :};
+
+CLASS FixVolumeBuffer
+ "A class for buffertanks with a fixed volume"
+ EXTENDS WWTPAtomicModelWithFixedVolume WITH
+ {:
+   comments <- "A model for a tank with a fixed volume";
+
+   interface <-
+   {
+     OBJ V_Buffer  (* terminal = "out_2" *) "Buffertank volume measurement data" : 
+       Volume := {: causality <- "COUT" ; group <- "Measurement data" :};
+   };
+
+   equations <-
+   {
+     interface.V_Buffer = state.V;
+   };
+
+   initial <-
+   {
+   };
+ :};
+
+CLASS VarVolumeBuffer
+ "A class for buffertanks with variable volume"
+ EXTENDS WWTPAtomicModelWithVariableVolume WITH
+ {:
+  comments <- "A model for a  tank with a variable volume caused by a weir";
+
+  interface <-
+   {
+     OBJ V_Buffer (* terminal = "out_2" *) "Buffertank volume measurement data" : 
+       Volume := {: causality <- "COUT" ; group <- "Measurement data" :};
+   };
+
+  equations <-
+   {
+    interface.V_Buffer = state.V;
+   };
+
+  initial <-
+   {
+   }; :};
+ 
+#include "buffertank/wwtp.base.buffertanks.pumpedvolumestormtank.msl" 
+#include "buffertank/wwtp.base.buffertanks.pumpedvolumebuffertank.msl"
+#include "buffertank/wwtp.base.buffertanks.fixvolumeequalisationtank.msl"
+#include "buffertank/wwtp.base.buffertanks.varvolumeequalisationtank.msl"
+ 
+
+#endif // WWTP_BASE_BUFFERTANK
+
+// ***********************************************************************

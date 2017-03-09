@@ -1,0 +1,81 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$ EURE
+ * $Date: 16. juli 2012 14:32:42$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_SECONDARY_CLARIFIER_PLOSZSVI
+#define WWTP_SECONDARY_CLARIFIER_PLOSZSVI
+
+
+#ifdef StandardCategoryModels
+CLASS PloszSVI
+ (* icon = "secondary_clarifier" *)
+ "Layered convection-dispersion model of the secondary settling tank - Benedek Gy. Plosz"
+
+// The model calculates the settling velocity function parameters (r_H and V_max) using the general  
+// correlations equations (Ekama et al., 1997) based on SSVI3.5 values. 
+// To use the values obtained in diluted SVI tests (DSVI) an SSVI3.5/DSVI ratio is proposed.
+// Values of r_H, V_max, SSVI3.5 and DSVI measured in a campaign are used to establish the above relations that are 
+// shown by Plósz et al. (2007).
+
+ EXTENDS BasePlosz WITH
+ {:
+   comments <- " A layered dispersion model calibrated and validated for flat-bottom secondary clarifiers - Benedek Plosz ";
+
+   parameters <- 
+   {     
+   // Parameters for correlation equations of the settling functions parameters
+    OBJ V_alpha "SSVI3.5(ml/g) - V0(m/d) exponential regression - alpha value" : Velocity := {: value <- 133.7472 :};
+    OBJ V_beta "SSVI3.5(ml/g) - V0(m/d) exponential regression - exponent" : Concentration := {: value <- 3446.7 :};
+    OBJ r_H_lambda "SSVI3.5(ml/g) - r_H(m3/g) linear regression - slope" : Real := {: value <- 0.0000026 :};
+    OBJ r_H_kappa "SSVI3.5(ml/g) - r_H(m3/g) linear regression - y-intercept" : SpecificVolume := {: value <- 0.0000628 :};
+    OBJ DSVI "Diluted sludge volume index, DSVI" : SpecificVolume := {: value <- 0.000085 :};
+    OBJ p_SVI "SSVI3.5/DSVI ratio" : Real := {: value <- 0.658 :};
+   // End
+   };
+
+   state <-
+   {
+// State variables of the settling function parameters - BPlosz
+    OBJ v0 "Maximum theoretical settling velocity" : Velocity ;
+    OBJ r_H "Settling parameter (hindered settling)" : SpecificVolume ;
+// End
+   };
+
+  equations <-
+   {
+// Calculation of the settling function parameters as a function of the DSVI - Plosz
+    state.v0 = parameters.V_alpha * exp(- parameters.V_beta * parameters.DSVI * parameters.p_SVI);
+    state.r_H = parameters.r_H_lambda * parameters.DSVI * parameters.p_SVI + parameters.r_H_kappa;
+	
+    state.v0_P = state.v0 * exp(parameters.r_P * state.X_Min);
+    state.v0_H = state.v0 * exp(state.r_H * state.X_Min);
+
+    { FOREACH Layer_Index IN {1 .. 60}: state.v_S_Help[Layer_Index] =
+			IF (state.X_Layer[Layer_Index] < state.X_Min) THEN 0
+			   		ELSE (state.v0_H * exp( - state.r_H * state.X_Layer[Layer_Index])
+					- state.v0_P * exp( - parameters.r_P * state.X_Layer[Layer_Index])) ; };
+
+// Maximum practical settling velocity, v00, is omitted (parameters.v00 replaced by v0)
+    { FOREACH Layer_Index IN {1 .. 60}: state.v_S[Layer_Index] =
+			(IF (state.v_S_Help[Layer_Index] > state.v0) THEN state.v0
+					ELSE state.v_S_Help[Layer_Index]) ; }; 
+// end 
+   };
+
+ :};
+
+#endif
+
+#endif

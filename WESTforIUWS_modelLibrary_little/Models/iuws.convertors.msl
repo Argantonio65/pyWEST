@@ -1,0 +1,319 @@
+// --------------------------------------------------
+//  HEMMIS - Ghent University, BIOMATH
+//  Implementation: Henk Vanhooren, Youri Amerlinck.
+//  Description: MSL-USER/WWTP/Base/Convertors
+// --------------------------------------------------
+
+#ifndef WWTP_BASE_CONVERTORS
+#define WWTP_BASE_CONVERTORS
+
+CLASS CtoF
+  (* icon = "Connector" *)
+  "cf_convertor"
+  SPECIALISES PhysicalDAEModelType :=
+  {:
+    comments <- "Converts concentrations into fluxes";
+    interface <-
+     {
+      OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+          InWWTPConcTerminal := {: causality <- "CIN" ; group <- "Influent" :};
+      OBJ Outflow (* terminal = "out_1" *) "Outflow" : 
+          OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent" :};
+     };
+
+    parameters <-
+     {
+      
+     /* OBJ WWTPSpecificVolume (* hidden = "1" *)
+        "The specific volumes (= 1/density) of the components"
+        : SpecificVolumeVector;*/
+     };
+
+  independent <- 
+  { 
+    OBJ t "Time"  : Time := {: group <- "Time" :}; 
+   };
+
+initial <-
+   {
+    //parameters.WWTPSpecificVolume[IndexOfSolvent] := 0.000001;
+   };
+
+
+    equations <-
+    {
+     {interface.Outflow[IndexOfSolvent] = - interface.Inflow[IndexOfSolvent] 
+      / 0.000001 ;}; 
+
+    {FOREACH Comp_Index IN {IndexOfFirstSolubleComponent .. NrOfComponents}:
+     interface.Outflow[Comp_Index] = - interface.Inflow[Comp_Index] * 
+     interface.Inflow[IndexOfSolvent];};
+    
+   };
+ :};
+
+CLASS FtoC
+  (* icon = "Connector" *)
+  "fc_convertor"
+  SPECIALISES PhysicalDAEModelType :=
+  {:
+    comments <- "Converts fluxes into concentrations";
+    interface <-
+    {
+      OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+          InWWTPTerminal := {: causality <- "CIN" ; group <- "Influent" :};
+      OBJ Outflow (* terminal = "out_1" *) "Outflow" : 
+          OutWWTPConcTerminal := {: causality <- "COUT" ; group <- "Effluent" :};
+    };
+
+    parameters <-
+    {
+
+    /* OBJ WWTPSpecificVolume (* hidden = "1" *)
+       "The specific volumes (= 1/density) of the components"
+       : SpecificVolumeVector;*/
+    };
+
+    state <-
+    {
+     OBJ Q_In "Influent flow rate" : FlowRate := {: group <- "Operational" :};
+     OBJ InFluxPerComponent (* hidden = "1" *) "Vector containing incoming fluxes for all components" : MassFluxVector;
+    };
+
+    independent <- 
+    {
+      OBJ t "Time": Time := {: group <- "Time" :};
+    };
+
+initial <-
+   {
+  //  parameters.WWTPSpecificVolume[IndexOfSolvent] := 0.000001;
+   };
+
+    equations <-
+    {
+     {interface.Outflow[IndexOfSolvent] = interface.Inflow[IndexOfSolvent] * 0.000001;}; 
+
+   {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+      state.InFluxPerComponent[Comp_Index] =
+         SUMOVER In_Terminal IN {SelectByType(interface,InWWTPTerminal)}:
+            (In_Terminal[Comp_Index]);};
+
+     {state.Q_In = state.InFluxPerComponent[IndexOfSolvent] * 0.000001 ;}; 
+
+     {FOREACH Comp_Index IN {IndexOfFirstSolubleComponent .. NrOfComponents}:
+      interface.Outflow[Comp_Index] = IF (state.Q_In == 0)
+						  THEN 0
+						  ELSE interface.Inflow[Comp_Index] / state.Q_In ;};
+    
+   };
+ :};
+ 
+ CLASS SewCtoF
+  (* icon = "Connector" *)
+  "cf_convertor"
+  SPECIALISES PhysicalDAEModelType :=
+  {:
+    comments <- "Converts concentrations into fluxes";
+    interface <-
+     {
+      OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+          InSewConcTerminal := {: causality <- "CIN" :};
+      OBJ Outflow (* terminal = "out_1" *) "Outflow" : 
+          OutSewTerminal := {: causality <- "COUT" :};
+     };
+
+    parameters <-
+     {
+      
+      /*OBJ SewSpecificVolume (* hidden = "1" *)
+        "The specific volumes (= 1/density) of the components"
+        : SewSpecificVolumeVector;*/
+     };
+
+    independent <- 
+     {
+      OBJ t "Time": Time ;
+     };
+
+initial <-
+   {
+   // parameters.SewSpecificVolume[H2O_sew] := 0.000001;
+   };
+
+
+    equations <-
+    {
+     {interface.Outflow[H2O_sew] = - interface.Inflow[H2O_sew] 
+      / 0.000001 ;}; 
+
+     {FOREACH s_comp_index IN {2 .. NrOfSewComponents}:
+     interface.Outflow[s_comp_index] = - interface.Inflow[s_comp_index] * 
+     interface.Inflow[H2O_sew];};
+    
+   };
+ :};
+
+ 
+CLASS SewFtoC
+  (* icon = "Connector" *)
+  "fc_convertor"
+  SPECIALISES PhysicalDAEModelType :=
+  {:
+    comments <- "Converts fluxes into concentrations";
+    interface <-
+    {
+      OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+          InSewTerminal := {: causality <- "CIN" :};
+      OBJ Outflow (* terminal = "out_1" *) "Outflow" : 
+          OutSewConcTerminal := {: causality <- "COUT" :};
+    };
+
+    parameters <-
+    {
+
+    /* OBJ SewSpecificVolume (* hidden = "1" *)
+       "The specific volumes (= 1/density) of the components"
+       : SewSpecificVolumeVector;*/
+    };
+
+    state <-
+    {
+     OBJ Q_In "Influent flow rate" : FlowRate ;
+     OBJ InFluxPerComponent (* hidden = "1" *) "Vector containing incoming fluxes for all components" : SewMassFluxVector;
+    };
+
+    independent <- 
+    {
+      OBJ t "Time": Time ;
+    };
+
+initial <-
+   {
+   // parameters.SewSpecificVolume[H2O_sew] := 0.000001;
+   };
+
+    equations <-
+    {
+
+     {interface.Outflow[H2O_sew] = interface.Inflow[H2O_sew] * 0.000001;}; 
+
+   {FOREACH Comp_Index IN {1 .. NrOfSewComponents}:
+      state.InFluxPerComponent[Comp_Index] =
+         SUMOVER InSewTerminal IN {SelectByType(interface,InSewTerminal)}:
+            (InSewTerminal[Comp_Index]);};
+
+     {state.Q_In = state.InFluxPerComponent[H2O_sew] *0.000001 ;}; 
+
+     {FOREACH Comp_Index IN {2 .. NrOfSewComponents}:
+      interface.Outflow[Comp_Index] = IF (state.Q_In == 0)
+						  THEN 0
+						  ELSE interface.Inflow[Comp_Index] / state.Q_In ;};
+    
+   };
+ :};
+ 
+ CLASS RivCtoF
+  (* icon = "Connector" *)
+  "cf_convertor"
+  SPECIALISES PhysicalDAEModelType :=
+  {:
+    comments <- "Converts concentrations into fluxes";
+    interface <-
+     {
+      OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+          InRivConcTerminal := {: causality <- "CIN" :};
+      OBJ Outflow (* terminal = "out_1" *) "Outflow" : 
+          OutRivTerminal := {: causality <- "COUT" :};
+     };
+
+    parameters <-
+     {
+      
+     /* OBJ RivSpecificVolume (* hidden = "1" *)
+        "The specific volumes (= 1/density) of the components"
+        : RivSpecificVolumeVector;*/
+     };
+
+    independent <- 
+     {
+      OBJ t "Time": Time ;
+     };
+
+initial <-
+   {
+  //  parameters.RivSpecificVolume[rH2O] := 0.000001;
+   };
+
+
+    equations <-
+    {
+     {interface.Outflow[rH2O] = - interface.Inflow[rH2O] 
+      / 0.000001 ;}; 
+
+     {FOREACH Comp_Index IN {2 .. RivNrOfComponents}:
+     interface.Outflow[Comp_Index] = - interface.Inflow[Comp_Index] * 
+     interface.Inflow[rH2O];};
+
+     
+   };
+ :};
+
+CLASS RivFtoC
+  (* icon = "Connector" *)
+  "fc_convertor"
+  SPECIALISES PhysicalDAEModelType :=
+  {:
+    comments <- "Converts fluxes into concentrations";
+    interface <-
+    {
+      OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+          InRivTerminal := {: causality <- "CIN" :};
+      OBJ Outflow (* terminal = "out_1" *) "Outflow" : 
+          OutRivConcTerminal := {: causality <- "COUT" :};
+    };
+
+    parameters <-
+    {
+
+   /*  OBJ RivSpecificVolume (* hidden = "1" *)
+       "The specific volumes (= 1/density) of the components"
+       : RivSpecificVolumeVector;*/
+    };
+
+    state <-
+    {
+     OBJ Q_In "Influent flow rate" : FlowRate ;
+     OBJ InFluxPerComponent (* hidden = "1" *) "Vector containing incoming fluxes for all components" : RivMassFluxVector;
+    };
+
+    independent <- 
+    {
+      OBJ t "Time": Time ;
+    };
+
+initial <-
+   {
+   // parameters.RivSpecificVolume[rH2O] := 0.000001;
+   };
+
+    equations <-
+    {
+
+     {interface.Outflow[rH2O] = interface.Inflow[rH2O] * 0.000001;}; 
+
+   {FOREACH Comp_Index IN {1 .. RivNrOfComponents}:
+      state.InFluxPerComponent[Comp_Index] =
+         SUMOVER In_RivTerminal IN {SelectByType(interface,InRivTerminal)}:
+            (In_RivTerminal[Comp_Index]);};
+
+     {state.Q_In = state.InFluxPerComponent[rH2O] * 0.000001 ;}; 
+
+     {FOREACH Comp_Index IN {2 .. RivNrOfComponents}:
+      interface.Outflow[Comp_Index] = IF (state.Q_In == 0)
+						  THEN 0
+						  ELSE interface.Inflow[Comp_Index] / state.Q_In ;};    
+   };
+ :};
+ 
+#endif // WWTP_BASE_CONVERTORS

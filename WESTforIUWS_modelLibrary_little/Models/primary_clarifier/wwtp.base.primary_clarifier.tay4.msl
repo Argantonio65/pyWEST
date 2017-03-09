@@ -1,0 +1,361 @@
+/*******************************************************************************
+ *
+ * Developped by BIOMATH in the frame of the Kallisto project
+ * Author Youri Amerlinck
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_BASE_PRIMARY_CLARIFIER_TAY4
+#define WWTP_BASE_PRIMARY_CLARIFIER_TAY4
+
+#ifdef ASM2dModTemp
+ CLASS Tay4
+  (* class = "primary_clarifier" *)
+  "Modification of the model of Tay for primary clarifiers"
+ 
+ // The model of Tay (1982) is based on a relation between the difference in particulate matter 
+ // between influent and effluent depending on the hydraulic retention time.	
+ // X_Out = X_i / ( 1 + V / ( Q_In * T_A ) ) ;	
+ // with T_A : Half removal time (i.e. the necessary retention time to remove half of the incoming 
+ // particulate matter. Attention should be paid to the calculation of the retention time : 
+ // it should not be the instantaneous retention time but the averaged retention time.	
+ //
+ // The model was modified to allow different removal efficiencies for TSS and COD
+ //
+ // Literature :	
+ // Tay J. (1982), Development of a settling model for primary settling tanks, Wat. Res. 16, 1413 - 1417.	
+ 
+  EXTENDS WWTPAtomicModelWithoutVolume WITH
+  {:
+    comments <- "A model for a primary settler by Tay";
+    interface <-
+    { 
+     OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+          InWWTPTerminal := {: causality <- "CIN" ; group <- "Influent" :};
+     OBJ Outflow (* terminal = "out_1" *) "Outflow" : 
+          OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent" :};
+     OBJ Underflow (* terminal = "out_2" *) "Underflow" : 
+          OutWWTPTerminal := {: causality <- "COUT" ; group <- "Underflow" :};
+	   OBJ Q_Under (* terminal = "in_2" *) "Inflow" : 
+          FlowRate := {: causality <- "CIN" ; group <- "Operational" :};
+    };
+ 
+   parameters <- 
+    { 
+     OBJ F_TSS_COD "Fraction TSS/COD" : Fraction := {: value <- 0.8 ; group <- "Conversion factors" :};
+ //    OBJ T_A "Half removal time" : Time := {: value <- 0.125 ; group <- "Settling" :};
+     OBJ Delta_t "Time period defining the interval over which the average flow rate is calculated" : Time := {: value <- 0.1 ; group <- "Settling" :};
+     OBJ t_Start "Time where the calculation of the average flow rate starts" : Time := {: value <- 0.1 ; group <- "Settling":};
+    // note that the volume used here is NOT based on any mass balance
+    // hence, it is declared as a parameter
+     OBJ V_Clar "Volume of the clarifier" : Volume := {: value <- 28795 ; group <- "Dimension" :};
+     OBJ E_R_XCOD_DW "Removal efficiency for particulate COD at dry weather flows" : Fraction := {: value <- 0.51; group <- "Settling" :};
+     OBJ E_R_XII_DW "Removal efficiency for inert inorganic particulates at dry weather flows" : Fraction := {: value <- 0.85; group <- "Settling" :};
+     OBJ f_ns_XCOD_DW "Non-settlable fraction for particulate COD at dry weather flows" : Fraction := {: group <- "Settling" :};
+     OBJ f_ns_XII_DW "Non-settlable fraction for inert inorganic particulates at dry weather flows" : Fraction := {: group <- "Settling" :};
+ 	OBJ Q_In_DW "Dry weather flow rate" : FlowRate := {: value <- 91727; group <- "Dimension" :};
+     OBJ f_Out_DW (* hidden = "1" *) "Fraction of the influent flux going to the overflow during dry weather" : Fraction;
+ // Calculation of outflow TSS
+ 	OBJ i_TSS_X_I	"TSS to X_I ratio"
+ 	: ConversionFactor	:= {: value <- 0.75 ; group <- "Composition parameters" :}; 
+ 	OBJ i_TSS_X_S	"TSS to X_S ratio"
+ 	: ConversionFactor	:= {: value <- 0.75 ; group <- "Composition parameters" :}; 
+ 	OBJ i_TSS_BM	"TSS to biomass ratio for X_H, X_PAO, X_AUT"
+ 	: ConversionFactor	:= {: value <- 0.9 ; group <- "Composition parameters" :}; 
+ // buffer for averaging retention time
+ 	OBJ T_Average "averaging time used for the calculation of the average retention time"
+ 	: Time := {: value <- 0.1; group <- "System" :};
+ 	//OBJ ID_Q (* hidden = "1" *) "ID for a buffer for the calculation of the average retention time" : Real ;
+ 	//OBJ Q_av_fluct (* hidden = "0" *) "Max relative variation from previous step average" : Real := {: value <- 1.5; group <- "System" :};
+    };
+ 
+   state <-
+    {
+     OBJ Q_Out "Effluent flow rate" : FlowRate := {: group <- "Operational" :};
+     OBJ Q_Under_Actual "Underflow rate" : FlowRate := {: group <- "Operational" :};
+     OBJ Help_X_In (* hidden = "0" *) "" : MassFlux;
+     OBJ Help_X_Out (* hidden = "0" *) "" : MassFlux;
+     OBJ Help_X_Under (* hidden = "0" *) "" : MassFlux;
+ //    OBJ thelp (* hidden = "1" *) "Previous time help variable" : Time;
+     //OBJ Qmean_h (* hidden = "0" *) "Averaged influent flow rate" : FlowRate;
+     OBJ Qmean (* hidden = "0" *) "Averaged influent flow rate" : FlowRate;
+ //    OBJ Qprev1 (* hidden = "1" *) "Influent flow rate over a period Delta_t back in time" : FlowRate;
+ //    OBJ Qprev2 (* hidden = "1" *) "Influent flow rate over a period Delta_t, two times Delta_t back in time" : FlowRate;
+ //    OBJ Qprev3 (* hidden = "1" *) " Influent flow rate over a period Delta_t, three times Delta_t back in time " : FlowRate;
+ //    OBJ Qprev4 (* hidden = "1" *) " Influent flow rate over a period Delta_t, four times Delta_t back in time " : FlowRate;
+ //    OBJ Qprev5 (* hidden = "1" *) " Influent flow rate over a period Delta_t, five times Delta_t back in time " : FlowRate;
+     OBJ X_In "Influent suspended solids concentration" : Concentration := {: group <- "Concentration" :};
+     OBJ X_In_Calc "Influent suspended solids concentration" : Concentration := {: group <- "Concentration" :};
+     OBJ X_Out "Effluent suspended solids concentration" : Concentration := {: group <- "Concentration" :};
+     OBJ X_Under "Underflow suspended solids concentration" : Concentration := {: group <- "Concentration" :};
+     OBJ f_Out (* hidden = "0" *) "Fraction of the influent flux going to the overflow" : Fraction ;
+     OBJ E_Removal "Calculated Removal efficiency for each component" : Fraction[NrOfComponents;] := {: group <- "Settling" :};
+     OBJ COD_In (* hidden = "0" *) "Incoming flux of COD" : MassFlux;
+     OBJ COD_Out (* hidden = "0" *) "Outgoing flux of COD" : MassFlux;
+     OBJ XCOD_In (* hidden = "0" *) "Incoming flux of XCOD" : MassFlux;
+     OBJ XCOD_Out (* hidden = "0" *) "Outgoing flux of XCOD" : MassFlux;
+     OBJ E_R_COD "Removal efficiency for COD" : Fraction := {: group <- "Settling" :};
+     OBJ E_R_XCOD "Removal efficiency for XCOD" : Fraction := {: group <- "Settling" :};
+     OBJ E_R_TSS "Removal efficiency for TSS" : Fraction := {: group <- "Settling" :};
+     OBJ E_R_TSS2 "Removal efficiency for TSS" : Fraction := {: group <- "Settling" :};
+     OBJ T_A_XCOD "Half removal time for X_COD" : Time := {: group <- "Settling" :};
+     OBJ T_A_XII "Half removal time for inert inorganic particulates" : Time := {: group <- "Settling" :};
+ // buffer for averaging retention time
+     //OBJ Buffer_Q (* hidden = "1" *) "buffer for the calculation of the average retention time" : Real;
+ //    OBJ Avg_Q (* hidden = "0" *) "Average influent flow rate" : MassFlux;
+     OBJ TSS_Out_h "TSS out help" : MassFlux := {: group <- "Settling" :};
+    };
+ 
+     initial <-  
+     {
+     parameters.f_Out_DW = (parameters.Q_In_DW - interface.Q_Under)/parameters.Q_In_DW;
+  	parameters.f_ns_XCOD_DW = (1.0 - parameters.E_R_XCOD_DW) / parameters.f_Out_DW;
+ 	parameters.f_ns_XII_DW = (1.0 - parameters.E_R_XII_DW) / parameters.f_Out_DW;
+ // buffer for averaging retention time
+ 	//parameters.ID_Q = MSLUBufferCreate(parameters.T_Average, 0);
+    };
+    
+   equations <-
+    {
+      // Soluble components (including water itself) are split into the two
+      // streams (effluent and underflow)
+ 
+     state.Q_Under_Actual = IF (state.Q_In <= interface.Q_Under)
+ 				   		   THEN 0
+ //				   		   THEN state.Q_In
+ 				   		   ELSE interface.Q_Under; 
+ 
+     state.Q_Out = state.Q_In - state.Q_Under_Actual;
+ 
+ 	// buffer for averaging retention time
+     //state.Buffer_Q = MSLUBufferPut(parameters.ID_Q, independent.t, state.Q_In);
+     //state.Qmean_h = MSLUBufferGetMean(parameters.ID_Q);	
+ 	/*state.Qmean = IF (state.Qmean_h < 0)
+ 				  THEN 0
+ 				  ELSE IF (state.Qmean_h > previous(state.Qmean_h)*parameters.Q_av_fluct)
+ 				  THEN previous(state.Qmean_h)*parameters.Q_av_fluct
+ 				  ELSE IF (state.Qmean_h < previous(state.Qmean_h)/parameters.Q_av_fluct)
+ 				  	   THEN previous(state.Qmean_h)/parameters.Q_av_fluct
+ 					   ELSE state.Qmean_h;*/
+ 	DERIV(state.Qmean,[independent.t]) = (state.Q_In - state.Qmean) / parameters.T_Average;
+ 		
+ //    state.f_Out := IF (state.Q_In <= interface.Q_Under)
+     state.f_Out := IF (state.Q_In <= 0)
+                    THEN 0
+  			 	   ELSE (state.Q_In - state.Q_Under_Actual) / state.Q_In ;
+ 
+ /*    state.Qprev1 = IF (independent.t < parameters.t_Start)
+                    THEN state.Q_In
+                    ELSE
+                      IF ((independent.t - previous(state.thelp)) > parameters.Delta_t)
+                      THEN state.Q_In
+                      ELSE previous(state.Qprev1);
+ 
+     state.Qprev2 = IF (independent.t < parameters.t_Start)
+                    THEN state.Q_In
+                    ELSE
+                      IF ((independent.t - previous(state.thelp)) > parameters.Delta_t)
+                      THEN previous(state.Qprev1)
+                      ELSE previous(state.Qprev2);
+ 
+     state.Qprev3 = IF (independent.t < parameters.t_Start)
+                    THEN state.Q_In
+                    ELSE
+                      IF ((independent.t - previous(state.thelp)) > parameters.Delta_t)
+                      THEN previous(state.Qprev2)
+                      ELSE previous(state.Qprev3);
+ 
+     state.Qprev4 = IF (independent.t < parameters.t_Start)
+                    THEN state.Q_In
+                    ELSE
+                      IF ((independent.t - previous(state.thelp)) > parameters.Delta_t)
+                      THEN previous(state.Qprev3)
+                      ELSE previous(state.Qprev4);
+ 
+     state.Qprev5 = IF (independent.t < parameters.t_Start)
+                    THEN state.Q_In
+                    ELSE
+                      IF ((independent.t - previous(state.thelp)) > parameters.Delta_t)
+                      THEN previous(state.Qprev4)
+                      ELSE previous(state.Qprev5);
+ 
+     state.thelp = IF (independent.t < parameters.t_Start)
+                    THEN independent.t
+                    ELSE
+                      IF ((independent.t - previous(state.thelp)) > parameters.Delta_t)
+                      THEN independent.t
+                      ELSE previous(state.thelp);
+ */
+ //    state.Qmean = (state.Qprev1 + state.Qprev2 + state.Qprev3 + state.Qprev4 + state.Qprev5) / 5;
+ 
+ // Calculation of the T_A for XCOD and X_I_i.
+ // T_A = V_Clar/Q_In_DW * f_ns/(1-f_ns)
+ 
+ 	state.T_A_XCOD = (parameters.V_Clar/parameters.Q_In_DW) * (parameters.f_ns_XCOD_DW/(1-parameters.f_ns_XCOD_DW));
+ 	state.T_A_XII = (parameters.V_Clar/parameters.Q_In_DW) * (parameters.f_ns_XII_DW/(1-parameters.f_ns_XII_DW));
+ 	
+     {FOREACH Comp_Index IN {IndexOfSolvent .. IndexOfLastSolubleComponent}:
+       interface.Outflow[Comp_Index] =
+       - state.InFluxPerComponent[Comp_Index] * state.f_Out ;};
+ 
+     {FOREACH Comp_Index IN {IndexOfSolvent .. IndexOfLastSolubleComponent}:
+      interface.Underflow[Comp_Index] = - (state.InFluxPerComponent[Comp_Index]
+      + interface.Outflow[Comp_Index]) ;};
+ 
+      // X_Out = X_i / (1 + V / (Qmean * T_A)) has to be transformed to an equation using fluxes !!
+      // Outflow = Q_Out * X_Out = a flux 
+      //         = Q_Out * X_i / (1 + V_Clar / (Qmean * T_A))
+      //         = Q_Out * (Inflow / Q_In) / (1 + V_Clar / (Qmean * T_A))
+      //         = Inflow * Q_Out / (Q_In * (1 + V_Clar / (Qmean * T_A)))  ==> see equations below
+      // Underflow = Inflow - Outflow
+ 
+ // outflow calculated per component
+ // first all the COD components + X_PP as this is an internal storage of phosphate in the biomass.	 
+     {FOREACH Comp_Index IN {IndexOfFirstParticulateComponent .. X_AUT}:
+       interface.Outflow[Comp_Index] = 
+ 			IF (state.Q_In == 0 || state.Qmean == 0)
+ 			THEN 0
+ 			ELSE - state.InFluxPerComponent[Comp_Index] * state.f_Out /
+                        (1 + parameters.V_Clar / (state.Qmean * state.T_A_XCOD));
+      };
+ 
+ // then the non-COD components	 
+ // At this point X_MEOH and X_MEP get the same removal efficiency as X_I_i
+ // this might be OK for X_MEP but is questionable for X_MEOH but at this point we don't model P dosing before the PST
+     {FOREACH Comp_Index IN {X_MEOH .. X_I_i}:
+       interface.Outflow[Comp_Index] = 
+ 			IF (state.Q_In == 0 || state.Qmean == 0)
+ 			THEN 0
+ 			ELSE - state.InFluxPerComponent[Comp_Index] * state.f_Out /
+                        (1 + parameters.V_Clar / (state.Qmean * state.T_A_XII));
+      };
+ 
+ 	state.TSS_Out_h = interface.Outflow[X_I] * parameters.i_TSS_X_I
+ 							  + interface.Outflow[X_S] * parameters.i_TSS_X_S
+ 							  + interface.Outflow[X_H] * parameters.i_TSS_BM
+ 							  + interface.Outflow[X_PAO] * parameters.i_TSS_BM
+ 							  + interface.Outflow[X_PP] * 3.23
+ 							  + interface.Outflow[X_PHA] * 0.6
+ 							  + interface.Outflow[X_AUT] * parameters.i_TSS_BM
+ 							  + interface.Outflow[X_MEOH] * 1.0
+ 							  + interface.Outflow[X_MEP] * 1.0
+ 							  + interface.Outflow[X_I_i] * 1.0;
+ 							  
+ 	interface.Outflow[X_TSS] = IF (-state.TSS_Out_h > interface.Inflow[X_TSS])
+ 							   THEN 0
+ 							   ELSE state.TSS_Out_h;
+ 	 
+     {FOREACH Comp_Index IN {IndexOfFirstParticulateComponent .. IndexOfLastParticulateComponent}:
+      interface.Underflow[Comp_Index] = - (state.InFluxPerComponent[Comp_Index] 
+      + interface.Outflow[Comp_Index]);};
+ 
+      // Calculation of suspended solids concentrations
+      // in the effluent and underflow streams
+ #ifdef CalculateTSSComponent
+     state.Help_X_In = (SUMOVER Comp_Index IN {IndexOfFirstTSSComponent .. IndexOfLastTSSComponent}:
+                      (interface.Inflow[Comp_Index]));
+ 
+     {state.X_In = IF (state.Q_In == 0)
+ 			THEN 0
+ 			ELSE state.Help_X_In / state.Q_In * parameters.F_TSS_COD;
+      };
+ 
+      state.Help_X_Out = (SUMOVER Comp_Index IN {IndexOfFirstTSSComponent .. IndexOfLastTSSComponent}:(- interface.Outflow[Comp_Index]));
+ 
+     {state.X_Out = IF (state.Q_In <= interface.Q_Under)
+ 			 	   THEN state.Help_X_Out * parameters.F_TSS_COD / state.Q_In
+ //			 	   THEN 0
+ 	 		 	   ELSE state.Help_X_Out * parameters.F_TSS_COD / (state.Q_In - interface.Q_Under);
+      };
+ 
+      state.Help_X_Under = (SUMOVER Comp_Index IN {IndexOfFirstTSSComponent .. IndexOfLastTSSComponent}:(- interface.Underflow[Comp_Index]));
+  
+      {state.X_Under = 
+     		IF (state.Q_Under_Actual <= 0)
+ 			THEN 0
+ 			ELSE state.Help_X_Under / state.Q_Under_Actual * parameters.F_TSS_COD ;
+      };
+ /*
+     {state.X_Under = 
+     		IF (state.Q_In <= interface.Q_Under)
+ 			THEN
+ 		  		IF (state.Q_In == 0)
+ 		  		THEN 0
+ 		  		ELSE
+                state.Help_X_Under / state.Q_In * parameters.F_TSS_COD
+ 			ELSE 
+ 		  		 IF (interface.Q_Under == 0)
+ 		  		 THEN 0
+ 		  		 ELSE
+                state.Help_X_Under / interface.Q_Under * parameters.F_TSS_COD ;
+      };
+ */
+ #endif // CalculateTSSComponent
+ 
+ #ifdef UseTSSComponent
+ 
+     state.X_In = IF (state.Q_In == 0)
+ 			   	 THEN 0
+ 				 ELSE interface.Inflow[IndexOfTSSComponent] / state.Q_In;
+ 
+     state.X_In_Calc = (interface.Inflow[X_I] * parameters.i_TSS_X_I
+ 							  + interface.Inflow[X_S] * parameters.i_TSS_X_S
+ 							  + interface.Inflow[X_H] * parameters.i_TSS_BM
+ 							  + interface.Inflow[X_PAO] * parameters.i_TSS_BM
+ 							  + interface.Inflow[X_PP] * 3.23
+ 							  + interface.Inflow[X_PHA] * 0.6
+ 							  + interface.Inflow[X_AUT] * parameters.i_TSS_BM
+ 							  + interface.Inflow[X_MEOH] * 1.0
+ 							  + interface.Inflow[X_MEP] * 1.0
+ 							  + interface.Inflow[X_I_i] * 1.0) / state.Q_In;
+ 				 
+     state.X_Out = IF (state.Q_In <= interface.Q_Under)
+ 				  THEN - interface.Outflow[IndexOfTSSComponent] / (state.Q_In)
+ //				  THEN 0
+ 				  ELSE - interface.Outflow[IndexOfTSSComponent] / (state.Q_In - interface.Q_Under);
+ 
+      state.X_Under = 
+     		IF (state.Q_Under_Actual <= 0)
+ 			THEN 0
+ 			ELSE - interface.Underflow[IndexOfTSSComponent] / state.Q_Under_Actual;
+      
+ /*
+     state.X_Under = IF (state.Q_In <= interface.Q_Under) 
+ 			  THEN
+   			   IF (state.Q_In == 0)
+   		         THEN 0
+ 		   	   ELSE - interface.Underflow[IndexOfTSSComponent] / (state.Q_In)
+ 			  ELSE 
+   			   IF (interface.Q_Under == 0)
+   		         THEN 0
+ 		   	   ELSE - interface.Underflow[IndexOfTSSComponent] / (interface.Q_Under);
+ */
+ #endif // UseTSSComponent
+ 
+ // check for removal efficiencies of TSS and COD
+ 	   state.E_R_TSS = (1 - state.X_Out / state.X_In);
+ 	   state.E_R_TSS2 = (1 - state.X_Out / state.X_In_Calc);
+ 	   
+        state.COD_Out = - interface.Outflow[S_I] - interface.Outflow[S_A] - interface.Outflow[S_F]
+ 	   				   - interface.Outflow[X_I] - interface.Outflow[X_S] - interface.Outflow[X_H]
+ 	   				   - interface.Outflow[X_PAO] - interface.Outflow[X_PAO] - interface.Outflow[X_AUT];
+        state.COD_In = interface.Inflow[S_I] + interface.Inflow[S_A] + interface.Inflow[S_F]
+ 	   				   + interface.Inflow[X_I] + interface.Inflow[X_S] + interface.Inflow[X_H]
+ 	   				   + interface.Inflow[X_PAO] + interface.Inflow[X_PAO] + interface.Inflow[X_AUT];
+ 	  
+ 	   state.E_R_COD = (1 - state.COD_Out / state.COD_In);
+ 
+        state.XCOD_Out = - interface.Outflow[X_I] - interface.Outflow[X_S] - interface.Outflow[X_H]
+ 	   				   - interface.Outflow[X_PAO] - interface.Outflow[X_PAO] - interface.Outflow[X_AUT];
+        state.XCOD_In = interface.Inflow[X_I] + interface.Inflow[X_S] + interface.Inflow[X_H]
+ 	   				   + interface.Inflow[X_PAO] + interface.Inflow[X_PAO] + interface.Inflow[X_AUT];
+ 	  
+ 	   state.E_R_XCOD = (1 - state.XCOD_Out / state.XCOD_In);
+ 
+     }; 
+  :};
+
+
+#endif // ASM2dChemTemp
+
+#endif // WWTP_BASE_PRIMARY_CLARIFIER_TAY

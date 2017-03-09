@@ -1,0 +1,50 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 5. september 2011 16:01:15$
+ *
+ ******************************************************************************/
+
+// body for variable & fixed VolumeASM3TempConversionModel
+
+#ifdef ASM3Temp
+
+   interface <-
+   {
+//   #include"wwtp.VolumeASM3TempModel.interface.msl"
+   };
+
+   parameters <-
+   {
+//   #include"wwtp.VolumeASM3TempConversionModel.parameters.msl"
+    };
+
+   state <-
+   {
+   //UNNECESSARY, because no concentration dependent state variables are defined
+   //besides X_TSS (not calculated within the biofilm) and temp.correction variables.
+   //#include "wwtp.VolumeASM3TempConversionModel.state.msl"
+   };
+
+   initial <-
+   {
+//   #include "wwtp.VolumeASM3TempConversionModel.stoichiometry.msl"
+   };
+
+   equations <-
+   {
+   #include"wwtp.VolumeASM3TempConversionModel.layer.kinetics.msl"
+//   #include"wwtp.VolumeASM3TempModel.sensors.msl"
+   };
+
+#endif // ASM3Temp
+

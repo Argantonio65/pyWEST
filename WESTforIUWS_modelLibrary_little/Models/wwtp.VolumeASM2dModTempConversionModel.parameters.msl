@@ -1,0 +1,156 @@
+// ------------------------------------------------------------------------
+//  MOSTforWATER - Ghent University, BIOMATH
+//  Implementation: Code generator Petersen's Matrix
+//  Description: MSL-USER/WWTP/VolumeASM2dModTempConversionModel parameters
+// ------------------------------------------------------------------------
+
+#ifdef ASM2dModTemp
+  OBJ DOsat	"DO at saturation"
+	: Concentration	:= {: value <- 11 ; group <- "Kinetic" :};
+	OBJ Temp_Ref	"Reference temperature of the activated sludge"
+	: CelsiusTemperature	:= {: value <- 20 ; group <- "Kinetic" :}; 
+	OBJ theta_k_h	"Temperature correction factor for k_h"
+	: Real	:= {: value <- 1.041 ; group <- "Kinetic" :}; 
+	OBJ theta_K_X	"Temperature correction factor for K_X"
+	: Real	:= {: value <- 0.896 ; group <- "Kinetic" :}; 
+	OBJ theta_mu_H	"Temperature correction factor for mu_H"
+	: Real	:= {: value <- 1.072 ; group <- "Kinetic" :}; 
+	OBJ theta_Q_fe	"Temperature correction factor for Q_fe"
+	: Real	:= {: value <- 1.072 ; group <- "Kinetic" :}; 
+	OBJ theta_b_H	"Temperature correction factor for b_H"
+	: Real	:= {: value <- 1.072 ; group <- "Kinetic" :}; 
+	OBJ theta_Q_PHA	"Temperature correction factor for Q_PHA"
+	: Real	:= {: value <- 1.041 ; group <- "Kinetic" :}; 
+	OBJ theta_Q_PP	"Temperature correction factor for Q_PP"
+	: Real	:= {: value <- 1.041 ; group <- "Kinetic" :}; 
+	OBJ theta_mu_PAO	"Temperature correction factor for mu_PAO"
+	: Real	:= {: value <- 1.041 ; group <- "Kinetic" :}; 
+	OBJ theta_b_PAO	"Temperature correction factor for b_PAO"
+	: Real	:= {: value <- 1.072 ; group <- "Kinetic" :}; 
+	OBJ theta_b_PP	"Temperature correction factor for b_PP"
+	: Real	:= {: value <- 1.072 ; group <- "Kinetic" :}; 
+	OBJ theta_b_PHA	"Temperature correction factor for b_PHA"
+	: Real	:= {: value <- 1.072 ; group <- "Kinetic" :}; 
+	OBJ theta_mu_AUT	"Temperature correction factor for mu_AUT"
+	: Real	:= {: value <- 1.111 ; group <- "Kinetic" :}; 
+	OBJ theta_b_AUT	"Temperature correction factor for b_AUT"
+	: Real	:= {: value <- 1.116 ; group <- "Kinetic" :}; 
+	OBJ i_N_S_I	"Nitrogen content of inert soluble COD S_I"
+	: ConversionFactor	:= {: value <- 0.01 ; group <- "Composition parameters" :}; 
+	OBJ i_N_S_F	"Nitrogen content of soluble substrate S_F"
+	: ConversionFactor	:= {: value <- 0.03 ; group <- "Composition parameters" :}; 
+	OBJ i_N_X_I	"Nitrogen content of inert particulate COD X_I"
+	: ConversionFactor	:= {: value <- 0.02 ; group <- "Composition parameters" :}; 
+	OBJ i_N_X_S	"Nitrogen content of particulate substrate X_S"
+	: ConversionFactor	:= {: value <- 0.04 ; group <- "Composition parameters" :}; 
+	OBJ i_N_BM	"Nitrogen content of biomass X_H, X_PAO, X_AUT"
+	: ConversionFactor	:= {: value <- 0.07 ; group <- "Composition parameters" :}; 
+	OBJ i_P_S_I	"Phosphorus content of inert soluble COD S_I"
+	: ConversionFactor	:= {: value <- 0 ; group <- "Composition parameters" :}; 
+	OBJ i_P_S_F	"Phosphorus content of soluble substrate S_F"
+	: ConversionFactor	:= {: value <- 0.01 ; group <- "Composition parameters" :}; 
+	OBJ i_P_X_I	"Phosphorus content of inert particulate COD X_I"
+	: ConversionFactor	:= {: value <- 0.01 ; group <- "Composition parameters" :}; 
+	OBJ i_P_X_S	"Phosphorus content of particulate substrate X_S"
+	: ConversionFactor	:= {: value <- 0.01 ; group <- "Composition parameters" :}; 
+	OBJ i_P_BM	"Phosphorus content of biomass X_H, X_PAO, X_AUT"
+	: ConversionFactor	:= {: value <- 0.02 ; group <- "Composition parameters" :}; 
+	OBJ i_TSS_X_I	"TSS to X_I ratio"
+	: ConversionFactor	:= {: value <- 0.75 ; group <- "Composition parameters" :}; 
+	OBJ i_TSS_X_S	"TSS to X_S ratio"
+	: ConversionFactor	:= {: value <- 0.75 ; group <- "Composition parameters" :}; 
+	OBJ i_TSS_BM	"TSS to biomass ratio for X_H, X_PAO, X_AUT"
+	: ConversionFactor	:= {: value <- 0.9 ; group <- "Composition parameters" :}; 
+	OBJ f_S_I	"Fraction of inert COD in particulate substrate"
+	: Fraction	:= {: value <- 0 ; group <- "Stoichiometry" :}; 
+	OBJ Y_H	"Yield For Heterotrophic Biomass"
+	: YieldForHeterotrophicBiomass	:= {: value <- 0.625 ; group <- "Stoichiometry" :}; 
+	OBJ f_X_I	"Fraction of inert COD generated in biomass lysis"
+	: Fraction	:= {: value <- 0.1 ; group <- "Stoichiometry" :}; 
+	OBJ Y_PAO	"Yield coeff (biomass/PHA)"
+	: Yield	:= {: value <- 0.625 ; group <- "Stoichiometry" :}; 
+	OBJ Y_PO	"PP requirement (S_PO4 release) per PHA stored"
+	: Yield	:= {: value <- 0.4 ; group <- "Stoichiometry" :}; 
+	OBJ Y_PHA	"PHA requirement for PP storage"
+	: Yield	:= {: value <- 0.2 ; group <- "Stoichiometry" :}; 
+	OBJ Y_AUT	"Yield For Autotrophic Biomass"
+	: YieldForAutotrophicBiomass	:= {: value <- 0.24 ; group <- "Stoichiometry" :}; 
+	OBJ k_h	"Hydrolysis rate constant"
+	: MaxSpecificHydrolysisRate	:= {: value <- 3 ; group <- "Kinetic" :}; 
+	OBJ n_NO_Hyd	"Anoxic hydrolysis reduction factor"
+	: ReductionFactor	:= {: value <- 0.6 ; group <- "Kinetic" :}; 
+	OBJ n_fe	"Anaerobic hydrolysis reduction factor"
+	: ReductionFactor	:= {: value <- 0.4 ; group <- "Kinetic" :}; 
+	OBJ K_O	"Saturation/inhibition coeff for oxygen"
+	: SaturationCoefficient	:= {: value <- 0.2 ; group <- "Kinetic" :}; 
+	OBJ K_NO	"Saturation/inhibition coeff fir nitrate"
+	: SaturationCoefficient	:= {: value <- 0.5 ; group <- "Kinetic" :}; 
+	OBJ K_X	"Saturation coeff for particulate COD"
+	: SaturationCoefficient	:= {: value <- 0.1 ; group <- "Kinetic" :}; 
+	OBJ mu_H	"Maximum growth rate on substrate"
+	: MaxGrowthRate	:= {: value <- 6 ; group <- "Kinetic" :}; 
+	OBJ Q_fe	"Maximum rate for fermentation"
+	: RateConstant	:= {: value <- 3 ; group <- "Kinetic" :}; 
+	OBJ n_NO_Het	"Reduction factor for denitrification"
+	: ReductionFactor	:= {: value <- 0.8 ; group <- "Kinetic" :}; 
+	OBJ b_H	"Rate constant for lysis and decay"
+	: RateConstant	:= {: value <- 0.4 ; group <- "Kinetic" :}; 
+	OBJ n_NO_Het_d	"Anoxic reduction factor for decay of heterotrophs"
+	: ReductionFactor	:= {: value <- 0.5 ; group <- "Kinetic" :}; 
+	OBJ K_F	"Saturation/inhibtion coeff for growth on S_F"
+	: SaturationCoefficient	:= {: value <- 4 ; group <- "Kinetic" :}; 
+	OBJ K_fe	"Saturation coeff for fermentation on S_F"
+	: SaturationCoefficient	:= {: value <- 4 ; group <- "Kinetic" :}; 
+	OBJ K_A	"Saturation coeff for S_A (acetate)"
+	: SaturationCoefficient	:= {: value <- 4 ; group <- "Kinetic" :}; 
+	OBJ K_NH	"Saturation coeff for ammonium (nutrient)"
+	: SaturationCoefficient	:= {: value <- 0.05 ; group <- "Kinetic" :}; 
+	OBJ K_P	"Saturation coeff for phosphorus (nutrient)"
+	: SaturationCoefficient	:= {: value <- 0.01 ; group <- "Kinetic" :}; 
+	OBJ K_ALK	"Saturation coeff for alkalinity (HCO3-)"
+	: SaturationCoefficient	:= {: value <- 0.1 ; group <- "Kinetic" :}; 
+	OBJ Q_PHA	"Rate constant for storage of PHA (base: X_PP)"
+	: RateConstant	:= {: value <- 3 ; group <- "Kinetic" :}; 
+	OBJ Q_PP	"Rate constant for storage of PP"
+	: RateConstant	:= {: value <- 1.5 ; group <- "Kinetic" :}; 
+	OBJ mu_PAO	"Maximum growth rate"
+	: MaxGrowthRate	:= {: value <- 1 ; group <- "Kinetic" :}; 
+	OBJ n_NO_PAO	"Amount of PAO organisms active under anoxic conditions"
+	: ReductionFactor	:= {: value <- 0.6 ; group <- "Kinetic" :}; 
+	OBJ b_PAO	"Rate constant for lysis of X_PAO"
+	: RateConstant	:= {: value <- 0.2 ; group <- "Kinetic" :}; 
+	OBJ b_PP	"Rate constant for lysis of X_PP"
+	: RateConstant	:= {: value <- 0.2 ; group <- "Kinetic" :}; 
+	OBJ b_PHA	"Rate constant for lysis of X_PHA"
+	: RateConstant	:= {: value <- 0.2 ; group <- "Kinetic" :}; 
+	OBJ n_NO_P_d	"Anoxic reduction factor for decay of PAO, PP and PHA"
+	: ReductionFactor	:= {: value <- 0.33 ; group <- "Kinetic" :}; 
+	OBJ K_PS	"Saturation coeff for phosphorus in PP storage"
+	: SaturationCoefficient	:= {: value <- 0.2 ; group <- "Kinetic" :}; 
+	OBJ K_PP	"Saturation coeff for poly-phosphate"
+	: SaturationCoefficient	:= {: value <- 0.01 ; group <- "Kinetic" :}; 
+	OBJ K_MAX	"Maximum ratio of X_PP/X_PAO"
+	: SaturationCoefficient	:= {: value <- 0.34 ; group <- "Kinetic" :}; 
+	OBJ K_IPP	"Inhibition coeff for X_PP storage"
+	: SaturationCoefficient	:= {: value <- 0.02 ; group <- "Kinetic" :}; 
+	OBJ K_PHA	"Saturation coeff for PHA"
+	: SaturationCoefficient	:= {: value <- 0.01 ; group <- "Kinetic" :}; 
+	OBJ mu_AUT	"Maximum growth rate"
+	: MaxGrowthRate	:= {: value <- 1 ; group <- "Kinetic" :}; 
+	OBJ b_AUT	"Decay rate"
+	: DecayCoefficient	:= {: value <- 0.15 ; group <- "Kinetic" :}; 
+	OBJ n_NO_AUT_d	"Anoxic reduction factor for decay of autotrophs"
+	: ReductionFactor	:= {: value <- 0.33 ; group <- "Kinetic" :}; 
+	OBJ K_O_AUT	"Saturation/inhibition coeff of autotrophs for oxygen"
+	: SaturationCoefficient	:= {: value <- 0.5 ; group <- "Kinetic" :}; 
+	OBJ K_NH_AUT	"Saturation coeff of autotrophs for ammonium"
+	: SaturationCoefficient	:= {: value <- 1 ; group <- "Kinetic" :}; 
+	OBJ K_ALK_AUT	"Saturation coeff of autotrophs for alkalinity"
+	: SaturationCoefficient	:= {: value <- 0.5 ; group <- "Kinetic" :}; 
+	OBJ k_PRE	"Rate constant for P precipitation"
+	: RateConstant	:= {: value <- 1 ; group <- "Kinetic" :}; 
+	OBJ k_RED	"Rate constant for P redissolution"
+	: RateConstant	:= {: value <- 0.6 ; group <- "Kinetic" :}; 
+	OBJ F_BOD_COD	"Conversion factor BOD/COD"
+	: Fraction	:= {: value <- 0.65 ; group <- "Conversion factors" :}; 
+#endif // ASM2dModTemp

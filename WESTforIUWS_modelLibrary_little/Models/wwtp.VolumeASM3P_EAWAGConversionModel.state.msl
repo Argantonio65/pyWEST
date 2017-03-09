@@ -1,0 +1,142 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 5. september 2011 16:01:14$
+ *
+ ******************************************************************************/
+
+#ifdef ASM3P_EAWAG
+  OBJ S_O_Saturation "Oxygen saturation concentration"
+  : Concentration := {: group <- "Kinetic" :};  
+  OBJ b_A_Temp "Maximum endogenous respiration rate of X_A"
+  : RateConstant := {: group <- "Kinetic" :};
+  OBJ b_H_Temp "Maximum endogenous respiration rate of X_H"
+  : RateConstant := {: group <- "Kinetic" :};
+  OBJ b_PAO_Temp "Maximum endogenous respiration rate of X_PAO"
+  : RateConstant := {: group <- "Kinetic" :};
+  OBJ b_PHA_Temp "Respiration rate for X_PHA"
+  : RateConstant := {: group <- "Kinetic" :};
+  OBJ b_PP_Temp "Lysis rate of X_PP"
+  : RateConstant := {: group <- "Kinetic" :};
+  OBJ k_h_Temp "Hydrolysis rate constant"
+  : MaxSpecificHydrolysisRate := {: group <- "Kinetic" :};
+  OBJ k_STO_Temp "Aerobic storage rate constant of X_STO"
+  : GrowthRate := {: group <- "Kinetic" :};
+  OBJ K_X_Temp "Hydrolysis saturation constant"
+  : SaturationCoefficient := {: group <- "Kinetic" :};
+  OBJ mu_A_Temp "Maximum aerobic growth rate of X_A"
+  : MaxGrowthRate := {: group <- "Kinetic" :};
+  OBJ mu_H_Temp "Maximum aerobic growth rate of X_H"
+  : MaxGrowthRate := {: group <- "Kinetic" :};
+  OBJ mu_PAO_Temp "Maximum growth rate of X_PAO"
+  : MaxGrowthRate := {: group <- "Kinetic" :};
+  OBJ q_PHA_Temp "Rate constant for storage of X_PHA"
+  : RateConstant := {: group <- "Kinetic" :};
+  OBJ q_PP_Temp "Rate constant for storage of X_PP"
+  : RateConstant := {: group <- "Kinetic" :};
+
+  OBJ S_O_InhibitionTerm_X_H (*  hidden = "1" *) "The oxygen inhibition term for X_H"
+  : InhibitionTerm;
+  OBJ S_O_InhibitionTerm_X_PAO (*  hidden = "1" *) "The oxygen inhibition term for X_PAO"
+  : InhibitionTerm;
+  OBJ S_ALK_MonodTerm_X_A (*  hidden = "1" *) "S_ALK MonodTerm for X_A"
+  : MonodTerm;
+  OBJ S_ALK_MonodTerm_X_H (*  hidden = "1" *) "S_ALK MonodTerm for X_H"
+  : MonodTerm;
+  OBJ S_ALK_MonodTerm_X_PAO (*  hidden = "1" *) "S_ALK MonodTerm for X_PAO"
+  : MonodTerm;
+  OBJ X_PP_X_PAO_Max_MonodTerm (*  hidden = "1" *) "(K_max_PAO-X_PP/X_PAO) MonodTerm"
+  : MonodTerm;
+  OBJ S_NH_MonodTerm_X_A (*  hidden = "1" *) "S_NH4 MonodTerm for X_A"
+  : MonodTerm;
+  OBJ S_NH_MonodTerm_X_H (*  hidden = "1" *) "S_NH4 MonodTerm for X_H"
+  : MonodTerm;
+  OBJ S_NH_MonodTerm_X_PAO (*  hidden = "1" *) "S_NH4 MonodTerm for X_PAO"
+  : MonodTerm;
+  OBJ S_NO_MonodTerm_X_H (*  hidden = "1" *) "S_NO3 MonodTerm for X_H"
+  : MonodTerm;
+  OBJ S_NO_MonodTerm_X_PAO (*  hidden = "1" *) "S_NO3 MonodTerm for X_PAO"
+  : MonodTerm;
+  OBJ S_O_MonodTerm_X_A (*  hidden = "1" *) "S_O2 MonodTerm for X_A"
+  : MonodTerm;
+  OBJ S_O_MonodTerm_X_H (*  hidden = "1" *) "S_O2 MonodTerm for X_H"
+  : MonodTerm;
+  OBJ S_O_MonodTerm_X_PAO (*  hidden = "1" *) "S_O2 MonodTerm for X_PAO"
+  : MonodTerm;
+  OBJ S_PHA_MonodTerm_X_PAO (*  hidden = "1" *) "X_PHA/X_PAO MonodTerm for X_PAO"
+  : MonodTerm;
+  OBJ S_PO_MonodTerm_X_A (*  hidden = "1" *) "S_PO MonodTerm for X_A"
+  : MonodTerm;
+  OBJ S_PO_MonodTerm_X_H (*  hidden = "1" *) "S_PO MonodTerm for X_H"
+  : MonodTerm;
+  OBJ S_PO_MonodTerm_X_PAO (*  hidden = "1" *) "S_PO MonodTerm for X_PAO"
+  : MonodTerm;
+  OBJ S_PO_MonodTerm_X_PP (*  hidden = "1" *) "S_PO MonodTerm for X_PP"
+  : MonodTerm;
+  OBJ X_PP_X_PAO_MonodTerm (*  hidden = "1" *) "X_PP/X_PAO MonodTerm"
+  : MonodTerm;
+  OBJ S_S_MonodTerm_X_H (*  hidden = "1" *) "S_S MonodTerm for X_H"
+  : MonodTerm;
+  OBJ S_S_MonodTerm_X_PAO (*  hidden = "1" *) "S_S MonodTerm for X_PAO"
+  : MonodTerm;
+  OBJ X_STO_MonodTerm_X_H (*  hidden = "1" *) "X_STO MonodTerm for X_H"
+  : MonodTerm;
+  OBJ X_S_MonodTerm_HYD (*  hidden = "1" *) "X_S MonodTerm for Hydrolysis"
+  : MonodTerm;
+
+  OBJ rate01 (*  hidden = "1" *) "Kinetic Process Rate 1, Hydrolyse"
+  : ProcessRate;
+  OBJ rate02 (*  hidden = "1" *) "Kinetic Process Rate 2, Aerobic storage of S_S as X_STO"
+  : ProcessRate;
+  OBJ rate03 (*  hidden = "1" *) "Kinetic Process Rate 3, Anoxic storage of S_S as X_STO"
+  : ProcessRate;
+  OBJ rate04 (*  hidden = "1" *) "Kinetic Process Rate 4, Aerobic growth with XSTO"
+  : ProcessRate;
+  OBJ rate05 (*  hidden = "1" *) "Kinetic Process Rate 5, Anoxic growth with XSTO"
+  : ProcessRate;
+  OBJ rate06 (*  hidden = "1" *) "Kinetic Process Rate 6, Aerobic endogenous respiration of Heterotrophs"
+  : ProcessRate;
+  OBJ rate07 (*  hidden = "1" *) "Kinetic Process Rate 7, Anoxic endogenous respiration of Heterotrophs"
+  : ProcessRate;
+  OBJ rate08 (*  hidden = "1" *) "Kinetic Process Rate 8, Aerobic endogenous respiration of XSTO"
+  : ProcessRate;
+  OBJ rate09 (*  hidden = "1" *) "Kinetic Process Rate 9, Anoxische endogenous respiration of XSTO"
+  : ProcessRate;
+  OBJ rate10 (*  hidden = "1" *) "Kinetic Process Rate 10, Nitrification"
+  : ProcessRate;
+  OBJ rate11 (*  hidden = "1" *) "Kinetic Process Rate 11, Aerobic endogenous respiration of Autotrophs"
+  : ProcessRate;
+  OBJ rate12 (*  hidden = "1" *) "Kinetic Process Rate 12, Anoxic endogenous respiration of Autotrophs"
+  : ProcessRate;
+  OBJ rateP01 (*  hidden = "1" *) "Kinetic Process Rate P1, Storage of S_S as X_PHA"
+  : ProcessRate;
+  OBJ rateP02 (*  hidden = "1" *) "Kinetic Process Rate P2, Aerobic storage of X_PP"
+  : ProcessRate;
+  OBJ rateP03 (*  hidden = "1" *) "Kinetic Process Rate P3, Anoxic storage of X_PP"
+  : ProcessRate;
+  OBJ rateP04 (*  hidden = "1" *) "Kinetic Process Rate P4, Aerobic growth of X_PAO on X_PHA"
+  : ProcessRate;
+  OBJ rateP05 (*  hidden = "1" *) "Kinetic Process Rate P5, Anoxic growth of X_PAO on X_PHA"
+  : ProcessRate;
+  OBJ rateP06 (*  hidden = "1" *) "Kinetic Process Rate P6, Aerobic endogenous respiration of X_PAO"
+  : ProcessRate;
+  OBJ rateP07 (*  hidden = "1" *) "Kinetic Process Rate P7, Anoxic endogenous respiration of X_PAO"
+  : ProcessRate;
+  OBJ rateP08 (*  hidden = "1" *) "Kinetic Process Rate P8, Aerobic lysis of X_PP"
+  : ProcessRate;
+  OBJ rateP09 (*  hidden = "1" *) "Kinetic Process Rate P9, Anoxic lysis of X_PP"
+  : ProcessRate;
+  OBJ rateP10 (*  hidden = "1" *) "Kinetic Process Rate P10, Aerobic respiration of X_PHA"
+  : ProcessRate;
+  OBJ rateP11 (*  hidden = "1" *) "Kinetic Process Rate P11, Anoxic respiration of X_PHA"
+  : ProcessRate;
+#endif // ASM3P_EAWAG

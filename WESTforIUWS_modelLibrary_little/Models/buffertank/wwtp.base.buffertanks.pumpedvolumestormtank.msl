@@ -1,0 +1,196 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 23. marts 2012 12:41:29$
+ *
+ ******************************************************************************/
+ 
+#ifndef WWTP_BASE_BUFFERTANK_PUMPEDVOLUMESTORMTANK
+#define WWTP_BASE_BUFFERTANK_PUMPEDVOLUMESTORMTANK
+
+CLASS PumpedVolumeStormTank
+  (* icon = "storm_tank" ; is_default = "true" *)
+  "Model for a storm tank"
+  SPECIALISES PumpedVolumeBuffer :=
+  {:
+  comments <- "A model for a storm tank with a variable volume caused by a pump";
+  interface <-
+  {
+   OBJ MixingEnergy (* terminal = "out_2" *) "Mixing energy" : ElectricalEnergy := {: causality <- "COUT"; group <- "Energy" :};
+   OBJ PumpingEnergy (* terminal = "out_2" *) "Pumping energy" : ElectricalEnergy := {: causality <- "COUT"; group <- "Energy" :};
+  };
+  parameters <- 
+   {
+// MIXING ENERGY
+  OBJ ME_unit "Energy requirement per unit of volume for mixing in the tank" : Real := {: value <- 0.005; group <- "Mixing energy":};
+// PUMPING ENERGY
+    OBJ F_Energy_FlowRate "Conversion factor Energy needed/Pump flow rate" : Ratio := {: value <- 0.04 ; group <- "Energy":};
+   };
+   state <-
+   {
+// MIXING ENERGY
+    OBJ Integ_ME (* hidden = "1" *)"Integral mixing energy" : ElectricalEnergy ;
+  OBJ ME_Instant (* hidden = "1" *)"Instantaneous mixing energy" : Real:= {: group <- "Mixing":};
+// PUMPING ENERGY
+    OBJ Integ_PE (* hidden = "1" *)"Integral Pumping energy" : ElectricalEnergy ;
+   };
+  
+  equations <-
+  {
+// MIXING ENERGY
+  state.ME_Instant = parameters.ME_unit * state.V;    
+  DERIV(state.Integ_ME,[independent.t])= state.ME_Instant;
+  interface.MixingEnergy = state.Integ_ME ;
+
+// PUMPING ENERGY
+  DERIV(state.Integ_PE,[independent.t])=  state.Q_Out;
+  interface.PumpingEnergy = parameters.F_Energy_FlowRate * state.Integ_PE ;
+  
+  };
+  :}; 
+
+CLASS PumpedVolumeBuffer_Eindhoven
+ (* icon = "storm_tank" ; category = "default" *)
+ "A class for buffertanks with a pumped variable volume"
+ EXTENDS WWTPAtomicModelWithVolume WITH
+ {:
+  interface <-
+   {
+     OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+       InWWTPTerminal := {: causality <- "CIN" ; group <- "Influent" :};
+     OBJ Outflow (* terminal = "out_1" *) "Outflow" : 
+       OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent" :};
+	   OBJ Overflow (* terminal = "out_1" *) "Outflow" : 
+       OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent" :};
+	   OBJ FD (* terminal = "out_2" *) "Filling degree" : 
+       Real := {: causality <- "COUT" ; group <- "Measurement data" :};
+	   OBJ Q_Pump (* terminal = "in_2"; manip = "1" *) "Desired effluent flow rate" : 
+			 FlowRate := {: causality <- "CIN" :} ;
+   };
+
+  parameters <-
+   {
+     OBJ V_Max "Maximum volume of the tank" : Volume := {: group <- "Operational" :};
+     OBJ V_Min "Minimum volume of the tank" : Volume := {: group <- "Operational" :}; 
+		 OBJ Cd "Overflow = Cd*(g^1/2)*B*(Du^3/2)" : Real := {: group <- "Tank characteristics"; value <- 1 :};
+	 	OBJ B "Overflow = Cd*(g^1/2)*B*(Du^3/2)" : Length := {: group <- "Tank characteristics"; value <- 20 :};
+   };
+
+  state <-
+   {
+     OBJ Q_Out "Actual effluent flow rate" : FlowRate := {: group <- "Operational" :};
+	   OBJ Q_Over "Actual overflow rate" : FlowRate := {: group <- "Operational" :};
+	   OBJ Du "Height above weir crest" : Length;
+   };
+
+  equations <-
+   {
+    state.V = SUMOVER Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+    (0.000001*state.M[Comp_Index]);
+	  
+	  interface.FD = state.V / parameters.V_Max ;
+	  state.Du = (state.V - parameters.V_Max) / (parameters.V_Max);
+
+    // The concentration of each component is just the mass
+    // of that component divided by the total volume
+
+    {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+     state.C[Comp_Index] = IF (state.V == 0)
+				   THEN 0
+				   ELSE state.M[Comp_Index]/state.V;
+     };
+
+    state.Q_Out = IF (state.V < parameters.V_Min)
+                  THEN 0
+                  ELSE interface.Q_Pump;   
+	  state.Q_Over = IF (state.V <= parameters.V_Max)
+                   THEN 0
+                   ELSE parameters.Cd * pow(9.81,0.5) * parameters.B * pow(state.Du,1.5) * 3600 * 24;;
+
+    {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+      interface.Outflow[Comp_Index] =
+       - state.C[Comp_Index] * state.Q_Out ;};
+		{FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+      interface.Overflow[Comp_Index] =
+       - state.C[Comp_Index] * state.Q_Over ;};
+   };
+ :};
+ 
+ CLASS PumpedVolumeBuffer_Eindhoven2
+ (* icon = "storm_tank" ; category = "default" *)
+ "A class for buffertanks with a pumped variable volume (out = pump or overflow)"
+ EXTENDS WWTPAtomicModelWithVolume WITH
+ {:
+  interface <-
+   {
+     OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+       InWWTPTerminal := {: causality <- "CIN" ; group <- "Influent" :};
+     OBJ Outflow (* terminal = "out_1" *) "Outflow" : 
+       OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent" :};
+	 //  OBJ Overflow (* terminal = "out_1" *) "Outflow" : 
+   //    OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent" :};
+	   OBJ FD (* terminal = "out_2" *) "Filling degree" : 
+       Real := {: causality <- "COUT" ; group <- "Measurement data" :};
+	   OBJ Q_Pump (* terminal = "in_2"; manip = "1" *) "Desired effluent flow rate" : 
+			 FlowRate := {: causality <- "CIN" :} ;
+   };
+
+  parameters <-
+   {
+     OBJ V_Max "Maximum volume of the tank" : Volume := {: group <- "Operational" :};
+     OBJ V_Min "Minimum volume of the tank" : Volume := {: group <- "Operational" :}; 
+		 OBJ Cd "Overflow = Cd*(g^1/2)*B*(Du^3/2)" : Real := {: group <- "Tank characteristics"; value <- 1 :};
+	 	OBJ B "Overflow = Cd*(g^1/2)*B*(Du^3/2)" : Length := {: group <- "Tank characteristics"; value <- 20 :};
+   };
+
+  state <-
+   {
+     OBJ Q_Out "Actual effluent flow rate" : FlowRate := {: group <- "Operational" :};
+	   //OBJ Q_Over "Actual overflow rate" : FlowRate := {: group <- "Operational" :};
+	   OBJ Du "Height above weir crest" : Length;
+   };
+
+  equations <-
+   {
+    state.V = SUMOVER Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+    (0.000001*state.M[Comp_Index]);
+	  
+	  interface.FD = state.V / parameters.V_Max ;
+	  state.Du = (state.V - parameters.V_Max) / (parameters.V_Max);
+
+    // The concentration of each component is just the mass
+    // of that component divided by the total volume
+
+    {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+     state.C[Comp_Index] = IF (state.V == 0)
+				   THEN 0
+				   ELSE state.M[Comp_Index]/state.V;
+     };
+
+    state.Q_Out = IF (state.V < parameters.V_Min)
+                  THEN 0
+                  ELSE IF (state.V <= parameters.V_Max)
+                       THEN interface.Q_Pump
+                       ELSE parameters.Cd * pow(9.81,0.5) * parameters.B * pow(state.Du,1.5) * 3600 * 24;   
+
+    {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+      interface.Outflow[Comp_Index] =
+       - state.C[Comp_Index] * state.Q_Out ;};
+		//{FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+    //  interface.Overflow[Comp_Index] =
+    //   - state.C[Comp_Index] * state.Q_Over ;};
+   };
+ :};
+
+#endif // WWTP_BASE_BUFFERTANK_PUMPEDVOLUMESTORMTANK
+
+// ***********************************************************************

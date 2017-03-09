@@ -1,0 +1,64 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 29. juni 2012 15:53:33$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_DEFINITIONS1
+#define WWTP_DEFINITIONS1
+
+ // In the Components type declaration, the user indicates
+ // which components will be used in his/her models.
+ // A number of assumptions are made:
+ //  1. In one system, ALL the connections between
+ //     sub-models pass exactly those biological components
+ //     indicated in the Components declaration.
+ //  2. In a physical flow, ALL components are explicitly
+ //     considered: H2O, dissoved gasses, solids in suspension, ...
+ //     The usual assumption that the concentration of H2O is 1
+ //     and all the other concentrations are infinite will be put in 
+ //     further. This, to allow modelling of systems where
+ //     the above assumption is not valid.
+
+ // EVERYTHING is deduced from the Components type declaration !
+ // From this declaration, appropriate models will be expanded
+ // automatically.
+ //
+ // As a convention, the component H2O is always written first
+ // as it is the "main" component in a wWtp.
+ // next in line are solubles. followed by particulates
+
+ //===================================================================
+//==========================Begin of components & reactions def.=====
+//===================================================================
+
+ // The components definition.
+ // Here, the user specifies which components will be considered.
+ // This will define the size of the wwtp terminal (through NrOfComponents, see above)
+ // Please note that the sequence of elements in the ComponentsVector
+ // is of importance !!! This sequence is used in certain models to achieve
+ // model re-usability.
+
+ // Note that also the aeration process, a mass transport process,
+ // is considered to be a conversion process !!!
+
+#include "wwtp.definitionsASM1Temp.msl"
+#include "wwtp.definitionsASM2dModTemp.msl"
+#include "wwtp.definitionsASM3Temp.msl"
+#include "wwtp.definitionsASM3P_EAWAG.msl"
+//
+// New models, version 2012
+#include "wwtp.definitionsASM1_AN.msl"
+#include "wwtp.definitionsASMG1.msl"
+
+#endif // WWTP_DEFINITIONS1

@@ -1,0 +1,806 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 2$
+ * $Date: 27. juli 2012 11:46:06$
+ *
+ ******************************************************************************/
+
+#ifndef ANAEROBIC_DIGESTION_SIEGRIST
+#define ANAEROBIC_DIGESTION_SIEGRIST
+
+#if (defined ASM1Temp)
+ CLASS Siegrist
+ (* icon = "anaerobic_digester" *)
+ "anaerobic digester according to Siegrist et al."
+
+// Literature : 
+//
+// Siegrist, H., Renggli, D. and Gujer, W. (1990). Mathematical
+// modelling of the single and two stage sewage sludge treatment.
+// In: l'Hermite, P. (ed.) Treatment and use of sewage sludge and
+// liquid agricultural wastes. London, Elsevier Applied Science,
+// 45-58.
+//
+// Siegrist, H., Renggli, D. and Gujer, W. (1993). Mathematical
+// modelling of anaerobic mesophilic sewage sludge treatment.
+// Wat. Sci. Tech., 27(2), 25-36.
+//
+// Siegrist, H., Renggli, D. and Gujer, W. (1995). Mathematical
+// modelling of anaerobic mesophilic processes in a digester.
+// Presented at the International Meeting on Anaerobic Processes
+// for Bioenergy and Environment, Copenhagen, 25-27 January 1995.
+// 
+// (All parameter default parameter values are chosen from the
+// most recent paper)
+
+// DESCRIPTION OF THE MODEL
+// The Siegrist model describes the dynamic behaviour of mesophilic
+// digestion. The anaerobic model is based on the reaction scheme
+// described by Gujer and Zehnder (1983). The model allows to simulate
+// the variation of digested sludge- and biogas composition as well as
+// gas production due to temperature- and load variation. Special
+// emphasis is given to acetate-, propionate and hydrogen degradation
+// and inhibition due to pH, free ammonia and hydrogen.
+
+// IMPLEMENTATION IN WEST
+// Whereas in the original paper stripping of methane, carbon dioxide
+// and hydrogen is assumed to be linearly related to the total gas
+// production (Q_Gas_Prod), in the West-implementation an additional
+// parameter Q_Gas was added to allow an external stripping (inert) 
+// gas flow. However, default value of this parameter was set to zero.
+
+ SPECIALISES PhysicalDAEModelType =
+  {:
+   comments <- "A model for anaerobic digestion processes by Siegrist et al.";
+   interface <-
+   { 
+    OBJ Inflow (* terminal = "in_1" *) "Inflow" :
+         InWWTPTerminal = {: causality <- "CIN" ; group <- "Influent" :};
+    OBJ Outflow (* terminal = "out_1" *) "Outflow" :
+         OutWWTPTerminal = {: causality <- "COUT" ; group <- "Effluent" :};
+    OBJ Q_Gas (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Gasflow for stripping" : 
+    GasFlowRate = {: causality <- "CIN" ; value <- 30 ; group <- "Operational" :}; 
+    OBJ T (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Celsius Temperature" : 
+    CelsiusTemperature = {: causality <- "CIN" ; value <- 35.0 ; group <- "Operational":};
+   };
+
+  parameters <- 
+   { 
+
+// General parameters
+
+   /* OBJ AnaerobicSpecificVolume (* hidden = "1" *)
+         "Vector containing the specific volume (= 1/density) for all the components of the Siegrist model"
+         : AnaerobicSpecificVolumeVector;*/
+
+    OBJ TempCoef1 (* hidden = "1" *) "Temperature coefficient" : TemperatureCoefficient;
+
+    OBJ TempCoef2 (* hidden = "1" *) "Temperature coefficient" : TemperatureCoefficient;
+
+    OBJ UniversalGasConstant "Universal gas constant" : PhysicalQuantityType = 
+         {:
+           quantity  <- "RO";
+           unit      <- "J/(mol*K)";
+           value     <- 8.314510;
+       group   <- "Miscellaneous"
+         :};
+
+    OBJ p (* is_favorite = "1" *) "Head pressure in the digester" : Pressure = {:value <- 101325.00 ; group <- "Operational":};
+
+    OBJ pH_In "pH of incoming wastewater" : pH = {: value <- 7.0 ; group <- "Influent characterization" :};
+
+    OBJ S_H_In (* hidden = "1" *) "Proton concentration in incoming wastewater" : MolConcentration = {: group <- "Influent characterization" :};
+
+    OBJ CO2EquilibriumConstant (* hidden = "1" *) "Equilibrium constant for CO2, i.e. [H+][HCO3-]/[CO2]" : PhysicalQuantityType =
+         {:
+           unit <- "mol.m-3";
+           interval <- {: lowerBound <- 0; upperBound <- PLUS_INF; :};  
+         :};
+
+    OBJ H_H2 "Henry coefficient for H2" : HenryCoefficient = {: value <- 1.334 ; group <- "Stoichiometry" :};
+
+    OBJ H_CH4 "Henry coefficient for CH4" : HenryCoefficient = {: value <- 0.876 ; group <- "Stoichiometry" :};
+
+    OBJ H_CO2 "Henry coefficient for CO2" : HenryCoefficient = {: value <- 0.04 ; group <- "Stoichiometry" :};
+
+    OBJ MolVolumeAtTempT (* hidden = "1" *) "Volume of 1 Mol gas at Celsius temperature T" : Volume;
+
+    OBJ Initial_Q_Gas_Tot "Initial (previous) value of Q_Gas_Tot" : GasFlowRate = {: value <- 655 ; group <- "Miscellaneous":};
+
+    OBJ f_X_Out "Fraction of the anaerobic particulate matter that leaves the reactor" : Fraction = {: value <- 0.10 ; group <- "Settling":};
+
+// ASM1 to Anaerobic Digestion conversion parameters
+
+    OBJ i_X_B "Mass of nitrogen per mass of COD in biomass (ASM1)" : MassOfNitrogenPerMassOfCODInBiomass =
+         {: value <- 0.086 ; group <- "Conversion factors" :};
+
+    OBJ i_X_P "Mass of nitrogen per mass of COD in products formed (ASM1)" : MassOfNitrogenPerMassOfCODInProdFromBiomass =
+         {: value <- 0.04 ; group <- "Conversion factors" :};
+
+    OBJ i_S_AS "Mass of nitrogen per mass of COD in Amino Acids (S_AS)" : MassOfNitrogenPerMassOfCOD =
+         {: value <- 0.040 ; group <- "Conversion factors" :};
+
+    OBJ i_X_S_An "Mass of nitrogen per mass of COD in slowly biodegradable matter (X_S_An)" : MassOfNitrogenPerMassOfCOD =
+         {: value <- 0.020 ; group <- "Conversion factors" :};
+
+    OBJ i_X_An "Mass of nitrogen per mass of COD in anaerobic biomass" : MassOfNitrogenPerMassOfCOD =
+         {: value <- 0.080 ; group <- "Conversion factors" :};
+
+    OBJ i_X_IN "Mass of nitrogen per mass of COD in inert particulates" : MassOfNitrogenPerMassOfCOD =
+         {: value <- 0.040 ; group <- "Conversion factors" :};
+
+    OBJ f_AC_S "Fraction of S_S that is acetate (S_AC)" : Fraction = {: value <- 0.30 ; group <- "Conversion factors" :};
+
+    OBJ f_PRO_S "Fraction of S_S that is propionate (S_PRO)" : Fraction = {: value <- 0.10 ; group <- "Conversion factors" :};
+
+    OBJ f_AS_S "Fraction of S_S that are Amino Acids and sugar (S_AS)" : Fraction = {: value <- 0.10 ; group <- "Conversion factors" :};
+
+    OBJ f_XSAn_I "Fraction of X_I (ASM1) that becomes biodegradable in anaerobic conditions" : Fraction = {: value <- 0.10 ; group <- "Conversion factors" :};
+
+    OBJ f_XSAn_H "Fraction of X_BH (ASM1) that becomes biodegradable in anaerobic conditions" : Fraction = {: value <- 0.08 ; group <- "Conversion factors" :};
+
+    OBJ f_XSAn_A "Fraction of X_BA (ASM1) that becomes biodegradable in anaerobic conditions" : Fraction = {: value <- 0.92 ; group <- "Conversion factors" :};
+
+    OBJ f_XSAn_P "Fraction of X_P (ASM1) that becomes biodegradable in anaerobic conditions" : Fraction = {: value <- 0.10 ; group <- "Conversion factors" :};
+
+    OBJ f_AS_H "Fraction of X_BH (heterotrophs in ASM1) that are capable of fermenting" : Fraction = {: value <- 0.50 ; group <- "Conversion factors" :};
+
+// Anaerobic Digestion to ASM1 conversion parameters
+
+    OBJ f_P_An "Fraction of anaerobic biomass that leads to inert matter" : Fraction = {: value <- 0.08 ; group <- "Conversion factors" :};
+
+    OBJ f_H_AS "Fraction of fermenting biomass that are heterotrophs" : Fraction = {: value <- 0.50 ; group <- "Conversion factors" :};
+
+// Kinetic parameters
+
+    OBJ k_R "Specific hydrolysis rate of biopolymers" : MaxSpecificHydrolysisRate =
+         {: value <- 0.25 ; group <- "Kinetic" :};
+
+    OBJ mu_AS "Maximum specific growth rate of AA and sugar fermenting bacteria" : MaxGrowthRate =
+         {: value <- 5.0 ; group <- "Kinetic" :};
+
+    OBJ K_S_AS "Anaerobic fermentation half-saturation concentration for S_AS" : HalfSatCoeff =
+         {: value <- 50 ; group <- "Kinetic" :};
+
+    OBJ mu_FA "Maximum specific growth rate of FA oxidising anaerobic bacteria" : MaxGrowthRate =
+         {: value <- 0.55 ; group <- "Kinetic" :};
+
+    OBJ K_S_FA "Anaerobic FA oxidation half-saturation concentration for S_FA" : HalfSatCoeff =
+         {: value <- 200 ; group <- "Kinetic" :};
+
+    OBJ K_I_AC_FA "Anaerobic FA oxidation inhibition concentration for S_AC" : InhibitionCoeff =
+         {: value <- 2000 ; group <- "Kinetic" :};
+
+    OBJ K_I_H2_FA "Anaerobic FA oxidation inhibition concentration for S_H2" : InhibitionCoeff =
+         {: value <- 12e-3 ; group <- "Kinetic" :};
+
+    OBJ mu_PRO "Maximum specific growth rate of propionate oxidising bacteria" : MaxGrowthRate =
+         {: value <- 0.8 ; group <- "Kinetic" :};
+
+    OBJ K_S_PRO "Anaerobic propionate oxidation half-saturation concentration for S_PRO" : HalfSatCoeff =
+         {: value <- 15 ; group <- "Kinetic" :};
+
+    OBJ K_I_AC_PRO "Anaerobic propionate inhibition concentration for S_AC" : InhibitionCoeff =
+         {: value <- 1500 ; group <- "Kinetic" :};
+
+    OBJ K_I_H2_PRO "Anaerobic propionate oxidation inhibition concentration for S_H2" :  InhibitionCoeff =
+         {: value <- 0.6e-3 ; group <- "Kinetic" :};
+
+    OBJ K_S_H_PRO "Anaerobic propionate oxidation half-saturation concentration for S_H" : MolarHalfSatCoeff =
+         {: value <- 1e-5 ; group <- "Kinetic" :};
+
+    OBJ K_I_H_PRO "Anaerobic propionate oxidation inhibition concentration for S_H" : MolarInhibitionCoeff =
+         {: value <- 6.3e-4 ; group <- "Kinetic" :};
+
+    OBJ mu_AC "Maximum specific growth rate of acetate to methane converting bacteria" : MaxGrowthRate =
+         {: value <- 0.95 ; group <- "Kinetic" :};
+
+    OBJ K_S_AC "Acetate to methane conversion half-saturation concentration for S_AC" : HalfSatCoeff =
+         {: value <- 30 ; group <- "Kinetic" :};
+
+    OBJ K_S_H_AC "Acetate to methane conversion half-saturation concentration for S_H" : MolarHalfSatCoeff =
+         {: value <- 1e-5 ; group <- "Kinetic" :};
+
+    OBJ K_I_H_AC "Acetate to methane conversion inhibition concentration for S_H" : MolarInhibitionCoeff =
+         {: value <- 6.3e-4 ; group <- "Kinetic" :};
+
+    OBJ mu_H2 "Maximum specific growth rate of hydrogen to methane converting bacteria" : MaxGrowthRate =
+         {: value <- 3.6 ; group <- "Kinetic" :};
+
+    // K_S_H2 higher than in Siegrist papers in order to avoid conflicts with the integration algorithm
+
+    OBJ K_S_H2 "Hydrogen to methane conversion half-saturation concentration for S_H2" : HalfSatCoeff =
+         {: value <- 0.06 ; group <- "Kinetic" :};
+
+    OBJ K_S_H_H2 "Hydrogen to methane conversion half-saturation concentration for S_H" : MolarHalfSatCoeff =
+         {: value <- 1e-5 ; group <- "Kinetic" :};
+
+    OBJ K_I_H_H2 "Hydrogen to methane conversion inhibition concentration for S_H" : MolarInhibitionCoeff =
+         {: value <- 6.3e-4 ; group <- "Kinetic" :};
+
+    // Original notation for decay rate in the Siegrist paper is k_d_
+    // For consistency with the ASM nomenclature b_ is used
+
+    OBJ b_AS "Specific decay rate for AA and sugar fermenting bacteria" : DecayCoefficient =
+         {: value <- 1.0 ; group <- "Kinetic" :};
+
+    OBJ b_FA "Specific decay rate for FA oxidising anaerobic bacteria" : DecayCoefficient =
+         {: value <- 0.10 ; group <- "Kinetic" :};
+
+    OBJ b_PRO "Specific decay rate for propionate oxidising anaerobic bacteria" : DecayCoefficient =
+         {: value <- 0.10 ; group <- "Kinetic" :};
+
+    OBJ b_AC "Specific decay rate for acetate to methane converting bacteria" : DecayCoefficient =
+         {: value <- 0.10 ; group <- "Kinetic" :};
+
+    OBJ b_H2 "Specific decay rate for hydrogen to methane converting bacteria" : DecayCoefficient =
+         {: value <- 0.4 ; group <- "Kinetic" :};
+
+    OBJ k_HCO3 "Rate of bicarbonate protolysis" : PhysicalQuantityType =
+         {:
+            unit <- "d-1.m3.Mol-1";
+            value <- 10;
+      group <- "Kinetic";
+            interval <- {: lowerBound <- 0; upperBound <- PLUS_INF; :};
+
+         :};
+
+    OBJ k_CO2 "Rate of carbon dioxide deprotolysis" : PhysicalQuantityType =
+         {:
+            unit <- "d-1";
+            value <- 0.0045;
+      group <- "Kinetic";
+            interval <- {: lowerBound <- 0; upperBound <- PLUS_INF; :};
+         :};
+
+// Stoichiometric matrix
+
+    OBJ AnaerobicStoichiometry (* hidden = "1" *)
+         "A matrix structure containing stoichiometry of anaerobic processes"
+         : PhysicalQuantityType[NrOfAnaerobicReactions;][NrOfAnaerobicComponents;]
+
+   };
+
+  state <-
+   {
+    OBJ InFluxPerComponent (* hidden = "1" *) "Vector containing incoming fluxes for all ASM components" : MassFluxVector;
+    OBJ TemporaryInFluxS_S (* hidden = "1" *) "Temporary calculation of the incoming S_S after oxidizing with S_O and S_NO" : Real;
+    OBJ InFluxS_S (* hidden = "1" *) "Influx of S_S after correction for oxidizing with incoming S_O and S_NO" : MassFlux;
+    OBJ InFluxX_S (* hidden = "1" *) "Influx of X_S after correction for oxidizing with incoming S_O and S_NO" : MassFlux;
+    OBJ StrippingRate "Stripping rate is linearly related to the total gas production" : Rate = {: group <- "Operational" :};
+    OBJ AnaerobicKinetics (* hidden = "1" *) "A vector containing kinetics for all anaerobic reactions"
+         : PhysicalQuantityType[NrOfAnaerobicReactions;];
+    OBJ AnaerobicOutFluxPerComponent (* hidden = "1" *) "Vector containing outgoing fluxes for all Siegrist anaerobic components"
+         : AnaerobicMassFluxVector;
+    OBJ AnaerobicInFluxPerComponent (* hidden = "1" *)
+         "Vector containing incoming fluxes for all the components of the Siegrist model"
+         : AnaerobicMassFluxVector;
+    OBJ AnaerobicConversionTermPerComponent (* hidden = "1" *) "Vector containing conversionterms for all the components"
+         : AnaerobicMassFluxVector;
+    OBJ f_FA_S (* hidden = "1" *) 
+         "Calculated fraction of S_S that are Fatty Acids - if lower than zero please change parameters f_AC_S, f_PRO_S and f_AS_S" 
+     : Fraction;
+    OBJ f_X_IN_H (* hidden = "1" *)
+         "Calculated fraction of X_BH that becomes X_IN in the digester - if lower than zero please change parameters f_XSAn_H and f_AS_H" 
+     : Fraction;
+    OBJ Q_In (* is_favorite = "1" *) "Influent flow rate" : FlowRate = {: group <- "Operational" :}; 
+    OBJ V_L "(Constant) volume of liquid phase in the digester" : Volume = {: group <- "Dimension" :};
+    OBJ M_An "Vector containing masses for all components of the Siegrist model" : AnaerobicMassVector = {: group <- "Mass" :};
+    OBJ C_An "Vector containing concentrations for all the components of the Siegrist model" : AnaerobicConcentrationVector = {: group <- "Concentration" :};
+    OBJ pH_Reactor "pH in the Anaerobic Digester" : pH = {: group <- "Operational" :};
+    OBJ MolProduced_H2 "Amount (expressed in Mol.d-1) of hydrogen gas produced in the digester" : MolFlowRate = {: group <- "Operational" :};
+    OBJ MolProduced_CH4 "Amount (expressed in Mol.d-1) of methane gas produced in the digester" : MolFlowRate = {: group <- "Operational" :};
+    OBJ MolProduced_CO2 "Amount (expressed in Mol.d-1) of carbon dioxide gas produced in the digester" : MolFlowRate = {: group <- "Operational" :};
+    OBJ PreviousHelp_Q_Gas_Tot (* hidden = "1" *) "Help variable for the calculation of the previous value of Q_Gas_Tot" : GasFlowRate;
+    OBJ Q_H2 (* is_favorite = "1" *) "Flow rate of hydrogen gas produced" : GasFlowRate = {: group <- "Operational" :};
+    OBJ Q_CH4 (* is_favorite = "1" *) "Flow rate of methane gas produced" : GasFlowRate = {: group <- "Operational" :};
+    OBJ Q_CO2 (* is_favorite = "1" *) "Flow rate of carbon dioxide gas produced" : GasFlowRate = {: group <- "Operational" :};
+    OBJ Q_Gas_Prod "Flow rate of all gas produced" : GasFlowRate = {: group <- "Operational" :};
+    OBJ Q_Gas_Tot "Total gas flow rate, i.e. stripping gas and gas produced" : GasFlowRate = {: group <- "Operational" :};
+    OBJ C_H2 (* is_favorite = "1" *) "H2 concentration in total gas stream" : MolConcentration = {: group <- "Concentration" :};
+    OBJ C_CH4 (* is_favorite = "1" *) "CH4 concentration in total gas stream" : MolConcentration = {: group <- "Concentration" :};
+    OBJ C_CO2 (* is_favorite = "1" *) "CO2 concentration in total gas stream" : MolConcentration = {: group <- "Concentration" :};
+
+   };
+
+  initial <-
+   {
+  //  parameters.AnaerobicSpecificVolume[H2O_An] = 0.000001;
+
+    parameters.TempCoef1 = exp(0.069 * (interface.T - 35));
+    parameters.TempCoef2 = exp(0.085 * (interface.T - 35));
+
+    parameters.CO2EquilibriumConstant = parameters.k_CO2 / parameters.k_HCO3;
+
+    parameters.S_H_In = (pow(10, - parameters.pH_In)) * 1e+3;
+
+    parameters.MolVolumeAtTempT = 22.4e-3 * ((interface.T + 273.15) / 273.15);
+
+// process 1: Stripping of the biogas (methane, carbon dioxide and hydrogen)
+    parameters.AnaerobicStoichiometry[H2Stripping][S_H2] = - parameters.H_H2;
+    parameters.AnaerobicStoichiometry[CH4Stripping][S_CH4] = - parameters.H_CH4;
+    parameters.AnaerobicStoichiometry[CO2Stripping][S_CO2] = - parameters.H_CO2;
+
+// process 2: Hydrolysis of the biopolymers into monomers
+    parameters.AnaerobicStoichiometry[BiopolymHydrol][S_AS] = 0.50; 
+    parameters.AnaerobicStoichiometry[BiopolymHydrol][S_FA] = 0.45;
+    parameters.AnaerobicStoichiometry[BiopolymHydrol][S_IN] = 0.05;
+    parameters.AnaerobicStoichiometry[BiopolymHydrol][X_S_An] = -1.00;
+
+// process 3: Fermentation of amino acids and sugars
+    parameters.AnaerobicStoichiometry[ASFermentation][S_H2] = 0.96;
+    parameters.AnaerobicStoichiometry[ASFermentation][S_CO2] = 0.082;
+    parameters.AnaerobicStoichiometry[ASFermentation][S_HCO3] = -0.051;
+    parameters.AnaerobicStoichiometry[ASFermentation][S_NH4] = 0.187;
+    parameters.AnaerobicStoichiometry[ASFermentation][S_AC] = 3.29;
+    parameters.AnaerobicStoichiometry[ASFermentation][S_PRO] = 1.42;
+    parameters.AnaerobicStoichiometry[ASFermentation][S_AS] = -6.67;
+    parameters.AnaerobicStoichiometry[ASFermentation][X_AS] = 1.00;
+
+// process 4: Anaerobic oxidation of long chain fatty acids and alcohols
+    parameters.AnaerobicStoichiometry[AnOxOfS_FA][S_H2] = 6.70;
+    parameters.AnaerobicStoichiometry[AnOxOfS_FA][S_CO2] = 0.199;
+    parameters.AnaerobicStoichiometry[AnOxOfS_FA][S_HCO3] = -0.202;
+    parameters.AnaerobicStoichiometry[AnOxOfS_FA][S_NH4] = -0.08;
+    parameters.AnaerobicStoichiometry[AnOxOfS_FA][S_AC] = 14.3;
+    parameters.AnaerobicStoichiometry[AnOxOfS_FA][S_FA] = -22.0;
+    parameters.AnaerobicStoichiometry[AnOxOfS_FA][X_FA] = 1.00;
+
+// process 5: Anaerobic oxidation of propionate
+    parameters.AnaerobicStoichiometry[AnOxOfS_PRO][S_H2] = 8.20;
+    parameters.AnaerobicStoichiometry[AnOxOfS_PRO][S_CO2] = 0.163;
+    parameters.AnaerobicStoichiometry[AnOxOfS_PRO][S_HCO3] = 0.004;
+    parameters.AnaerobicStoichiometry[AnOxOfS_PRO][S_NH4] = -0.08;
+    parameters.AnaerobicStoichiometry[AnOxOfS_PRO][S_AC] = 10.8;
+    parameters.AnaerobicStoichiometry[AnOxOfS_PRO][S_PRO] = -20.0;
+    parameters.AnaerobicStoichiometry[AnOxOfS_PRO][X_PRO] = 1.00;
+
+// process 6: Conversion of acetate to methane
+    parameters.AnaerobicStoichiometry[AcToCH4Conv][S_CH4] = 39.0;
+    parameters.AnaerobicStoichiometry[AcToCH4Conv][S_CO2] = -0.007;
+    parameters.AnaerobicStoichiometry[AcToCH4Conv][S_HCO3] = 0.619;
+    parameters.AnaerobicStoichiometry[AcToCH4Conv][S_NH4] = -0.08;
+    parameters.AnaerobicStoichiometry[AcToCH4Conv][S_AC] = -40.0;
+    parameters.AnaerobicStoichiometry[AcToCH4Conv][X_AC] = 1.00;
+
+// process 7: Conversion of hydrogen to methane
+    parameters.AnaerobicStoichiometry[H2ToCH4Conv][S_H2] = -22.0;
+    parameters.AnaerobicStoichiometry[H2ToCH4Conv][S_CH4] = 21.0;
+    parameters.AnaerobicStoichiometry[H2ToCH4Conv][S_CO2] = -0.291;
+    parameters.AnaerobicStoichiometry[H2ToCH4Conv][S_HCO3] = -0.006;
+    parameters.AnaerobicStoichiometry[H2ToCH4Conv][S_NH4] = -0.08;
+    parameters.AnaerobicStoichiometry[H2ToCH4Conv][X_H2] = 1.00;
+
+// processes 8: Decay of the X_AS bacteria
+    parameters.AnaerobicStoichiometry[DecayOfX_AS][S_HCO3] = 0.004; 
+    parameters.AnaerobicStoichiometry[DecayOfX_AS][S_NH4] = 0.056; 
+    parameters.AnaerobicStoichiometry[DecayOfX_AS][X_S_An] = 0.80; 
+    parameters.AnaerobicStoichiometry[DecayOfX_AS][X_AS] = -1.00; 
+    parameters.AnaerobicStoichiometry[DecayOfX_AS][X_IN] = 0.20;
+
+// process 9: Decay of the X_FA bacteria
+    parameters.AnaerobicStoichiometry[DecayOfX_FA][S_HCO3] = 0.004;
+    parameters.AnaerobicStoichiometry[DecayOfX_FA][S_NH4] = 0.056;
+    parameters.AnaerobicStoichiometry[DecayOfX_FA][X_S_An] = 0.80;
+    parameters.AnaerobicStoichiometry[DecayOfX_FA][X_FA] = -1.00;
+    parameters.AnaerobicStoichiometry[DecayOfX_FA][X_IN] = 0.20;
+
+// process 10: Decay of the X_PRO bacteria
+    parameters.AnaerobicStoichiometry[DecayOfX_PRO][S_HCO3] = 0.004;
+    parameters.AnaerobicStoichiometry[DecayOfX_PRO][S_NH4] = 0.056;
+    parameters.AnaerobicStoichiometry[DecayOfX_PRO][X_S_An] = 0.80;
+    parameters.AnaerobicStoichiometry[DecayOfX_PRO][X_PRO] = -1.00;
+    parameters.AnaerobicStoichiometry[DecayOfX_PRO][X_IN] = 0.20;
+
+// process 11: Decay of the X_AC bacteria
+    parameters.AnaerobicStoichiometry[DecayOfX_AC][S_HCO3] = 0.004;
+    parameters.AnaerobicStoichiometry[DecayOfX_AC][S_NH4] = 0.056;
+    parameters.AnaerobicStoichiometry[DecayOfX_AC][X_S_An] = 0.80;
+    parameters.AnaerobicStoichiometry[DecayOfX_AC][X_AC] = -1.00;
+    parameters.AnaerobicStoichiometry[DecayOfX_AC][X_IN] = 0.20;
+
+// process 12: Decay of the X_H2 bacteria
+    parameters.AnaerobicStoichiometry[DecayOfX_H2][S_HCO3] = 0.004; 
+    parameters.AnaerobicStoichiometry[DecayOfX_H2][S_NH4] = 0.056;
+    parameters.AnaerobicStoichiometry[DecayOfX_H2][X_S_An] = 0.80;
+    parameters.AnaerobicStoichiometry[DecayOfX_H2][X_H2] = -1.00; 
+    parameters.AnaerobicStoichiometry[DecayOfX_H2][X_IN] = 0.20;
+
+// process 13: Protolysis of HCO3
+    parameters.AnaerobicStoichiometry[ProtolysisOfHCO3][S_CO2] = 1.00;
+    parameters.AnaerobicStoichiometry[ProtolysisOfHCO3][S_HCO3] = -1.00; 
+    parameters.AnaerobicStoichiometry[ProtolysisOfHCO3][S_H] = -1.00;
+
+// process 14: Deprotolysis of CO2
+    parameters.AnaerobicStoichiometry[DeprotolysisOfCO2][S_CO2] = -1.00;
+    parameters.AnaerobicStoichiometry[DeprotolysisOfCO2][S_HCO3] = 1.00;
+    parameters.AnaerobicStoichiometry[DeprotolysisOfCO2][S_H] = 1.00;
+
+   };
+
+  independent <- 
+  { 
+    OBJ t "Time" : Time = {: group <- "Time" :}; 
+   };
+
+  equations <-
+   {
+
+// Conversion Activated Sludge Model No1 to Anaerobic Digestion
+
+    // Incoming terminal is ASM terminal
+
+    {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+      state.InFluxPerComponent[Comp_Index] =
+       SUMOVER In_Terminal IN {SelectByType(interface,InWWTPTerminal)}:
+        (In_Terminal[Comp_Index]);
+    };
+
+    // Calculation of the incoming Siegrist anaerobic components
+
+    // Water flow is equal in both models
+
+    state.AnaerobicInFluxPerComponent[H2O_An] =
+     state.InFluxPerComponent[IndexOfSolvent];
+
+    // Hydrogen and methane concentrations are zero in the incoming stream
+
+    state.AnaerobicInFluxPerComponent[S_H2] = 0;
+
+    state.AnaerobicInFluxPerComponent[S_CH4] = 0;
+
+    // Equilibrium constant K = [H+][HCO3-]/[CO2] =
+    // = parameters.CO2EquilibriumConstant = parameters.k_CO2 / parameters.k_HCO3
+    // ([H+] = 1e(-pH) mol/L = 1e+3 * 1e(-pH) mol/m3)
+
+    state.AnaerobicInFluxPerComponent[S_H] =
+     parameters.S_H_In * (0.000001 * state.AnaerobicInFluxPerComponent[H2O_An]);
+
+    state.AnaerobicInFluxPerComponent[S_CO2] =
+     (parameters.S_H_In / (parameters.S_H_In + parameters.CO2EquilibriumConstant)) * state.InFluxPerComponent[S_ALK];
+
+    state.AnaerobicInFluxPerComponent[S_HCO3] =
+     (parameters.CO2EquilibriumConstant / (parameters.S_H_In + parameters.CO2EquilibriumConstant)) * state.InFluxPerComponent[S_ALK];
+
+    // Mass balance for N is kept in equilibrium by compensation in S_NH4:
+    // S_NH4 = SUM (i * S_ASMi) + SUM (i * X_ASMi) - SUM (i * X_ANi) - SUM (i * S_ANi)
+    // If S_NH4 < 0, parameters for fractioning ASM components must be changed
+
+    state.AnaerobicInFluxPerComponent[S_NH4] =
+     state.InFluxPerComponent[S_NH]
+     + state.InFluxPerComponent[S_ND]
+     + state.InFluxPerComponent[X_ND]
+     + parameters.i_X_B * (state.InFluxPerComponent[X_BH] + state.InFluxPerComponent[X_BA])
+     + parameters.i_X_P * (state.InFluxPerComponent[X_P] + state.InFluxPerComponent[X_I])
+     - parameters.i_S_AS * state.AnaerobicInFluxPerComponent[S_AS]
+     - parameters.i_X_S_An * state.AnaerobicInFluxPerComponent[X_S_An]
+     - parameters.i_X_An * state.AnaerobicInFluxPerComponent[X_AS]
+     - parameters.i_X_IN * state.AnaerobicInFluxPerComponent[X_IN];
+
+    // Incoming S_O oxidizes part of the S_S or -when S_S becomes lower than zero-, X_S  
+    // An analogous reasoning for denitrification of S_NO  
+
+    state.TemporaryInFluxS_S = state.InFluxPerComponent[S_S]
+                                - state.InFluxPerComponent[S_O]
+                                - (4.57 * state.InFluxPerComponent[S_NO]);
+
+    state.InFluxS_S =
+     IF (state.TemporaryInFluxS_S < 0)
+     THEN 0
+     ELSE state.TemporaryInFluxS_S;
+
+    state.InFluxX_S =
+     IF (state.TemporaryInFluxS_S < 0)
+     THEN state.InFluxPerComponent[X_S] + state.TemporaryInFluxS_S
+     ELSE state.InFluxPerComponent[X_S];
+
+    // S_S is devided into S_AC, S_PRO, S_AS and S_FA
+
+    state.AnaerobicInFluxPerComponent[S_AC] =
+     parameters.f_AC_S * state.InFluxS_S;
+
+    state.AnaerobicInFluxPerComponent[S_PRO] =
+     parameters.f_PRO_S * state.InFluxS_S;
+
+    state.AnaerobicInFluxPerComponent[S_AS] =
+     parameters.f_AS_S * state.InFluxS_S;
+
+    state.f_FA_S = 1 - (parameters.f_AC_S + parameters.f_PRO_S + parameters.f_AS_S);
+
+    state.AnaerobicInFluxPerComponent[S_FA] =
+     state.f_FA_S * state.InFluxS_S;
+
+    // Concentration inert solubles is the same in both models
+
+    state.AnaerobicInFluxPerComponent[S_IN] =
+     state.InFluxPerComponent[S_I];
+
+    // Particulate biodegradable matter in anaerobic conditions consists of several
+    // fractions of particulate matter from ASM
+
+    state.AnaerobicInFluxPerComponent[X_S_An] =
+     state.InFluxX_S
+     + parameters.f_XSAn_I * state.InFluxPerComponent[X_I]
+     + parameters.f_XSAn_H * state.InFluxPerComponent[X_BH]
+     + parameters.f_XSAn_A * state.InFluxPerComponent[X_BA]
+     + parameters.f_XSAn_P * state.InFluxPerComponent[X_P];
+
+    // According to Henze et al. (1995) heterotrophs are capable of fermenting
+
+    state.AnaerobicInFluxPerComponent[X_AS] =
+     parameters.f_AS_H * state.InFluxPerComponent[X_BH];
+
+    // Incoming concentration anaerobic biomass is zero (except for fermenters)
+
+    state.AnaerobicInFluxPerComponent[X_FA] = 0;
+
+    state.AnaerobicInFluxPerComponent[X_PRO] = 0;
+
+    state.AnaerobicInFluxPerComponent[X_AC] = 0;
+
+    state.AnaerobicInFluxPerComponent[X_H2] = 0;
+
+    // Inert particulate matter in anaerobic conditions consists of
+    // several fractions of particulate matter from ASM
+
+    state.f_X_IN_H = 1 - (parameters.f_XSAn_H + parameters.f_AS_H);
+
+    state.AnaerobicInFluxPerComponent[X_IN] =
+     ((1 - parameters.f_XSAn_I) * state.InFluxPerComponent[X_I])
+      + (state.f_X_IN_H * state.InFluxPerComponent[X_BH])
+      + ((1 - parameters.f_XSAn_A) * state.InFluxPerComponent[X_BA])
+      + ((1 - parameters.f_XSAn_P) * state.InFluxPerComponent[X_P]);
+
+// Kinetic equations
+
+    state.PreviousHelp_Q_Gas_Tot =
+     IF (previous(independent.t) >= independent.t)
+     THEN parameters.Initial_Q_Gas_Tot
+     ELSE previous(state.Q_Gas_Tot);
+
+    state.StrippingRate =
+     (state.PreviousHelp_Q_Gas_Tot/(state.V_L * (parameters.UniversalGasConstant / parameters.p) * (273.15 + interface.T)));
+
+    state.AnaerobicKinetics[H2Stripping] =
+     state.StrippingRate * state.C_An[S_H2];
+
+    state.AnaerobicKinetics[CH4Stripping] =
+     state.StrippingRate * state.C_An[S_CH4];
+
+    state.AnaerobicKinetics[CO2Stripping] =
+     state.StrippingRate * state.C_An[S_CO2];
+
+    state.AnaerobicKinetics[BiopolymHydrol] =
+     parameters.k_R * state.C_An[X_S_An] * parameters.TempCoef1;
+
+    state.AnaerobicKinetics[ASFermentation] =
+     parameters.mu_AS * (state.C_An[S_AS] / (parameters.K_S_AS + state.C_An[S_AS]))
+                       * state.C_An[X_AS] * parameters.TempCoef1;
+
+    state.AnaerobicKinetics[AnOxOfS_FA] =
+     parameters.mu_FA * (state.C_An[S_FA] / (parameters.K_S_FA + state.C_An[S_FA]))
+                       * (parameters.K_I_AC_FA / (parameters.K_I_AC_FA + state.C_An[S_AC]))
+                       * (parameters.K_I_H2_FA / (parameters.K_I_H2_FA + state.C_An[S_H2]))
+                       * state.C_An[X_FA] * parameters.TempCoef1;
+
+    state.AnaerobicKinetics[AnOxOfS_PRO] =
+     parameters.mu_PRO * (state.C_An[S_PRO] / (parameters.K_S_PRO + state.C_An[S_PRO]))
+                        * (parameters.K_I_AC_PRO / (parameters.K_I_AC_PRO + state.C_An[S_AC]))
+                        * (parameters.K_I_H2_PRO / (parameters.K_I_H2_PRO + state.C_An[S_H2]))
+                        * (state.C_An[S_H] / (parameters.K_S_H_PRO + state.C_An[S_H]))
+                        * (parameters.K_I_H_PRO / (parameters.K_I_H_PRO + state.C_An[S_H]))
+                        * state.C_An[X_PRO] * parameters.TempCoef2;
+
+    state.AnaerobicKinetics[AcToCH4Conv] =
+     parameters.mu_AC * (state.C_An[S_AC] / (parameters.K_S_AC + state.C_An[S_AC]))
+                       * (state.C_An[S_H] / (parameters.K_S_H_AC + state.C_An[S_H]))
+                       * (parameters.K_I_H_AC / (parameters.K_I_H_AC + state.C_An[S_H]))
+                       * state.C_An[X_AC] * parameters.TempCoef2;
+
+    state.AnaerobicKinetics[H2ToCH4Conv] =
+     parameters.mu_H2 * (state.C_An[S_H2] / (parameters.K_S_H2 + state.C_An[S_H2]))
+                       * (state.C_An[S_H] / (parameters.K_S_H_H2 + state.C_An[S_H]))
+                       * (parameters.K_I_H_H2 / (parameters.K_I_H_H2 + state.C_An[S_H]))
+                       * state.C_An[X_H2] * parameters.TempCoef2;
+
+    state.AnaerobicKinetics[DecayOfX_AS] =
+     parameters.b_AS * state.C_An[X_AS] * parameters.TempCoef1;
+
+    state.AnaerobicKinetics[DecayOfX_FA] =
+     parameters.b_FA * state.C_An[X_FA] * parameters.TempCoef1;
+
+    state.AnaerobicKinetics[DecayOfX_PRO] =
+     parameters.b_PRO * state.C_An[X_PRO] * parameters.TempCoef2;
+
+    state.AnaerobicKinetics[DecayOfX_AC] =
+     parameters.b_AC * state.C_An[X_AC] * parameters.TempCoef2;
+
+    state.AnaerobicKinetics[DecayOfX_H2] =
+     parameters.b_H2 * state.C_An[X_H2] * parameters.TempCoef2;
+
+    state.AnaerobicKinetics[ProtolysisOfHCO3] =
+     parameters.k_HCO3 * state.C_An[S_HCO3] * state.C_An[S_H];
+
+    state.AnaerobicKinetics[DeprotolysisOfCO2] =
+     parameters.k_CO2 * state.C_An[S_CO2];
+
+    state.pH_Reactor = - log10(state.C_An[S_H] / 1000);
+ 
+// Anaerobic conversion equations
+
+    state.V_L = SUMOVER Comp_Index IN {1 .. NrOfAnaerobicComponents}:
+     (0.000001 * state.M_An[Comp_Index]);
+
+    {FOREACH Comp_Index IN {1 .. NrOfAnaerobicComponents}:
+      state.AnaerobicConversionTermPerComponent[Comp_Index] =
+       SUMOVER Reaction_Index IN {1 .. NrOfAnaerobicReactions}:
+        (parameters.AnaerobicStoichiometry[Reaction_Index][Comp_Index]
+         * state.AnaerobicKinetics[Reaction_Index])
+        * state.V_L;
+    };
+
+    {FOREACH Comp_Index IN {1 .. NrOfAnaerobicComponents}:
+      DERIV(state.M_An[Comp_Index],[independent.t]) =
+       state.AnaerobicInFluxPerComponent[Comp_Index]
+       + state.AnaerobicOutFluxPerComponent[Comp_Index]
+       + state.AnaerobicConversionTermPerComponent[Comp_Index];
+    };
+      
+    state.Q_In = SUMOVER Comp_Index IN {1 .. NrOfAnaerobicComponents}:
+     (0.000001 * state.AnaerobicInFluxPerComponent[Comp_Index]);
+
+    {FOREACH Comp_Index IN {1 .. NrOfAnaerobicComponents}:
+     state.C_An[Comp_Index] = state.M_An[Comp_Index] / state.V_L;
+    };
+
+// Constant volume is assumed
+
+    {FOREACH Comp_Index IN {H2O_An .. S_IN}:
+     state.AnaerobicOutFluxPerComponent[Comp_Index] =
+      - state.C_An[Comp_Index] * state.Q_In;
+    };
+
+  // Because of the very low growth rate of anaerobic biomass only part
+  // of the particulates (fraction f_X_Out) are leaving the system via
+  // the outflow, the remaining particulate matter stays in the reactor
+
+    {FOREACH Comp_Index IN {X_S_An .. X_IN}:
+     state.AnaerobicOutFluxPerComponent[Comp_Index] =
+      parameters.f_X_Out * (- state.C_An[Comp_Index] * state.Q_In);
+    };
+
+// Gas production
+
+// When p = 1 atm is assumed:
+// V(T) = V(T=273.15) * (T / 273.15)
+
+    // 1 Mol H2 = 16 g COD
+
+    state.MolProduced_H2 = - (parameters.AnaerobicStoichiometry[H2Stripping][S_H2]
+                               * state.AnaerobicKinetics[H2Stripping]
+                               * state.V_L)
+                             / 16.0;
+
+    // 1 Mol CH4 = 64 g COD
+
+    state.MolProduced_CH4 = - (parameters.AnaerobicStoichiometry[CH4Stripping][S_CH4]
+                                * state.AnaerobicKinetics[CH4Stripping]
+                                * state.V_L)
+                              / 64.0;
+
+    // S_CO2 is already expressed in Mol.m-3 in the Siegrist model
+
+    state.MolProduced_CO2 = - (parameters.AnaerobicStoichiometry[CO2Stripping][S_CO2]
+                                * state.AnaerobicKinetics[CO2Stripping]
+                                * state.V_L);
+
+    state.Q_H2 = state.MolProduced_H2 * parameters.MolVolumeAtTempT;
+    state.Q_CH4 = state.MolProduced_CH4 * parameters.MolVolumeAtTempT;
+    state.Q_CO2 = state.MolProduced_CO2 * parameters.MolVolumeAtTempT;
+
+    // Calculation of the gas flows
+
+    state.Q_Gas_Prod = state.Q_H2 + state.Q_CH4 + state.Q_CO2;
+
+    state.Q_Gas_Tot = state.Q_Gas_Prod + interface.Q_Gas;
+
+    // Calculation of the concentration in the outgoing gas flows
+
+    state.C_H2 = state.MolProduced_H2 / state.Q_Gas_Tot;
+
+    state.C_CH4 = state.MolProduced_CH4 / state.Q_Gas_Tot;
+
+    state.C_CO2 = state.MolProduced_CO2 / state.Q_Gas_Tot;
+
+// Anaerobic digester to ASM conversion
+
+    // S_H2 and S_CH4 are neglected (not modelled in ASM1)
+
+    // Water flow is equal in both models
+
+    interface.Outflow[IndexOfSolvent] = state.AnaerobicOutFluxPerComponent[H2O_An];
+
+    // Inert solubles are the same in both models
+
+    interface.Outflow[S_I] = state.AnaerobicOutFluxPerComponent[S_IN];
+
+    // S_S in ASM is the sum of S_AC, S_PRO, S_AS and S_FA
+
+    interface.Outflow[S_S] = state.AnaerobicOutFluxPerComponent[S_AC]
+                              + state.AnaerobicOutFluxPerComponent[S_PRO]
+                              + state.AnaerobicOutFluxPerComponent[S_AS]
+                              + state.AnaerobicOutFluxPerComponent[S_FA];
+
+    // S_O and S_NO were set to zero at inlet and are not produced in the anaerobic digester
+
+    interface.Outflow[S_O] = 0;
+
+    interface.Outflow[S_NO] = 0;
+
+    // Ammonia is the same in both models
+
+    interface.Outflow[S_NH] = state.AnaerobicOutFluxPerComponent[S_NH4];
+
+    // Amino acids contain some biodegradable nitrogen
+
+    interface.Outflow[S_ND] = parameters.i_S_AS * state.AnaerobicOutFluxPerComponent[S_AS];
+
+    // Alkalinity in ASM is expressed as Mol HCO3-
+    // S_CO2 is added to complete C-balance (see also ASM -> Anaerobic conversion)
+
+    interface.Outflow[S_ALK] = state.AnaerobicOutFluxPerComponent[S_HCO3] + state.AnaerobicOutFluxPerComponent[S_CO2];
+
+    // Inert particulate matter in anaerobic conditions remains inert in ASM
+
+    interface.Outflow[X_I] = state.AnaerobicOutFluxPerComponent[X_IN];
+
+    // A fraction f_H_AS of fermenters are heterotrophs
+
+    interface.Outflow[X_BH] = parameters.f_H_AS * state.AnaerobicOutFluxPerComponent[X_AS];
+
+    // f_P_An is fraction of anaerobic biomass leading to inert products
+
+    interface.Outflow[X_P] =
+     parameters.f_P_An * (SUMOVER Comp_Index IN {X_AS .. X_H2}:
+                           (state.AnaerobicOutFluxPerComponent[Comp_Index]));
+
+    // Anaerobic biomass that doesn't lead to inert particulate matter
+
+    interface.Outflow[X_S] =
+     state.AnaerobicOutFluxPerComponent[X_S_An]
+     + (1 - (parameters.f_P_An + parameters.f_H_AS)) * state.AnaerobicOutFluxPerComponent[X_AS]
+     + (1 - parameters.f_P_An) * (SUMOVER Comp_Index IN {X_FA .. X_H2}:
+                                   (state.AnaerobicOutFluxPerComponent[Comp_Index]));
+
+    // No autotrophs
+
+    interface.Outflow[X_BA] = 0;
+
+    // Mass balance for particulate N is kept in equilibrium by compensation in X_ND:
+    // SUM (i * X_ANi) = SUM (i * X_ASMi)
+    // If X_ND < 0, parameters for fractioning anaerobic components must be changed
+
+    interface.Outflow[X_ND] =
+     parameters.i_X_S_An * state.AnaerobicOutFluxPerComponent[X_S_An]
+     + parameters.i_X_IN * state.AnaerobicOutFluxPerComponent[X_IN]
+     + parameters.i_X_An * (SUMOVER Comp_Index IN {X_AS .. X_H2}:
+                             (state.AnaerobicOutFluxPerComponent[Comp_Index]))
+     - parameters.i_X_P * (interface.Outflow[X_I] + interface.Outflow[X_P])
+     - parameters.i_X_B * (interface.Outflow[X_BH] + interface.Outflow[X_BA]);
+
+   };
+
+ :};
+
+#endif //ASM1Temp
+
+#endif // ANAEROBIC_DIGESTION_SIEGRIST

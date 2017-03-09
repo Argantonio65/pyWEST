@@ -1,0 +1,38 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 5. juni 2012 16:45:20$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_BASE_PRIMARY_CLARIFIER_PRIMARYPOINTSETTLER
+#define WWTP_BASE_PRIMARY_CLARIFIER_PRIMARYPOINTSETTLER
+
+#ifdef StandardCategoryModels
+ CLASS PrimaryPointSettler  (* icon = "primary_clarifier" ; is_default = "true" *)
+ "Point-settler model for primary clarifier"
+  EXTENDS PointSettler WITH
+  {:
+    comments <- "A model for a primary point settler only using mass balances";
+    parameters <-
+    {
+    OBJ f_ns "Non-settleable fraction of suspended solids" : Fraction := {: value <- 0.6 ; group <- "Settling" :};
+    };
+    equations <-
+    {
+    state.f_ns_help = parameters.f_ns ;
+    };
+  :};
+
+#endif // StandardCategoryModels
+
+#endif // WWTP_BASE_PRIMARY_CLARIFIER_PRIMARYPOINTSETTLER

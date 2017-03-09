@@ -1,0 +1,87 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 23. marts 2012 12:41:35$
+ *
+ ******************************************************************************/
+ 
+#ifndef WWTP_BASE_SPLITTERS_COMBINERS_RELTHREESPLITTER
+#define WWTP_BASE_SPLITTERS_COMBINERS_RELTHREESPLITTER
+
+ CLASS RelThreeSplitter
+ (* icon = "three_fraction_splitter" ; is_default = "true" *)
+ "relative three splitter"
+
+// Dividing a flow in three fractions, based on the flow fraction parameter.  
+            
+ EXTENDS WWTPAtomicModelWithoutVolume WITH
+ {:
+  comments <- "A model for a relative splitter into three flows";
+  interface <-
+   { 
+    OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+         InWWTPTerminal := {: causality <- "CIN" ; group <- "Influent" :};
+    OBJ Outflow1 (* terminal = "out_1" *) "Outflow1" : 
+         OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent 1" :};
+    OBJ Outflow2 (* terminal = "out_2" *) "Outflow2"  : 
+         OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent 2" :};
+    OBJ Outflow3 (* terminal = "out_3" *) "Outflow3"  : 
+         OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent 3" :};
+    OBJ f_Out2 (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Fraction of the fluxes going to outflow2" : 
+     Fraction := {: causality <- "CIN" ; value <- 0.1 ; group <- "Operational" :};
+    OBJ f_Out3 (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Fraction of the fluxes going to outflow3" : 
+     Fraction := {: causality <- "CIN" ; value <- 0.8 ; group <- "Operational" :};
+   };
+  parameters <- 
+   { 
+   };
+  state <-  
+  {
+    OBJ Q_Out1 (* is_favorite = "1" *) "Effluent flow rate from flow 1" : FlowRate := {: group <- "Operational" :};
+    OBJ Q_Out2 (* is_favorite = "1" *) "Effluent flow rate from flow 2" : FlowRate := {: group <- "Operational" :};
+    OBJ Q_Out3 (* is_favorite = "1" *) "Effluent flow rate from flow 3" : FlowRate := {: group <- "Operational" :};
+  };   
+  equations <-
+   {
+//     {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+//      interface.Outflow2[Comp_Index] =
+//    - state.InFluxPerComponent[Comp_Index] * (interface.f_Out2);
+
+// THE FOLLOWING CONSTRUCT IS NEEDED ALTOUGH f_Out2 IS A FRACTION AND CANNOT BE LARGER THAN 1 (UPPERBOUND)
+// with a controller it is possible to set the fraction f_Out2 larger than 1.
+     {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+      interface.Outflow2[Comp_Index] =
+      IF (interface.f_Out2 < 1.0)
+    THEN - state.InFluxPerComponent[Comp_Index] * (interface.f_Out2)  
+    ELSE - state.InFluxPerComponent[Comp_Index];
+   };   
+ 
+     {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+      interface.Outflow3[Comp_Index] =
+      IF ((interface.f_Out2 + interface.f_Out3) < 1.0)
+    THEN - state.InFluxPerComponent[Comp_Index] * (interface.f_Out3)
+    ELSE - state.InFluxPerComponent[Comp_Index] - interface.Outflow2[Comp_Index];
+    };   
+
+     {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+      interface.Outflow1[Comp_Index] =
+        - state.InFluxPerComponent[Comp_Index] - interface.Outflow2[Comp_Index] - interface.Outflow3[Comp_Index];
+   };  
+
+    state.Q_Out1 = - interface.Outflow1[IndexOfSolvent] * 0.000001;
+    state.Q_Out2 = - interface.Outflow2[IndexOfSolvent] * 0.000001;
+    state.Q_Out3 = - interface.Outflow3[IndexOfSolvent] * 0.000001;
+   }; 
+
+ :};
+
+#endif // WWTP_BASE_SPLITTERS_RELTHREESPLITTER

@@ -1,0 +1,140 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 23. april 2012 08:05:07$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_SBR_BASE
+#define WWTP_SBR_BASE
+
+CLASS SBRAtomicModel
+SPECIALISES PhysicalDAEModelType :=
+  {:
+  
+  interface <-
+  {
+  OBJ Inflow (* terminal = "in_1" *) "influent" : InWWTPTerminal := {:causality <- "CIN" ; group <- "Influent" :};
+  OBJ Outflow1 (* terminal = "out_1" *) "effluent" : OutWWTPTerminal := {:causality <- "COUT" ; group <- "Effluent 1" :};
+  };
+  
+  parameters <- 
+  {
+  // FILLING AND REACTION
+   // OBJ WWTPSpecificVolume (* hidden = "1" *) "The specific volumes (= 1/density) of the components": SpecificVolumeVector;
+  
+  // WASTE
+    OBJ Q_Waste (* is_favorite = "1" *) "Desired waste flow rate during the idle phase" : FlowRate := {: value <- 240; group <- "Operational" :};
+  };
+
+  independent <- 
+  { 
+    OBJ t "Time": Time := {: group <- "Time" :};
+  };
+    
+  state <-
+  
+  {
+    OBJ ConversionTermPerComponent (* hidden = "1" *) : MassFluxVector;
+    OBJ V (* is_favorite = "1" *) "Volume in the tank" : Volume := {: group <- "Dimension" :};
+    OBJ C "Concentrations for all the components" : ConcentrationVector := {: group <- "Concentration" :};
+// INCOMING AND OUTGOING FLUXES
+    OBJ FluxPerComponent (* hidden = "1" *) : MassFluxVector;
+    OBJ InFluxPerComponent (* hidden = "1" *) "Incoming massflux per component" : MassFluxVector;
+// INCOMING AND OUTGOING FLOW RATES
+    OBJ Q_In (* is_favorite = "1" *) "Influent flow rate" : FlowRate := {: group <- "Operational" :};
+    OBJ Q_Out (* is_favorite = "1" *) "Effluent flow rate" : FlowRate := {: group <- "Operational" :};
+    OBJ Q_Under (* is_favorite = "1" *) "Underflow rate" : FlowRate := {: group <- "Operational" :};
+// TOTAL MASS
+    OBJ M "Vector containing masses for all the components" : MassVector 
+#if (defined ASM1Temp)
+         := [{: value <- 1000000000:},{: value <- 1 :},
+                  {: value <- 2 :},{: value <- 1 :},
+                {: value <- 2 :}, {: value <- 1 :},
+                {: value <- 1 :},{: value <- 1 :},
+                {: value <- 1 :},{: value <- 1 :},
+                                {: value <- 1000 :},{: value <- 100 :},
+                {: value <- 1 :},{: value <- 1 :}; ]
+#endif //ASM1Temp
+#if (defined ASM2dModTemp)
+   := [{: value <- 1000000000 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},
+          {: value <- 1 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},
+          {: value <- 1 :},{: value <- 1 :},{: value <- 100 :},{: value <- 10 :},{: value <- 1 :},
+          {: value <- 1 :},{: value <- 10 :},{: value <- 113.33 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :};]
+#endif // ASM2dModTemp
+#if (defined ASM3Temp)
+   := [{: value <- 1000000000 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},
+          {: value <- 1 :},{: value <- 1 :},{: value <- 1 :},
+          {: value <- 1 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},
+          {: value <- 84.9 :};]
+#endif // ASM3Temp
+#ifdef ASM3P_EAWAG
+   := [{: value <- 1000000000 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},
+          {: value <- 1 :},{: value <- 1 :},{: value <- 10 :},{: value <- 1 :},{: value <- 100 :},
+          {: value <- 1 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},{: value <- 1 :},
+          {: value <- 1 :},{: value <- 1 :},{: value <- 165.23 :};]
+#endif // ASM3P_EAWAG
+;
+    };
+  
+  initial <-
+   {
+   // parameters.WWTPSpecificVolume[IndexOfSolvent] := 1e-6;
+    };  
+
+  equations <- 
+   {
+// INCOMING AND OUTGOING FLUXES
+    {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+      state.FluxPerComponent[Comp_Index] =
+       (SUMOVER In_Terminal IN {SelectByType(interface,InWWTPTerminal)}:
+         In_Terminal[Comp_Index])+
+       (SUMOVER Out_Terminal IN {SelectByType(interface,OutWWTPTerminal)}:
+         Out_Terminal[Comp_Index]);
+     };
+
+    {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+      state.InFluxPerComponent[Comp_Index] =
+         SUMOVER In_Terminal IN {SelectByType(interface,InWWTPTerminal)}:
+            (In_Terminal[Comp_Index]);
+     };
+   
+// INCOMING FLOW RATE
+    state.Q_In = (0.000001 * state.InFluxPerComponent[IndexOfSolvent]);
+
+// VOLUME AND CONCENTRATIONS  
+    state.V = SUMOVER Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+     (0.000001 * state.M[Comp_Index]);
+
+    {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+       state.C[Comp_Index] = IF (state.V == 0)
+                   THEN 0
+                 ELSE state.M[Comp_Index]/state.V;
+     };  
+    };  
+    :};
+
+CLASS SBRConversionModel
+EXTENDS SBRAtomicModel WITH
+ {:
+#include "wwtp.VolumeConversionModel.body.msl"
+ :};
+
+CLASS SBRASMConversionModel
+EXTENDS SBRConversionModel WITH
+ {:
+#include "wwtp.VolumeASMConversionModel.body.msl"
+ :};
+ 
+
+    
+#endif // WWTP_SBR_BASE

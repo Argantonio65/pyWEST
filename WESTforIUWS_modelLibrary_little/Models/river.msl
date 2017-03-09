@@ -1,0 +1,126 @@
+// -----------------------------------------------------------------------
+//  HEMMIS - Ghent University, BIOMATH
+//  Implementation: Veerle De Schepper, Lorenzo Benedetti, Veerle Gevaert
+//  Description: MSL-USER/WWTP
+// -----------------------------------------------------------------------
+
+#ifndef RIVER
+#define RIVER
+
+//#include "river.definitions.msl" 
+#include "river.definitions_Duflow_simple.msl"
+
+//#include "river.base.msl"  
+#include "river.base_Duflow_simple.msl"
+
+  CLASS simple_Duflow_generator
+ (* icon = "River_input" *)
+ "A generator model for simple Duflow"
+ SPECIALISES PhysicalDAEModelType :=
+ {:
+  interface <-
+  {
+    OBJ rainfall (* terminal = "in_1" *) "Rainfall" : Velocity := {: causality <- "CIN" :};
+		OBJ NH4_in (* terminal = "in_1"; manip = "1"; *) "NH4" : Concentration := {: causality <- "CIN"; value <- 0.05:};
+		OBJ Outflow (* terminal = "out_1" *) "Outflow" : OutRivTerminal := {: causality <- "COUT" :};
+  };
+
+  parameters <-
+  {
+  OBJ surface: Area;
+	OBJ BOD1_in: Concentration := {:value <- 3:};
+	OBJ BOD2_in: Concentration := {:value <- 1:};
+	OBJ O2_in: Concentration := {:value <- 9:};
+	OBJ BOD1p_in: Concentration := {:value <- 0.01:};
+	OBJ BOD2p_in: Concentration := {:value <- 0.01:};
+	OBJ BODs_in: Concentration := {:value <- 0.01:};
+  };
+		
+	state <-
+  {
+    OBJ Q "Flow": FlowRate ;
+  };
+
+  independent <-
+  {
+    OBJ t "Time": Time ;
+  };
+
+  equations <-
+  {
+	 state.Q = - interface.Outflow[rH2O] / 1000000;
+   interface.Outflow[rH2O] = - interface.rainfall * parameters.surface * 1000000;
+   interface.Outflow[rO2] = - parameters.O2_in * state.Q;
+   interface.Outflow[rBOD1] = - parameters.BOD1_in * state.Q;
+   interface.Outflow[rBOD2] = - parameters.BOD2_in * state.Q;
+   interface.Outflow[rBOD1p] = - parameters.BOD1p_in * state.Q;
+   interface.Outflow[rBOD2p] = - parameters.BOD2p_in * state.Q;
+   interface.Outflow[rBODs] = - parameters.BODs_in * state.Q;
+   interface.Outflow[rNH4] = - interface.NH4_in * state.Q;
+  };
+  
+ :};
+ 
+
+  CLASS simple_Duflow_generator_CSOload
+ (* icon = "River_input" *)
+ "A generator model for simple Duflow to emulate CSO discharges with input pollution loads"
+ SPECIALISES PhysicalDAEModelType :=
+ {:
+  interface <-
+  {
+    OBJ rainfall (* terminal = "in_1" *) "Rainfall" : Velocity := {: causality <- "CIN" :};
+		OBJ U_BOD_in (* terminal = "in_1"; manip = "1"; *) "BOD" : Concentration := {: causality <- "CIN"; value <- 42:};
+		OBJ U_COD_in (* terminal = "in_1"; manip = "1"; *) "COD" : Concentration := {: causality <- "CIN"; value <- 150:};
+		OBJ U_NH4_in (* terminal = "in_1"; manip = "1"; *) "NH4" : Concentration := {: causality <- "CIN"; value <- 0.05:};
+		OBJ U_O2_in (* terminal = "in_1"; manip = "1"; *) "O2" : Concentration := {: causality <- "CIN"; value <- 7:};	
+		
+		OBJ Outflow (* terminal = "out_1" *) "Outflow" : OutRivTerminal := {: causality <- "COUT" :};
+  };
+
+  parameters <-
+  {
+  OBJ FactorEffluent: Area:= {: value <- 1 :};
+
+  // consider TKN when possible in river model
+  OBJ fBOD1_BOD "Fraction of BODfast in BOD" : Fraction := {: value <- 0.85 ; group <- "Fractionation" :};
+  OBJ fBOD2_CODmBOD "Fraction of BODslow in COD minus BOD" : Fraction := {: value <- 0.4 ; group <- "Fractionation" :};
+  OBJ fBOD1p_BODf "Fraction of BOD1p in BODfast" : Fraction := {: value <- 0.3 ; group <- "Fractionation" :};
+  OBJ fBOD2p_BODs "Fraction of BOD2p in BODslow" : Fraction := {: value <- 0.5 ; group <- "Fractionation" :};
+  OBJ settling "Settling efficiency for BOD2" : Fraction := {: value <- 0 ; group <- "Fractionation" :};
+  OBJ yesno "0 for no CSO effluent, 1 for 100 percent CSO effluent" : Real := {: value <- 1 :};
+  
+  OBJ Mult_O2 "Multiplier for O2 input concentration" : Real := {: value <- 1 :};
+  OBJ Mult_COD "Multiplier for COD input concentration" : Real := {: value <- 1 :};
+  OBJ Mult_BOD "Multiplier for BOD input concentration" : Real := {: value <- 1 :};
+  OBJ Mult_NH4 "Multiplier for NH4 input concentration" : Real := {: value <- 1 :};  
+  };
+		
+	state <-
+  {
+    OBJ Q "Flow": FlowRate ;
+  };
+
+  independent <-
+  {
+    OBJ t "Time": Time ;
+  };
+
+  equations <-
+  {
+	 state.Q = - interface.Outflow[rH2O] / 1000000;
+   interface.Outflow[rH2O] = - interface.rainfall * parameters.FactorEffluent * 1000000;
+   interface.Outflow[rO2]   = - parameters.Mult_O2 * parameters.yesno * interface.U_O2_in * state.Q ;
+   interface.Outflow[rNH4] =  - parameters.Mult_NH4 * parameters.yesno * interface.U_NH4_in * state.Q;
+   interface.Outflow[rBOD1]   = - parameters.yesno * parameters.fBOD1_BOD * (1-parameters.fBOD1p_BODf) * parameters.Mult_BOD * interface.U_BOD_in * state.Q ;
+   interface.Outflow[rBOD1p]   = - parameters.yesno * parameters.fBOD1_BOD * parameters.fBOD1p_BODf * parameters.Mult_BOD * interface.U_BOD_in * state.Q * (1 - parameters.settling);
+   interface.Outflow[rBOD2]   = - parameters.yesno * ((1-parameters.fBOD1_BOD) * (1-parameters.fBOD2p_BODs) * parameters.Mult_BOD * interface.U_BOD_in + parameters.fBOD2_CODmBOD * (parameters.Mult_COD * interface.U_COD_in - parameters.Mult_BOD * interface.U_BOD_in)) * state.Q ;  
+   interface.Outflow[rBOD2p]   = - parameters.yesno * ((1-parameters.fBOD1_BOD) * parameters.fBOD2p_BODs * parameters.Mult_BOD * interface.U_BOD_in + parameters.fBOD2_CODmBOD * (parameters.Mult_COD * interface.U_COD_in - parameters.Mult_BOD * interface.U_BOD_in)) * state.Q* (1 - parameters.settling);  
+  };
+  
+ :};
+
+
+
+#endif 
+// *****************************

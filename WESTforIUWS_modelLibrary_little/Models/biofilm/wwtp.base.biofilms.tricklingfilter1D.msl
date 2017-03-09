@@ -1,0 +1,65 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 23. marts 2012 12:41:29$
+ *
+ ******************************************************************************/
+
+#ifndef BASE_BIOFILM_TRICKLINGFILTER1D
+#define BASE_BIOFILM_TRICKLINGFILTER1D
+
+CLASS TricklingFilter1D (* icon = "trickling_filter"; is_default = "true" *)
+ "A model for a 1D-biofilm by Van Hulle and Vanrolleghem"
+ EXTENDS BaseBiofilm1D WITH
+ {:
+    
+    comments <- "A model for a trickling filter. Detachment when d>dmax and proportional to (d-dmax)^2";
+    
+    parameters <- 
+    {  
+       OBJ f_void "Void space of the media" : Ratio := {:value <- 0.5 ; group <- "Dimension" :} ;
+     OBJ A_Sp_R "(reactor) Specific surface area" : SpecificAreaVolume := {:value <- 400 ; group <- "System" :};
+    };
+ 
+    initial <-
+    {
+     parameters.fc = 1.0 ;  // the apparent volume of the carriers equals the total volume of the trickling filter
+     parameters.fc_real = 1.0 - parameters.f_void ;
+     parameters.area_sp = parameters.A_Sp_R ;
+     //
+     //Volume of the reactor
+     parameters.V_R = parameters.L * parameters.W * parameters.H ;
+     parameters.Vc_real = parameters.fc_real * parameters.V_R ;
+     parameters.Vc = parameters.fc * parameters.V_R ;
+     // Surface of the biofilm
+     parameters.A = parameters.area_sp * parameters.fc * parameters.V_R ;
+     //
+     //rho = f(d)
+     {FOREACH Layer_Index IN {1 .. NrOfLayers}:
+          parameters.rho_layer[Layer_Index]=parameters.eta*parameters.rho ; };
+     //
+     state.M[IndexOfSolvent] = ((parameters.V_R - parameters.Vc_real) - (parameters.A*parameters.d_ini)) / 0.000001 ;
+    };
+ 
+    equations <-
+    {
+    // ... ... CALCULATION OF THE DETACHMENT ... ...
+    {FOREACH Layer_Index IN {1 .. NrOfLayers} : state.u_Dt[Layer_Index] =
+           IF ( state.d_layer_calc[Layer_Index] <= (parameters.d_max/NrOfLayers) )
+            THEN 0.0
+          ELSE parameters.k_detach * pow(( state.d_layer_calc[Layer_Index] - (parameters.d_max/NrOfLayers) ),2) ; };
+    }; 
+
+ :};
+
+
+#endif // BASE_BIOFILM_TRICKLINGFILTER1D

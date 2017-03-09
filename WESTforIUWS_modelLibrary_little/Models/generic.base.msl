@@ -1,0 +1,214 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 5. september 2011 16:01:08$
+ *
+ ******************************************************************************/
+
+#ifndef GENERIC_BASE
+#define GENERIC_BASE
+
+// Contains generic declarations for the modelling of
+// dynamic (DAE based) physical systems.
+//
+// Builtin types are the only types for which 
+// an empty signature is allowed. 
+// During bootstrapping, the builtin type names
+// are loaded into the outermost type namespace.
+// The semantics of these types is given implicitly.
+//
+// Builtin atomic types
+//
+
+ TYPE Generic "builtin: type variable";
+ // The Generic type is a "type variable". It will unify with any 
+ // other type; any type is a sub-type of Generic which implies any 
+ // object can be an instance of type Generic.
+
+ TYPE Integer "builtin: positive and negative Natural Numbers";
+
+ TYPE Real "builtin: Real numbers";
+
+ TYPE Char "builtin: ASCII character";
+
+ TYPE String 
+  "builtin: Char* (implemented as atomic type for efficiency reasons)";
+
+ TYPE Bottom "builtin: bottom type" = ENUM {null};
+ // The Bottom type is a sub-type of any other type.
+ // By virtue of this, "null", the only object of
+ // type Bottom, can be used to denote an unassigned value
+ // for objects of any type.
+
+ TYPE Boolean "builtin: Logic type" = ENUM {True, False};
+
+//
+// Builtin composite types
+//
+
+ TYPE TypeDeclarationType
+ "builtin: type of TYPE declaration statement";
+ TYPE ClassDeclarationType
+ "builtin: type of CLASS declaration statement";
+
+ TYPE ObjectDeclarationType
+ "builtin: type of OBJ declaration statement";
+
+ TYPE DeclarationType
+ "type of a declaration (TYPE, CLASS, or OBJ) statement"
+ = UNION {TypeDeclarationType, ClassDeclarationType, ObjectDeclarationType};
+
+ TYPE ExpressionType
+ "builtin: type of expressions";
+
+ TYPE EquationType
+ "builtin: type of equations";
+
+ TYPE GenericIntervalType
+ "Generic Interval"
+//  Generic Interval. Only meaningful if used
+//  to specialise with endpoints of a type for which
+//  an order relation is defined.
+ = RECORD 
+   {
+    lowerBound: Generic;   
+    upperBound: Generic;   
+    lowerIncluded: Boolean;
+    upperIncluded: Boolean;
+   };
+
+ TYPE RealIntervalType "Interval of real numbers"
+ SUBSUMES GenericIntervalType =
+ RECORD 
+ {
+  lowerBound: Real; // Real is sub-type of Generic
+  upperBound: Real; // Real is sub-type of Generic
+  lowerIncluded: Boolean;
+  upperIncluded: Boolean;
+ };
+
+//
+// type declarations for physical systems
+//
+
+ TYPE UnitType 
+ "The type of physical units. For the time being, a string"
+ = String;
+
+ TYPE QuantityType
+ "The different physical quantities. For the time being, string"
+ = String;
+
+ TYPE CausalityType
+ " Causality of entities"
+//    CIN: input (cause) only
+//    COUT: output (consequence) only
+//    CINOUT: input and output (cause and consequence) are allowed
+ 
+ = ENUM {CIN, COUT, CINOUT};
+
+ TYPE PhysicalNatureType
+ "The nature of physical variables FIELD is used (in the physicalDAE context) to denote parameters and constants"
+ = ENUM {ACROSS, THROUGH, FIELD};
+
+ TYPE PhysicalQuantityType 
+ "The type of any physical quantity" 
+ =
+ RECORD
+ {
+  quantity   : QuantityType;
+  unit       : UnitType;
+  interval   : RealIntervalType;
+  value      : Real;
+  causality  : CausalityType;
+  nature     : PhysicalNatureType;
+ };
+
+ //
+ // Formalism independent model stuff 
+ //
+
+ TYPE InterfaceDeclarationType
+ "declarations within an interface" = DeclarationType;
+
+ TYPE ParameterDeclarationType
+ "declarations within parameter section" = DeclarationType;
+
+ TYPE ModelDeclarationType
+ "declarations within sub_models section" = DeclarationType;
+
+ TYPE CouplingStatementType
+ "parameter coupling and connect() statements" = EquationType;
+
+ TYPE GenericModelType 
+ "The signature of the generic part of any (whatever the formalism) model"
+ = 
+ RECORD
+ { 
+  comments   : String;
+  interface  : SET_OF (InterfaceDeclarationType); 
+   // declared objects must be interfaces
+  parameters : SET_OF (ParameterDeclarationType); 
+   // declared objects must be parameters
+ };
+
+ TYPE DAEModelType 
+ "The signature of a Differential Algebraic Equation (DAE) model"
+//  The signature of a Differential Algebraic Equation (DAE) model
+//  within DAEModelType models, connect() has the following
+//  (flattening) semantics:
+//  - quantity and unit are checked for equality
+//  - equations are generated to equal (=) all algebraic and state variables
+//  - all other labels are ignored
+ EXTENDS GenericModelType WITH
+ RECORD
+ {
+  independent : SET_OF (ObjectDeclarationType); // independent variable (time)
+  state       : SET_OF (PhysicalQuantityType); // variables
+                                       // those variables occurring in 
+                                       // DERIV(v, [t]) statements are
+                                       // derived state variables
+  initial     : SET_OF (EquationType);
+  equations   : SET_OF (EquationType);
+  terminal    : SET_OF (EquationType);
+ };
+ 
+ TYPE PhysicalDAEModelType 
+ "The signature of a physicalDAEModelType model"
+// within physicalDAEModelType models, connect() has the following (flattening) semantics:
+//  -  quantity and unit are checked for equality
+//  -  quantity and unit are checked for equality
+//  -  equations are generated to equal (=) all across variables
+//  -  equations are generated to sum all through variables to zero
+//  -  all other labels are ignored 
+ EXTENDS GenericModelType WITH
+ RECORD
+ {
+  independent : SET_OF (ObjectDeclarationType); // independent variable (time)
+  state       : SET_OF (PhysicalQuantityType); // variables
+                                       // those variables occurring in 
+                                       // DERIV(v, [t]) statements are
+                                       // derived state variables
+  initial     : SET_OF (EquationType);
+  equations   : SET_OF (EquationType);
+  terminal    : SET_OF (EquationType);
+ };
+
+ TYPE CoupledModelType "The signature of a coupled (network) model"
+ EXTENDS GenericModelType WITH
+ RECORD
+ {
+  sub_models : SET_OF (ModelDeclarationType);
+  coupling   : SET_OF (CouplingStatementType);
+ };
+  
+#endif

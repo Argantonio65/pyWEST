@@ -1,0 +1,394 @@
+// ------------------------------------------------------------------------------------------------------------
+//  TUDELFT - QUICS
+//  Implementation: Antonio Moreno Rodenas, Vasilis Bellos
+//  Description: MSL-USER/River/Volume_MuskingumVariableParametersPrice2013 body
+//  VPMM implementation is based on the muskingum routing scheme for the hydrological propagation in river sections.
+//  Based on Peruman & Price (2013).
+//  VPMM is:
+//    1- A mass conservative muskigum routing scheme
+//    2- It implements a routine for automatic updating of the x and k parameters.
+//    
+//  The river stretch is discretized in trapezoidal sections of: L (length), W_b (bottom width), z (bank slope as z=h/v), slp (longitudinal slope), n (Manning's roughness)
+//  The current implementation requires of an Volumetric initialization. This is achieved through a Q_initial parameter, which refers to the initial flow.
+// ------------------------------------------------------------------------------------------------------------
+
+CLASS RivVarVolumeRIVER_McCarthy_Muskingum
+ (* icon = "River" *)
+ SPECIALISES RivVarVolumeConversionModel :=
+ {:
+  comments <- "Model for a bulk water unit with a variable volume. Muskingum approximation for the diffusive term of wave propagation";
+  interface <-{};
+  parameters <-{
+  //////////////////////////HYDRAULICS PARAMETERS///////////////////
+	OBJ W_b "Width of channel at bottom of bank" : Length := {: value <- 10; group <- "River characteristics" :};
+	OBJ L "Length of channel" : Length := {:value <- 2000; group <- "River characteristics" :};
+	OBJ z "Banks slope" : Real := {:value <- 0.5; group <- "River characteristics" :};	
+	OBJ slp "Average channel slope along channel length" : Ratio := {:value <- 0.0005; group <- "River characteristics" :};
+	OBJ n "Manning's 'n' value for channel" : Real := {:value <- 0.035; group <- "River characteristics" :};
+	
+
+  OBJ d_min "Minimum depth of water" : Length := {:value <- 0.05; group <- "River characteristics" :};
+	OBJ Vol_min "Minimum volume of water" : Volume := {: group <- "River characteristics" :};
+	OBJ Vol_init "Initial volume of water as ratio on minimum" : Real := {:value <- 1.5; group <- "River characteristics" :};  
+	
+	
+	OBJ Q_initial "Initial Flow in m3/s" : Real := {:value <- 5; group <- "River characteristics" :};
+	/////// NewtonRaphson parameters
+  OBJ Niter "N iterations of the newton raphson routine, calculation of depth from flow for trapezoidal section" : Real := {:value <- 10; group <- "Newton Raphson Parameters" :};	
+  
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  //////////////////////////BIOCHEMISTRY PARAMETERS///////////////////////////////////////////////////////////////////////////////////////
+  OBJ alpha "Alpha factor for artificial aeration" : Real := {:value <- 0.85:};	
+  OBJ pH "pH" : Real := {:value <- 7.5:};	
+  OBJ KLmin "Minimum mass transfer constant reaeration": Velocity := {:value <- 0.1; unit <- "m/d":};
+	OBJ TKL "Temperature coefficient mass transfer": Real := {:value <- 1.02:};
+	OBJ Kd1 "Decay rate BOD1": RateConstant := {:value <- 0.4; unit <- "1/d":};
+	OBJ Kd2 "Decay rate BOD2": RateConstant := {:value <- 0.3; unit <- "1/d":};
+	OBJ KBODs "Decay rate temporary sediment BOD": RateConstant := {:value <- 0.7; unit <- "1/d":};
+	OBJ Vs1 "Sedimentation rate particulate BOD1": Velocity := {:value <- 10; unit <- "m/d":};
+	OBJ Vs2 "Sedimentation rate particulate BOD2": Velocity := {:value <- 50; unit <- "m/d":};
+	OBJ KO2 "Monod constant O2 on BOD decay": Concentration := {:value <- 2.0; unit <- "mg/l":};
+	OBJ TKd "Temperature coefficient DOD decay": Real := {:value <- 1.05:};
+	OBJ TKp "Temperature coefficient plant growth/decay": Real := {:value <- 1.03:};
+	OBJ Knit "Nitrification rate": RateConstant := {:value <- 0.2; unit <- "1/d":};
+	OBJ TKnit "Temperature coefficient nitrification": Real := {:value <- 1.06:};
+	OBJ KNO2 "Monod constant O2 on nitrification": Concentration := {:value <- 3.0; unit <- "mg/l":};
+	OBJ KSO2 "Monod constant O2 on sediment oxygen demand": Concentration := {:value <- 2.0; unit <- "mg/l":};
+	OBJ ProdM "Oxygen production Macrophyte Biomass (gO2/gM)/(W/m2)/day": Real := {:value <- 0.0002:};
+	OBJ ResM "Oxygen respiration Macrophyte Biomass (gO2/gM)/day": RateConstant := {:value <- 0.04; unit <- "1/d":};
+	OBJ TSOD "Temperature coefficient SOD": Real := {:value <- 1.08:};
+	OBJ SBOD1 "Diffuse source BOD1, sediment (g/m2/day)" : Real := {:value <- 0.0; group <- "Inputs":};
+	OBJ SBOD2 "Diffuse source BOD2, sediment (g/m2/day)" : Real := {:value <- 0.0; group <- "Inputs":};
+	OBJ SNH4 "Diffuse source NH4, sediment (g/m2/day)" : Real := {:value <- 0.0; group <- "Inputs":};
+	OBJ SOD "Sediment Oxygen Demand (g/m2/day)" : Real := {:value <- 5.0; group <- "Inputs":};	
+	OBJ VKL "Velocity reaeration coefficient": Real := {:value <- 3.2:};
+
+	OBJ MB "Macrophyte biomass" : SurfaceDensity := {:value <- 50; group <- "Inputs":};
+
+	OBJ T_ref "Air/water T conversion: T_wat=T_air+(T_ref-T_air)/T_par" : CelsiusTemperature := {:value <- 15:};
+	OBJ T_par "Air/water T conversion: T_wat=T_air+(T_ref-T_air)/T_par" : Real := {:value <- 3:};
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	};
+  state <-{
+  /////////STATE HYDRAULICS///////////////////
+  OBJ d_initial "Initial Water depth. Serves as a Volume initialization" : Length := {:value <- 1; group <- "River characteristics" :};
+  /////// Muskingum parameters
+  OBJ x "Muskingum parameter X" : Real := {: group <- "Muskingum Parameters" :};	
+  OBJ k "Muskingum k" : Time:= {: group <- "Muskingum Parameters" :};
+  OBJ x_i (* hidden="1" *) "Muskingum parameter X internal" : Real := {: group <- "Muskingum Parameters" :};	
+  OBJ k_i (* hidden="1" *) "Muskingum k internal" : Time:= {: group <- "Muskingum Parameters" :};
+  
+
+  ///////Initial state GEOMETRY
+  OBJ A0 (* hidden="1" *) "Cross-sectional area bulk water tank initial" : Area:= {: group <- "River characteristics" :};
+  OBJ B0 (* hidden="1" *) "Top width water tank initial" : Length:= {: group <- "River characteristics" :};
+  OBJ P0 (* hidden="1" *) "Wet perimeter tank initial" : Area:= {: group <- "River characteristics" :};  
+
+  ///////Initial state flow conditions
+  OBJ Q0 (* hidden="1" *) "Flow normal water tank initial" : FlowRate:= {: group <- "River characteristics" :};
+  OBJ v0 (* hidden="1" *) "Velocity water tank initial" : Velocity:= {: group <- "River characteristics" :};
+  OBJ c0 (* hidden="1" *) "Celerity wave water tank initial" : Velocity:= {: group <- "River characteristics" :};
+  OBJ F0 (* hidden="1" *) "Froud number water tank initial" : Real:= {: group <- "River characteristics" :};  
+  OBJ dR_dd0 (* hidden="1" *) "Derivative of Hydraulic radius with depth" : Real:= {: group <- "River characteristics" :};  
+  
+  //////States hydraulics
+  OBJ Dt "Timestep" : Time:= {: group <- "Muskingum routing" :};
+
+  OBJ C0_i (* hidden="1" *) "Muskingum coefficient C0 first iteration" : Real:= {: group <- "Muskingum routing" :};
+  OBJ C1_i (* hidden="1" *) "Muskingum coefficient C1 first iteration" : Real:= {: group <- "Muskingum routing" :};
+  OBJ C2_i (* hidden="1" *) "Muskingum coefficient C2 first iteration" : Real:= {: group <- "Muskingum routing" :};
+  
+  OBJ C0 "Muskingum coefficient C0" : Real:= {: group <- "Muskingum routing" :};
+  OBJ C1 "Muskingum coefficient C0" : Real:= {: group <- "Muskingum routing" :};
+  OBJ C2 "Muskingum coefficient C0" : Real:= {: group <- "Muskingum routing" :};  
+  
+  ///// First iteration
+  OBJ Q_Out_i (* hidden="1" *) "Outflow at the first iteration i+1" : FlowRate:= {: group <- "Muskingum routing" :};
+  OBJ Q_3_i (* hidden="1" *) "Outflow at the first iteration at the section 3" : FlowRate:= {: group <- "Muskingum routing" :};
+  
+  ///// 1st Newton raphson
+  OBJ d_m_i (* hidden="1" *) "Normal flow depth at the middle section first iteration" : Length:= {: group <- "Muskingum routing" :};  
+  //OBJ d_m_ii (* hidden="1" *) "Normal flow depth at the middle section first iteration" : Real[5;]:= {: group <- "Muskingum routing" :};  
+  OBJ Am_i (* hidden="1" *) "Cross-sectional area bulk water tank 1st iteration" : Area:= {: group <- "River characteristics" :};
+  OBJ Bm_i (* hidden="1" *) "Top width water tank 1st iteration" : Length:= {: group <- "River characteristics" :};
+  OBJ Pm_i (* hidden="1" *) "Wet perimeter tank 1st iteration" : Area:= {: group <- "River characteristics" :};  
+
+  OBJ vm_i (* hidden="1" *) "Velocity water tank 1st iteration" : Velocity:= {: group <- "River characteristics" :};  
+  OBJ Qm_i (* hidden="1" *) "Flow normal at the middle section water tank 1st iteration" : FlowRate:= {: group <- "River characteristics" :};
+  OBJ cm_i (* hidden="1" *) "Celerity wave water tank first iteration" : Velocity:= {: group <- "River characteristics" :};  
+  OBJ Fm_i (* hidden="1" *) "Froud number water tank 1st iteration" : Real:= {: group <- "River characteristics" :};    
+  OBJ dR_ddm_i (* hidden="1" *) "Derivative of Hydraulic radius with depth" : Real:= {: group <- "River characteristics" :};  
+
+  ///// Final iteration
+  OBJ Q_3 (* hidden="1" *) "Outflow at the section 3" : FlowRate:= {: group <- "Muskingum routing" :};
+  
+  ///// 2nd newton raphson
+  OBJ d_m (* hidden="1" *) "Normal flow depth at the middle section" : Length:= {: group <- "Muskingum routing" :};  
+  OBJ Qm (* hidden="1" *) "Flow normal at the middle section water tank" : FlowRate:= {: group <- "River characteristics" :};
+	OBJ d "Depth of water in channel" : Length:= {: group <- "River characteristics" :}; 
+  OBJ A_d (* hidden="1" *) "Cross-sectional area bulk water with final depth" : Area:= {: group <- "River characteristics" :};	
+  
+  OBJ Am (* hidden="1" *) "Cross-sectional area bulk water tank 1st iteration" : Area:= {: group <- "River characteristics" :};
+  OBJ Bm (* hidden="1" *) "Top width water tank 1st iteration" : Area:= {: group <- "River characteristics" :};
+  OBJ Pm (* hidden="1" *) "Wet perimeter tank 1st iteration" : Area:= {: group <- "River characteristics" :};  
+
+  OBJ vm (* hidden="1" *) "Velocity water tank 1st iteration" : Velocity:= {: group <- "River characteristics" :};  
+  OBJ cm (* hidden="1" *) "Celerity wave water tank first iteration" : Velocity:= {: group <- "River characteristics" :};  
+  OBJ dR_ddm (* hidden="1" *) "Derivative of Hydraulic radius with depth" : Real:= {: group <- "River characteristics" :};  
+  
+  ///////////////////////////AUXILIARY STATES HYDRAULICS////////////////////////////////////////////////////////////////////////////////////////////
+  OBJ Q_help (* hidden="1" *)"Q_help" : FlowRate:= {: group <- "Muskingum routing" :};
+	OBJ vel_water "Velocity of water" : Velocity := {: group <- "River characteristics" :};
+	OBJ V_help (* hidden="1" *) "Help volume" : Volume:= {: group <- "Muskingum routing" :};
+	OBJ V_components (* hidden="1" *) "Help volume" : Volume:= {: group <- "Muskingum routing" :};
+	OBJ d_help (* hidden="1" *)"d_help" : Length:= {: group <- "Muskingum routing" :};
+
+  OBJ V_Muskingum (* hidden="0" *) "Reach storage as per muskingum" : Mass:= {: group <- "Muskingum routing" :};
+	
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
+  
+  
+  //////////////////////////////STATES BIOCHEMISTRY///////////////////////////////////////////////////////////////////////////////////////
+  OBJ CS "saturation conc Oxygen" : Real ;
+  OBJ DO_sat_perc "saturation percentage Oxygen" : Fraction ;
+  OBJ UIamm "unionised ammonia" : Concentration ;
+  OBJ UIamm_corr "unionised ammonia, corrected for DO" : Concentration ;
+  OBJ DO_corr "DO, corrected fro UIamm" : Concentration ;
+	OBJ KL20 "mass transfer at 20oC calculated form velocity and depth" : Real ;
+	OBJ KLT "" : Real ;
+
+	OBJ PO2M "net oxygen production/consumption Macrophytesn" : Real ;
+	OBJ SedO2 "" : Real ;
+	OBJ REAR "" : Real ;
+	OBJ Nitrif "" : Real ;
+	OBJ BODox "" : Real ;
+	OBJ SODT "" : Real ;
+	OBJ BOD "" : Real ;
+	OBJ T_wat "Water temperature" : CelsiusTemperature ;
+	
+	OBJ KL20_help (* hidden = "1" *) "" : Real ;
+	OBJ T_wat_help (* hidden = "1" *) "Water temperature" : CelsiusTemperature ;
+
+	OBJ OTR "Actual oxygen transfer rate" : MassFlux;
+  OBJ SOTR "Standard oxygen transfer rate" : MassFlux;
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+   	};
+	  
+   initial <-{   
+   parameters.Vol_min = parameters.d_min * (parameters.W_b + parameters.d_min * parameters.z) * parameters.L;
+   ////// INITAL CONDITIONS FOR McCarthy-Muskingum with variable parameters
+   state.d = NewtonRaphson(1.0, parameters.Q_initial, parameters.W_b, parameters.slp, parameters.z, parameters.n, parameters.Niter); 
+   state.M[rH2O] = parameters.L * state.d*(parameters.W_b + state.d*parameters.z) * 1000000;
+   state.V = state.M[1] * 0.000001 ;
+   state.V_Muskingum = state.M[1];
+   
+   state.Q_Out = 3600*24*(sqrt(parameters.slp)/parameters.n)* (pow( parameters.W_b * state.d + parameters.z * pow(state.d, 2)  ,(5.0/3.0))   ) / pow(parameters.W_b + 2* state.d * sqrt(1 + pow(parameters.z,2) ), (2.0/3.0)); 
+   state.Q_In = state.Q_Out;
+   
+   state.k = 0.03;
+   state.x = 0.2;
+    };
+ 
+  equations <-{
+////////////////////////////DERIVATIVES/////////////////////////////////////////
+// The FluxPerComponent is the sum of all
+    // incoming (positive) and outgoing (negative) fluxes 
+
+    {FOREACH Comp_Index IN {1 .. RivNrOfComponents}:
+      state.FluxPerComponent[Comp_Index] =
+
+    (SUMOVER In_RivTerminal IN {SelectByType(interface,InRivTerminal)}:
+    In_RivTerminal[Comp_Index])+
+    (SUMOVER Out_RivTerminal IN {SelectByType(interface,OutRivTerminal)}:
+    Out_RivTerminal[Comp_Index]);};
+
+    // The mass balance equations.
+    // These are composed of a term due to incoming and
+    // outgoing fluxes and of a term due to biochemical
+    // interactions between components.
+
+    {FOREACH Comp_Index IN {1 .. RivNrOfComponents}:
+      DERIV(state.M[Comp_Index],[independent.t]) = 
+      state.FluxPerComponent[Comp_Index]
+      +state.ConversionTermPerComponent[Comp_Index];};
+     
+
+    // for efficiency and because most models need it anyway
+    // we calculate Q_In here
+    
+    {FOREACH Comp_Index IN {1 .. RivNrOfComponents}:
+      state.InFluxPerComponent[Comp_Index] =
+         SUMOVER In_RivTerminal IN {SelectByType(interface,InRivTerminal)}:
+            (In_RivTerminal[Comp_Index]);
+    };
+
+    {state.Q_In = (0.000001* state.InFluxPerComponent[rH2O]);
+    };
+  /////////////////////////////////////////////////////////////////////////
+  
+  state.Dt = (independent.t - previous(independent.t)); // in days 
+
+//STEP 1, using previous depth as a first approximation
+  state.A0 = parameters.W_b * previous(state.d) + parameters.z * pow(previous(state.d),2);
+  state.B0 = parameters.W_b + 2*parameters.z * previous(state.d);
+  state.P0 = parameters.W_b + 2*previous(state.d)*sqrt(1+pow(parameters.z,2));
+  
+  state.Q0 =  pow((state.A0/state.P0),(2.0/3.0)) * state.A0 * sqrt(parameters.slp) / (parameters.n) * (3600 * 24);  // Manning from previous depth in m3/d
+  state.v0 = state.Q0/state.A0;
+  
+  state.dR_dd0 = (2*previous(state.d)*parameters.z + parameters.W_b)/(2*previous(state.d)* sqrt(1 + pow(parameters.z,2) ) + parameters.W_b ) - (2*sqrt(1 + pow(parameters.z,2) ) * (pow(previous(state.d),2) * parameters.z + previous(state.d) * parameters.W_b))/( pow(   (2 * previous(state.d) * sqrt(1 + pow(parameters.z,2) ) + parameters.W_b),2)) ;
+  
+  state.c0 = (1 + (2.0/3.0) * state.P0/state.B0 * state.dR_dd0) * state.v0; // m/d
+  state.F0 = sqrt( pow(state.v0/(3600*24),2) * state.B0 / (9.81 * state.A0) ); //Unitless , conversion of v to m/s 
+  
+  //Initiate value for x and k
+  state.k_i = parameters.L / state.v0;
+  state.x_i = 0.5 - state.Q0 * ( 1 -( (4.0/9.0)*pow(state.F0,2)* pow((state.P0*state.dR_dd0/state.B0),2) ) ) / (2*parameters.slp*state.B0*state.c0 * parameters.L);
+
+//Step 2, Calculate initial Muskingum parameters
+  state.C0_i = (state.Dt - 2*state.k_i*state.x_i)/(state.Dt + 2*state.k_i*(1-state.x_i));
+  state.C1_i = (state.Dt + 2*previous(state.k)*previous(state.x) )/(state.Dt + 2*state.k_i*(1-state.x_i));
+  state.C2_i = (-state.Dt + 2*previous(state.k)*(1-previous(state.x)))/(state.Dt + 2*state.k_i*(1-state.x_i));
+  
+//Step 3, Outflow iteration 1  
+  //ad hoc initial conditions.
+  state.Q_Out_i =  IF (independent.t <= state.Dt) 
+	THEN state.Q_In 
+	ELSE state.C0_i*state.Q_In + state.C1_i*previous(state.Q_In) + state.C2_i*previous(state.Q_Out);
+  
+//Step 4, discharge at section internal section 3 corresponding to m  
+  state.Q_3_i = state.x_i * state.Q_In + (1 - state.x_i) * state.Q_Out_i;  
+//State 5, Newton-Raphson to get depth from Q manning (no explicit solution)
+  state.d_m_i = NewtonRaphson(previous(state.d), state.Q_3_i/(3600*24), parameters.W_b, parameters.slp, parameters.z, parameters.n, parameters.Niter);
+  // Calculation of flow geometry
+  state.Am_i = parameters.W_b * state.d_m_i + parameters.z * pow(state.d_m_i,2);
+  state.Bm_i = parameters.W_b + 2*parameters.z * state.d_m_i;
+  state.Pm_i = parameters.W_b + 2*state.d_m_i*sqrt(1+pow(parameters.z,2));
+  state.vm_i = state.Q_3_i/state.Am_i; // Using Q_3_i
+  state.dR_ddm_i = (2*state.d_m_i*parameters.z + parameters.W_b)/(2*state.d_m_i* sqrt(1 + pow(parameters.z,2) ) + parameters.W_b ) - (2*sqrt(1 + pow(parameters.z,2) ) * (pow(state.d_m_i,2) * parameters.z + state.d_m_i * parameters.W_b))/( pow(   (2 * state.d_m_i * sqrt(1 + pow(parameters.z,2) ) + parameters.W_b),2)) ;
+//Step 6 calculate middle flow
+  state.Qm_i = 0.5*(state.Q_In+state.Q_Out_i);
+//Step 7 
+  state.Fm_i = sqrt( pow(state.Qm_i/(3600*24),2) * state.Bm_i / (9.81 * pow(state.Am_i,3)) ); //This Froud number is calculated with the previous flow at the middle. Although F0 was calculated based on velocity.
+//Step 8
+  state.cm_i = (1 + 2/3 * state.Pm_i/state.Bm_i * state.dR_ddm_i) * state.vm_i;
+
+//Step 9 recalculate x, k -> Refined values
+  state.k = parameters.L / state.vm_i;
+  state.x = 0.5 - state.Qm_i*(1-  4.0/9.0 * pow(state.Fm_i,2) * ( pow(state.Pm_i/state.Bm_i * state.dR_ddm_i , 2) ) ) / ( 2 * parameters.slp * state.Bm_i * state.cm_i * parameters.L);
+  
+//Step 10 Recalculate muskingum coefficients
+  state.C0 = (state.Dt - 2*state.k*state.x)/(state.Dt + 2*state.k*(1-state.x));
+  state.C1 = (state.Dt + 2*previous(state.k)*previous(state.x) )/(state.Dt + 2*state.k*(1-state.x));
+  state.C2 = (-state.Dt + 2*previous(state.k)*(1-previous(state.x)))/(state.Dt + 2*state.k*(1-state.x));
+
+//Step 11    Use of Q_help to + as Q_Out
+  state.Q_help =  IF (independent.t<= state.Dt) // Forced time boundary condition.
+	THEN state.Q_In 
+	ELSE state.C0*state.Q_In + state.C1*previous(state.Q_In) + state.C2*previous(state.Q_Out);
+//Step 12 
+  state.Q_3 = state.x * state.Q_In + (1 - state.x) * state.Q_help; 
+  // NEWTON_RAPHSON ROUTINE 4 iterations get d_m  
+  state.d_m = NewtonRaphson(previous(state.d), state.Q_3/(3600*24), parameters.W_b, parameters.slp, parameters.z, parameters.n, parameters.Niter);    
+  // Calculate celerity and Top width for the new dm
+  state.Am = parameters.W_b * state.d_m + parameters.z * pow(state.d_m,2);
+  state.Bm = parameters.W_b + 2*parameters.z * state.d_m;
+  state.Pm = parameters.W_b + 2*state.d_m*sqrt(1+pow(parameters.z,2));
+  state.vm = state.Q_3/state.Am; // Using Q_3_i
+  state.dR_ddm = (2*state.d_m*parameters.z + parameters.W_b)/(2*state.d_m* sqrt(1 + pow(parameters.z,2) ) + parameters.W_b ) - (2*sqrt(1 + pow(parameters.z,2) ) * (pow(state.d_m,2) * parameters.z + state.d_m * parameters.W_b))/( pow(   (2 * state.d_m * sqrt(1 + pow(parameters.z,2) ) + parameters.W_b),2)) ;  
+  state.cm = (1 + 2.0/3.0 * state.Pm/state.Bm * state.dR_ddm) * state.vm;  
+//Step 13 
+  state.Qm = 0.5*(state.Q_In + state.Q_help);    
+//Step 14
+  state.d_help = state.d_m + (state.Q_help - state.Qm)/(state.Bm*state.cm); 
+  state.Q_Out = IF (state.Q_help <= 0) 
+  THEN 0
+  ELSE state.Q_help;
+  
+  state.d = IF (state.d_help <= 0) 
+  THEN parameters.d_min 
+  ELSE state.d_help;
+  
+  state.A_d = parameters.W_b * state.d + parameters.z * pow(state.d,2);  
+  state.vel_water = state.Q_Out / state.A_d;
+  
+  state.V_Muskingum = (state.k * state.x * state.Q_In + state.Q_Out*(1-state.x)*state.k) * 1000000 ; // g/d
+  ///////////// END of VPMM algorithm.
+	state.V_help = (SUMOVER Comp_Index IN {2 .. RivNrOfComponents}:
+	(0.000001*state.M[Comp_Index])) + 0.000001*state.V_Muskingum;		
+  //state.V_help = state.V_Muskingum*0.000001;
+	
+	state.V =  IF (state.V_help <= parameters.Vol_min) 
+	THEN parameters.Vol_min 
+	ELSE state.V_help;  // Water from muskingum + rest of components.
+ 
+  
+  //////EQUATIONS HYDRAULICS///////
+   {FOREACH Comp_Index IN {1 .. RivNrOfComponents}:state.C[Comp_Index] = IF (state.V == 0)
+			   THEN 0
+			   ELSE state.M[Comp_Index]/state.V;
+	 };
+
+   {FOREACH Comp_Index IN {1 .. rBOD2p}:
+     interface.Outflow[Comp_Index] = - state.C[Comp_Index] * state.Q_Out ;
+   };
+   
+	interface.Outflow[rBODs] = 0;
+
+
+
+
+//////////////////////////EQUATIONS BIOCHEMISTRY //////////////////////////////////////////////////////////////////////////////////////////
+  state.OTR = interface.kLa * (state.CS - state.C[rO2]) * state.V;
+  state.SOTR = state.OTR * state.CS / (state.CS - state.C[rO2]) / parameters.alpha;
+	
+	state.T_wat_help = interface.T + (parameters.T_ref - interface.T) / parameters.T_par;
+	state.T_wat = IF (state.T_wat_help > 0)
+				        THEN state.T_wat_help
+				        ELSE 0;
+
+	state.CS = 14.652 - 0.41022 * state.T_wat + 0.007991 * pow(state.T_wat,2.0) - 0.000077774 * pow(state.T_wat,3.0);
+	state.KL20_help = parameters.VKL * pow((state.vel_water/3600/24),0.67) * pow(state.d,-0.85);
+	state.KL20 = IF (state.KL20_help < parameters.KLmin)
+			         THEN parameters.KLmin
+				       ELSE state.KL20_help;
+	state.KLT = state.KL20 * pow(parameters.TKL,(state.T_wat-20));
+	state.PO2M = (parameters.ProdM * interface.I0 - parameters.ResM) * parameters.MB / state.d * pow(parameters.TKp,(state.T_wat-20));
+	state.SedO2 = (- parameters.SOD / state.d) * pow(parameters.TSOD,(state.T_wat-20)) * state.C[rO2] / (state.C[rO2] + parameters.KSO2);
+	state.REAR = (state.KLT / state.d + interface.kLa) * (state.CS - state.C[rO2]);
+	state.Nitrif = -4.57 * parameters.Knit * state.C[rNH4] * pow(parameters.TKnit,(state.T_wat-20)) * state.C[rO2] / (state.C[rO2] + parameters.KNO2);
+	state.BODox = (- parameters.Kd1 * (state.C[rBOD1] + state.C[rBOD1p]) - parameters.Kd2 * (state.C[rBOD2] + state.C[rBOD2p])  ) * pow(parameters.TKd,(state.T_wat-20)) * state.C[rO2] / (state.C[rO2] + parameters.KO2);
+	state.SODT = - state.C[rBODs] * parameters.KBODs * pow(parameters.TSOD,(state.T_wat-20)) * state.C[rO2] / (state.C[rO2] + parameters.KSO2);
+	state.BOD = state.C[rBOD1] + state.C[rBOD2] + state.C[rBOD1p] + state.C[rBOD2p];
+	
+	state.ConversionTermPerComponent[rO2] = (state.REAR + state.PO2M + state.SedO2 + state.BODox + state.Nitrif + state.SODT / state.d) * state.V;
+	state.ConversionTermPerComponent[rBOD1] = (- parameters.Kd1 * state.C[rBOD1] * pow(parameters.TKd,(state.T_wat-20)) 
+											   * state.C[rO2] / (state.C[rO2] + parameters.KO2) + parameters.SBOD1 / state.d) * state.V;
+	state.ConversionTermPerComponent[rBOD2] = (- parameters.Kd2 * state.C[rBOD2] * pow(parameters.TKd,(state.T_wat-20)) 
+											   * state.C[rO2] / (state.C[rO2] + parameters.KO2) + parameters.SBOD2 / state.d) * state.V;
+  state.ConversionTermPerComponent[rBOD1p] = (- parameters.Vs1 / state.d - parameters.Kd1 * pow(parameters.TKd,(state.T_wat-20)) 
+											    * state.C[rO2] / (state.C[rO2] + parameters.KO2)) * state.C[rBOD1p] * state.V;
+	state.ConversionTermPerComponent[rBOD2p] = (- parameters.Vs2 / state.d - parameters.Kd2 * pow(parameters.TKd,(state.T_wat-20)) 
+											    * state.C[rO2] / (state.C[rO2] + parameters.KO2)) * state.C[rBOD2p] * state.V;
+	state.ConversionTermPerComponent[rNH4] = (- parameters.Knit * state.C[rNH4] * pow(parameters.TKnit,(state.T_wat-20)) 
+										      * state.C[rO2] / (state.C[rO2] + parameters.KNO2) + parameters.SNH4 / state.d) * state.V;
+	state.ConversionTermPerComponent[rBODs] = (parameters.Vs1 * state.C[rBOD1p] + parameters.Vs2 * state.C[rBOD2p] + state.SODT) / state.d * state.V;
+	interface.DO = state.C[rO2];
+  interface.NH4 = state.C[rNH4];
+  interface.Q = state.Q_Out;
+  state.DO_sat_perc = state.C[rO2] / state.CS;
+  state.UIamm = state.C[rNH4] * 1 / (pow(10,(0.090182 + 2729.92 / (273.15 + state.T_wat) - parameters.pH)) +1);
+  state.UIamm_corr = IF (state.C[rO2] >= 5)
+										 THEN state.UIamm
+										 ELSE state.UIamm * 2;
+  state.DO_corr = IF (state.UIamm < 0.02)
+									THEN state.C[rO2]
+									ELSE IF (state.UIamm <= 0.15)
+											 THEN state.C[rO2] - 0.97 * log(state.UIamm) - 3.8
+											 ELSE state.C[rO2] - 2;
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+   };
+   
+ :};

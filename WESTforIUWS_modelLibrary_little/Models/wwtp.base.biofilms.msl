@@ -1,0 +1,451 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 23. april 2012 08:16:14$
+ *
+ ******************************************************************************/
+ 
+#ifndef BASE_BIOFILM
+#define BASE_BIOFILM
+
+#if (defined ASM1Temp || defined ASM2dModTemp || defined ASM3Temp || defined ASM3P_EAWAG)
+
+ CLASS AtomicBiofilm "The base equations for the Biofilm"
+     SPECIALISES PhysicalDAEModelType :=
+   {:
+   
+   interface <-
+   { 
+   OBJ Inflow (* terminal = "in_1" *) "Inflow" : InWWTPTerminal
+       := {: causality <- "CIN" ; group <- "Influent":};
+   OBJ Outflow (* terminal = "out_1" *) "Outflow" : OutWWTPTerminal
+       := {: causality <- "COUT" ; group <- "Effluent":};
+   };
+   
+   parameters <- 
+   {  
+   OBJ Stoichiometry (* hidden = "1" *) "stoichiometry of the reactions" :
+         PhysicalQuantityType[NrOfReactions;][NrOfComponents;];
+   };
+
+   independent <-
+   {
+   OBJ t "Time": Time := {: group <- "Time" :};
+   };
+
+   state <-
+   {  
+   OBJ Kla_Actual "Gas transfer coefficient" : OxygenTransferCoefficient := {: group <- "Operational" :};     
+   OBJ Temp_Actual "Actual temperature of the activated sludge" : CelsiusTemperature  := {: group <- "Operational" :}; 
+   OBJ Kinetics_Biofilm (* hidden = "1" *) "Kinetics of the biological processes within the biofilm" :
+          Rate[NrOfReactions;][NrOfLayers;];
+   OBJ Kinetics (* hidden = "1" *) "Kinetics of the biological processes in the bulk liquid" :
+          Rate[NrOfReactions;];
+   OBJ ConversionTermPerComponent (* hidden = "1" *) "Reaction term in the bulk liquid phase" : Rate[NrOfComponents;];   
+   //
+   OBJ C_Biofilm "Concentration of each component per biofilm layer" : LayerConcentrationMatrix
+          := {: group <- "Concentration" :};
+   OBJ M_Biofilm "Mass of each component per biofilm layer" : Mass[NrOfComponents;][NrOfLayers;]
+#if (defined ASM1Temp)
+   := [{: value <- 4500 :}, {: value <- 0.01 :}, {: value <- 0.01 :},
+   {: value <- 0.01 :}, {: value <- 0.01 :}, {: value <- 0.01 :} ,
+   {: value <- 0.01 :}, {: value <- 0.01 :},
+   {: value <- 0.01 :}, {: value <- 0.01 :}, {: value <- 1000 :},
+   {: value <- 100 :}, {: value <- 0.01 :}, {: value <- 0.01 :}; ]
+#endif // ASM1Temp
+#if (defined ASM2dModTemp)
+   :=[{: value <- 4500 :}, {: value <- 0.01 :}, {: value <- 0.01 :},{: value <- 0.01 :},
+   {: value <- 0.01 :}, {: value <- 0.01 :}, {: value <- 0.01 :} ,
+   {: value <- 0.01 :}, {: value <- 0.01 :}, {: value <- 0.01 :} ,
+   {: value <- 0.01 :}, 
+   {: value <- 0.01 :}, {: value <- 0.01 :}, {: value <- 1000 :},
+   {: value <- 100 :}, {: value <- 0.01 :}, {: value <- 0.01 :},
+   {: value <- 100 :}, {: value <- 1100 :}, {: value <- 0.01 :},
+   {: value <- 0.01 :}, {: value <- 0.01 :}; ]
+#endif     // ASM2dModTemp
+#if (defined ASM3Temp)
+   := [{: value <- 4500 :}, {: value <- 0.01 :}, {: value <- 0.01 :},
+   {: value <- 0.01 :}, {: value <- 0.01 :}, {: value <- 0.01 :} ,
+   {: value <- 0.01 :}, {: value <- 0.01 :},
+   {: value <- 0.01 :}, {: value <- 0.01 :}, {: value <- 1000 :},
+   {: value <- 0.01 :}, {: value <- 100 :}, {: value <- 1000 :}; ]
+#endif     //ASM3Temp
+#ifdef ASM3P_EAWAG
+   :=[{: value <- 4500 :}, {: value <- 0.01 :}, {: value <- 0.01 :},
+   {: value <- 0.01 :}, {: value <- 0.01 :}, {: value <- 0.01 :},
+   {: value <- 0.01 :},  {: value <- 0.01 :}, {: value <- 0.01 :},
+   {: value <- 0.01 :}, {: value <- 0.01 :}, {: value <- 100 :},
+   {: value <- 1000 :}, {: value <- 100 :}, {: value <- 0.01 :},
+   {: value <- 0.01 :}, {: value <- 0.01 :}, {: value <- 1100 :} ; ]
+#endif     //ASM3P_EAWAG
+;
+   OBJ C "Concentration of each component in the bulk liquid": ConcentrationVector
+          := {: group <- "Concentration" :};     
+   OBJ V "Volume of the bulk liquid phase" : Volume:= {: group <- "Operational" :};
+   };
+ 
+   :};
+
+ CLASS AtomicConversionBiofilm EXTENDS AtomicBiofilm WITH
+   {:
+   // Bulk liquid phase.
+   #include "wwtp.VolumeASMConversionModel.body.msl"
+   :};
+
+ CLASS AtomicConversionBiofilmBulk EXTENDS AtomicConversionBiofilm WITH
+   {:
+   // State + Kinetics for the biofilm layers.
+   #include "wwtp.VolumeASMConversionModel.layer.body.msl"
+   
+   terminal <-  
+   {
+   };
+   
+   :};
+
+
+ CLASS BaseBiofilm1D EXTENDS AtomicConversionBiofilmBulk WITH
+ {:
+ interface <-  
+ {
+ OBJ Kla (* terminal = "in_2"; manip = "1" *) "Gas transfer coefficient for oxygen" : 
+   OxygenTransferCoefficient := {: causality <- "CIN" ; value <- 750 ; group <- "Operational" :}; 
+ OBJ Temp (* terminal = "in_2"; manip = "1" *)  "Temperature of the activated sludge"
+  : CelsiusTemperature  := {: causality <- "CIN" ; value <- 15 ; group <- "Operational" :}; 
+   OBJ AerationEnergy (* terminal = "out_2" *)"Aeration energy" : ElectricalEnergy := {: causality <- "COUT"; group <- "Energy" :};
+ }; 
+ parameters <- 
+ {  
+ //OBJ WWTPSpecificVolume (* hidden = "1" *) "Specific volume of the components" : SpecificVolume[NrOfComponents;];
+ //
+ // For readability, the diffusivity coefficients are implemented into a separate .msl file
+ #include "wwtp.BiofilmsDiffusivity.msl"
+ OBJ dcmin (* hidden = "1" *) "Min concentration gradient that results in diffusion": Concentration := {: value <- 1E-6 ; group <- "System" :};
+ //
+ // Properties & characteristics of the biofilm
+ OBJ d_ini "Initial biofilm thickness" : Length := {: value <- 0.0002 ; group <- "System" :};
+ OBJ d_max "Maximum biofilm thickness" : Length := {: value <- 0.0005 ; group <- "Dimension" :};
+ OBJ d_min (* hidden = "0" *) "Min biofilm thickness" : Length := {: value <- 5e-7 ; group <- "Dimension" :};
+ OBJ A (* fixed = "1" *) "Total biofilm surface area" : Area := {: value <- 400; group <- "Dimension" :};
+ OBJ eta "Porosity of the biofilm" : Ratio := {:value <- 1.0 ; group <- "Transport" :};
+ OBJ deltao "Boundary layer" : Length := {:value <- 1E-5 ; group <- "Transport" :};
+ OBJ rho "Biofilm density" : Density := {:value <- 40000 ;group <- "System" :};
+ OBJ rho_layer (* hidden = "1" *) "Biofilm density of a layer": Density[NrOfLayers;] := {: group <- "System" :}; 
+ // Attachment-detachment process
+ OBJ k_At "Coefficient for attachment of particulates" : RateConstant:= {:value <- 0.1 ;group <- "Transport" :}; 
+ OBJ k_detach "Factor of proportionality for the detachment controller": Real := {: value <- 1E5 ; group <- "System" :};
+ //
+ // Geometry of the reactor
+ OBJ V_R (* fixed = "1" *) "volume of the reactor" : Volume := {: value <- 1.0 ; group <- "Dimension" :};
+ OBJ L "Length of the reactor" : Length := {:value <- 1.0 ; group <- "Dimension" :};
+ OBJ H "Height of the reactor" : Length := {:value <- 1.0 ;group <- "Dimension" :};
+ OBJ W "Width of reactor" : Length := {:value <- 1.0 ;group <- "Dimension" :};
+ //
+ // Generalised Trickling filter-IFAS implementation
+ OBJ fc_real (* hidden = "1" *) "Portion of the reactor volume occupied by the solid support for the biofilm (true)" : Ratio := {: group <- "Dimension" :} ;
+ OBJ fc (* hidden = "1" *) "Portion of the reactor volume occupied by the solid support for the biofilm (apparent)" : Ratio := {: value<- 0.5; group <- "Dimension" :} ;
+ OBJ area_sp (* hidden = "1" *) "Specific surface area" : SpecificAreaVolume := {: value<- 80; group <- "System" :};
+ OBJ Vc_real (* hidden = "1"; fixed = "1" *) "(true) volume of the carrier" : Volume := {: value <- 0.5 ; group <- "Dimension" :} ;
+ OBJ Vc (* hidden = "1"; fixed = "1" *) "(apparent) volume of the carrier" : Volume := {: value <- 1 ; group <- "Dimension" :} ;
+
+// AERATION ENERGY (through KLa)
+  OBJ OTR_Energy  "Oxygen transfer rate per energy input" : TransferRateEnergy := {: value <- 1800 ; group <- "Aeration" :}; 
+    OBJ Period "Period over which the costs are calculated" : Time := {: value <- 1 ; group <- "Miscellaneous":};
+ };
+ 
+ state <-
+ {    
+ OBJ S_Sat (* hidden ="1" *) "Saturation concentration" : Concentration[NrOfComponents;];
+ //
+ OBJ InFluxPerComponent (* hidden = "1" *) "Fluxes of all components through the process unit" : MassFluxVector; 
+ OBJ FluxPerComponent (* hidden = "1" *) "Vector containing fluxes for all the components, the sum of all incoming and outgoing fluxes" : MassFluxVector;
+ OBJ Q_In "Influent flow rate" : FlowRate:= {: group <- "Operational" :};
+ //
+ OBJ Total_Mass "Total mass of the biofilm ": Mass:= {: group <- "Mass" :};
+ OBJ Mass_Layer "Mass of each component per layer" : Mass[NrOfLayers;] := {: group <- "Mass" :};  
+ 
+ OBJ M "Mass of each component in the bulk liquid": MassVector   
+ #if (defined ASM1Temp)
+   :=[{: value <- 4500 :}, {: value <- 10 :}, {: value <- 10 :},
+   {: value <- 10 :}, {: value <- 10 :}, {: value <- 10 :} ,
+   {: value <- 10 :}, {: value <- 10 :},
+   {: value <- 10 :}, {: value <- 10 :}, {: value <- 100 :},
+   {: value <- 100 :}, {: value <- 10 :}, {: value <- 10 :}; ]
+ #endif     // ASM1Temp
+ #if (defined ASM2dModTemp)
+   :=[{: value <- 4500 :}, {: value <- 10 :}, {: value <- 10 :}, {: value <- 1 :},
+   {: value <- 10 :}, {: value <- 5 :}, {: value <- 5 :} ,
+   {: value <- 10 :}, {: value <- 10 :}, {: value <- 10 :} ,
+   {: value <- 10 :}, 
+   {: value <- 10 :}, {: value <- 10 :}, {: value <- 100 :},
+   {: value <- 100 :}, {: value <- 10 :}, {: value <- 10 :},
+   {: value <- 100 :}, {: value <- 300 :}, {: value <- 1 :},
+   {: value <- 1 :}, {: value <- 1 :}; ]
+ #endif    //ASM2dModTemp
+ #if (defined ASM3Temp)
+   :=[{: value <- 4500 :}, {: value <- 10 :}, {: value <- 10 :},
+   {: value <- 10 :}, {: value <- 10 :}, {: value <- 10 :},
+   {: value <- 10 :}, {: value <- 10 :},
+   {: value <- 10 :}, {: value <- 10 :}, {: value <- 100 :},
+   {: value <- 10 :}, {: value <- 100 :}, {: value <- 200 :} ; ]
+ #endif    //ASM3Temp
+ #ifdef ASM3P_EAWAG
+   :=[{: value <- 4500 :}, {: value <- 10 :}, {: value <- 10 :},
+   {: value <- 10 :}, {: value <- 10 :}, {: value <- 10 :},
+   {: value <- 10 :},  {: value <- 10 :}, {: value <- 10 :},
+   {: value <- 10 :}, {: value <- 10 :}, {: value <- 100 :},
+   {: value <- 100 :}, {: value <- 100 :}, {: value <- 10 :},
+   {: value <- 10 :}, {: value <- 10 :}, {: value <- 320 :} ; ]
+#endif     //ASM3P_EAWAG
+ ;
+ //
+ OBJ V_biofilm "Volume of the biofilm" : Volume:= {: group <- "Operational" :};
+ OBJ V_layer "Volume of each biofilm layer" : VolumeVector := {: group <- "System" :}; 
+ //
+ // Terms for the mass balance equations
+ OBJ Detach_Term (* hidden = "1" *) "Detachment of each biofilm component": MassFluxVector := {: group <- "Transport" :};
+ OBJ Reaction_Term_Biofilm (* hidden = "1" *) "Reaction term in the biofilm matrix" : Rate[NrOfComponents;][NrOfLayers;];
+ OBJ Diffusion_Term_Biofilm (* hidden = "1" *) "Diffustion term in the biofilm matrix" : Rate[NrOfComponents;][NrOfLayers;];
+ OBJ Diffusion_In (* hidden = "1" *) "Diffustion between layer 1 and bulk liquid" : Rate[NrOfComponents;];
+ OBJ Diffusion_Through_Up (* hidden = "1" *) "Upward diffustion in layers 2 to ButOne" : Rate[NrOfComponents;][NrOfLayers;];
+ OBJ Diffusion_Through_Down (* hidden = "1" *) "Downward diffustion in layers 2 to Last" : Rate[NrOfComponents;][NrOfLayers;];
+ //
+ // Biofilm
+ OBJ u_Dt "Velocity of biofilm growth" : TakacsVelocityVector := {: group <- "System" :};
+ OBJ d "Thickness of the biofilm" : Length:= {: group <- "Operational" :};
+ OBJ d_layer "Thickness of each layer": LengthVector := {: group <- "System" :};  
+ OBJ d_layer_calc (* hidden = "1" *) "Thickness of each layer" : LengthVector := {: group <- "System" :};
+ OBJ d_test (* hidden = "1" *) "Thickness of the biofilm" : Length;
+ OBJ delta (* hidden = "1" *) "Boundary layer for each component" : Length[NrOfComponents;]:= {: group <- "Transport" :};
+// AERATION ENERGY (through KLa)
+    OBJ Integ_AE (* hidden = "1" *)"Integral aeration energy" : ElectricalEnergy ;
+ };
+ 
+ initial <-
+ {
+ //parameters.WWTPSpecificVolume[H2O] := 1e-6;
+ };
+
+ equations <-
+ {
+ // Flow rate & InFlux to the reactor
+ state.Q_In = 0.000001 * interface.Inflow[IndexOfSolvent] ;
+ 
+ { FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+        state.InFluxPerComponent[Comp_Index] =
+      SUMOVER In_Terminal IN {SelectByType(interface,InWWTPTerminal)}:
+      In_Terminal[Comp_Index] ; };
+ //
+ // ... ... 1) CALCULATION OF BIOFILM THICKNESS + MASS ... ...
+ // ... 1.1) Mass of the biofilm
+ #if (ASM1Temp)
+ {FOREACH Layer_Index IN {1 .. NrOfLayers}:
+      state.Mass_Layer[Layer_Index] =
+      SUMOVER Comp_Index IN {IndexOfFirstParticulateComponent .. NrOfComponents}:
+      state.M_Biofilm[Comp_Index][Layer_Index] ; };
+ #endif // (defined ASM1Temp)
+ #if (defined ASM2dModTemp || defined ASM3Temp || defined ASM3P_EAWAG)
+ {FOREACH Layer_Index IN {1 .. NrOfLayers}:
+      state.Mass_Layer[Layer_Index] = (SUMOVER Comp_Index IN {IndexOfFirstParticulateComponent .. NrOfComponents}:
+      state.M_Biofilm[Comp_Index][Layer_Index]) - state.M_Biofilm[X_TSS][Layer_Index] ; };
+ #endif // (defined ASM2dModTemp || defined ASM3Temp || defined ASM3P_EAWAG)
+ {state.Total_Mass = SUMOVER Layer_Index IN {1 .. NrOfLayers}: state.Mass_Layer[Layer_Index] ;};
+ //
+ // ... 1.2) Thickness of each layer (based on the respective Mass)
+ {FOREACH Layer_Index IN {1 .. NrOfLayers}:
+      state.d_layer_calc[Layer_Index] =
+          state.Mass_Layer[Layer_Index]/(parameters.A * parameters.rho_layer[Layer_Index]) ; };
+ // ... 1.3) The layers thickness is limited between a minimum (for numerical reasons)
+ // and a maximum (for physical reasons). Here we only check for minimum, as we cannot
+ // limit the 'hypothetical' thickness (ie calculated based on mass balances) at this
+ // stage: the detachment process (see below) will take care of this physical limitation.
+ {FOREACH Layer_Index IN {1 .. NrOfLayers}:
+      state.d_layer[Layer_Index] =
+        IF (state.d_layer_calc[Layer_Index] >= (parameters.d_min/NrOfLayers))
+           THEN state.d_layer_calc[Layer_Index]
+           ELSE parameters.d_min/NrOfLayers ; };
+ // ... 1.4) Assigns the overall thickness of the biofilm.
+ // Similarly to the previous point 1.3), we cannot limit the overall thickness at this
+ // stage: the detachment process will account for that.
+ state.d = SUMOVER Layer_Index IN {1 .. NrOfLayers} : state.d_layer[Layer_Index] ;
+ //
+ // ... ... 2) CALCULATION OF THE BULK LIQUID VOLUME ... ...
+ // ...    Vtot = (Vbulk + Vbiofilm) + Vcarrier
+ // ... ...    Vbiofilm = area_sp * Vcarrier_real * d
+ // ... ...    Vcarrier = fc * Vtot
+ // ... ... ...    Vcarrier_real = fc_real * Vtot
+ state.V = (parameters.V_R - parameters.Vc_real) - state.V_biofilm ;
+ 
+ {FOREACH Layer_Index IN {1 .. NrOfLayers}: state.V_layer[Layer_Index] = parameters.A * state.d_layer[Layer_Index] ; };
+ 
+ {state.V_biofilm = SUMOVER Layer_Index IN {1 .. NrOfLayers} : state.V_layer[Layer_Index] ; };
+ //
+ // ... ... 3) CALCULATION OF THE BOUNDARY LAYER ... ...
+ {FOREACH Comp_Index IN {IndexOfFirstSolubleComponent .. IndexOfLastSolubleComponent}: state.delta[Comp_Index] = parameters.deltao ;};
+ //
+ // ... ... 4) CALCULATION OF THE Kla AND GAS TRANSFER ... ...
+ state.Kla_Actual = interface.Kla ;
+ #if(defined ASM1Temp || defined ASM2dModTemp || defined ASM3Temp || defined ASM3P_EAWAG)   
+      state.S_Sat[S_O] = state.S_O_Saturation;
+ #endif //(defined ASM1Temp || defined ASM2dModTemp || defined ASM3Temp || defined ASM3P_EAWAG)       
+ //
+ // ... ... 5) CALCULATION OF ... ...
+ // ... 5.1) Reaction terms.
+ {FOREACH Comp_Index IN {IndexOfFirstSolubleComponent .. NrOfComponents} :
+      state.ConversionTermPerComponent[Comp_Index] =
+      SUMOVER Reaction_Index IN {1 .. NrOfReactions} :
+      (state.Kinetics[Reaction_Index] * parameters.Stoichiometry[Reaction_Index][Comp_Index]) * state.V ; };
+ {FOREACH Comp_Index IN {IndexOfFirstSolubleComponent .. NrOfComponents} :
+      {FOREACH Layer_Index IN {1 .. NrOfLayers} :
+      state.Reaction_Term_Biofilm[Comp_Index][Layer_Index] =
+      SUMOVER Reaction_Index IN {1 .. NrOfReactions} :
+      (state.Kinetics_Biofilm[Reaction_Index][Layer_Index] * parameters.Stoichiometry[Reaction_Index][Comp_Index]) ; }; };
+ //NEWER VERSION (16/12/08)
+ {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+      state.FluxPerComponent[Comp_Index] =
+      (SUMOVER In_Terminal IN {SelectByType(interface,InWWTPTerminal)}: In_Terminal[Comp_Index])+
+      (SUMOVER Out_Terminal IN {SelectByType(interface,OutWWTPTerminal)}: Out_Terminal[Comp_Index]);};
+ //
+ // ... 5.2) Diffusion terms.
+ {FOREACH Comp_Index IN {IndexOfFirstSolubleComponent .. NrOfComponents} :
+      state.Diffusion_In[Comp_Index][1] =
+          IF (fabs(state.C[Comp_Index] - state.C_Biofilm[Comp_Index][1]) > parameters.dcmin)
+           THEN parameters.D_i[Comp_Index] * (state.C[Comp_Index] - state.C_Biofilm[Comp_Index][1] ) * parameters.A / state.delta[Comp_Index]
+           ELSE 0.0 ;  };
+ {FOREACH Comp_Index IN {IndexOfFirstSolubleComponent .. NrOfComponents} :
+      {FOREACH Layer_Index IN {1 .. NrOfLayersButOne} :
+      state.Diffusion_Through_Down[Comp_Index][Layer_Index] =
+          IF (fabs(state.C_Biofilm[Comp_Index][Layer_Index] - state.C_Biofilm[Comp_Index][Layer_Index + 1]) > parameters.dcmin)
+           THEN parameters.D_i[Comp_Index] * (state.C_Biofilm[Comp_Index][Layer_Index] - state.C_Biofilm[Comp_Index][Layer_Index + 1]) * parameters.A / state.d_layer[Layer_Index]
+           ELSE 0.0 ; }; };
+ {FOREACH Comp_Index IN {IndexOfFirstSolubleComponent .. NrOfComponents} :
+      {FOREACH Layer_Index IN {2 .. NrOfLayers} :
+      state.Diffusion_Through_Up[Comp_Index][Layer_Index] =
+          IF (fabs(state.C_Biofilm[Comp_Index][Layer_Index - 1] - state.C_Biofilm[Comp_Index][Layer_Index]) > parameters.dcmin)
+           THEN parameters.D_i[Comp_Index] * (state.C_Biofilm[Comp_Index][Layer_Index - 1] - state.C_Biofilm[Comp_Index][Layer_Index]) * parameters.A / state.d_layer[Layer_Index - 1]
+           ELSE 0.0 ; }; };
+//... Layer 1
+ {FOREACH Comp_Index IN {IndexOfFirstSolubleComponent .. NrOfComponents} :
+      state.Diffusion_Term_Biofilm[Comp_Index][1] =
+        state.Diffusion_In[Comp_Index][1] - state.Diffusion_Through_Down[Comp_Index][1] ; };
+//... Layers 2-9
+ {FOREACH Comp_Index IN {IndexOfFirstSolubleComponent .. NrOfComponents} :
+      {FOREACH Layer_Index IN {2 .. NrOfLayersButOne} :
+      state.Diffusion_Term_Biofilm[Comp_Index][Layer_Index] =
+        state.Diffusion_Through_Up[Comp_Index][Layer_Index] - state.Diffusion_Through_Down[Comp_Index][Layer_Index] ; }; };
+//... Layer 10
+ {FOREACH Comp_Index IN {IndexOfFirstSolubleComponent .. NrOfComponents} :
+      state.Diffusion_Term_Biofilm[Comp_Index][NrOfLayers] = state.Diffusion_Through_Up[Comp_Index][NrOfLayers] ; };
+ //
+ // ... 5.3) Concentrations.  (check on V<=0)
+ {FOREACH Comp_Index IN {IndexOfFirstSolubleComponent .. NrOfComponents} :
+      state.C[Comp_Index] = IF (state.V > 0.0)
+      THEN state.M[Comp_Index] / state.V
+      ELSE 0.0 ;};
+ {FOREACH Comp_Index IN {IndexOfFirstSolubleComponent .. NrOfComponents} :
+      {FOREACH Layer_Index IN {1 .. NrOfLayers} :
+      state.C_Biofilm[Comp_Index][Layer_Index] =
+      IF (state.V_layer[Layer_Index] > 0.0)
+      THEN state.M_Biofilm[Comp_Index][Layer_Index] / state.V_layer[Layer_Index]
+      ELSE 0.0 ; }; };
+ //
+ // ... 5.4) Detachment term.
+ {FOREACH Comp_Index IN {IndexOfFirstParticulateComponent .. NrOfComponents} :
+      state.Detach_Term[Comp_Index] =
+      SUMOVER Layer_Index IN {1 .. NrOfLayers} :
+      (state.u_Dt[Layer_Index] * parameters.A * state.C_Biofilm[Comp_Index][Layer_Index]) ; };
+//
+// ... ... 6) CALCULATION OF THE MASS BALANCES ... ...
+ // ... 6.1) Bulk liquid phase
+ DERIV(state.M[IndexOfSolvent], [independent.t]) = 0.0 ; 
+ {FOREACH Comp_Index IN {IndexOfFirstSolubleComponent .. IndexOfLastSolubleComponent}:
+      DERIV(state.M[Comp_Index], [independent.t]) =
+      state.InFluxPerComponent[Comp_Index] - state.Q_In * state.C[Comp_Index]
+      + state.ConversionTermPerComponent[Comp_Index]
+//      - state.Diffusion_In[Comp_Index][1]
+      - parameters.D_i[Comp_Index] * (state.C[Comp_Index] - state.C_Biofilm[Comp_Index][1] ) * parameters.A / state.delta[Comp_Index]
+      ; };  
+{FOREACH Comp_Index IN {IndexOfFirstParticulateComponent .. NrOfComponents} :
+      DERIV(state.M[Comp_Index], [independent.t]) =
+      state.InFluxPerComponent[Comp_Index] - state.Q_In * state.C[Comp_Index]
+      + state.ConversionTermPerComponent[Comp_Index]
+      - parameters.k_At * state.V * state.C[Comp_Index]
+      + state.Detach_Term[Comp_Index] ; };  
+ // ... 6.2) Biofilm
+ {FOREACH Layer_Index IN {1 .. NrOfLayers} :
+      DERIV (state.M_Biofilm[IndexOfSolvent][Layer_Index], [independent.t])=0.0 ; };
+ //Layer no.1 - SOLUBLES
+ {FOREACH Comp_Index IN {IndexOfFirstSolubleComponent .. IndexOfLastSolubleComponent} :
+        DERIV (state.M_Biofilm[Comp_Index][1], [independent.t]) =
+      state.Reaction_Term_Biofilm[Comp_Index][1] * state.V_layer[1]
+//      + state.Diffusion_Term_Biofilm[Comp_Index][1]
+      + parameters.D_i[Comp_Index] * (state.C[Comp_Index] - state.C_Biofilm[Comp_Index][1] ) * parameters.A / state.delta[Comp_Index]
+      - parameters.D_i[Comp_Index] * (state.C_Biofilm[Comp_Index] [1] - state.C_Biofilm[Comp_Index] [2]) * parameters.A / state.d_layer[1]
+      ; };
+ //Layer no.1 - PARTICULATES
+ {FOREACH Comp_Index IN {IndexOfFirstParticulateComponent .. NrOfComponents} :
+      DERIV (state.M_Biofilm[Comp_Index][1], [independent.t]) =
+      state.Reaction_Term_Biofilm[Comp_Index][1] * state.V_layer[1]
+      + parameters.k_At * state.V * state.C[Comp_Index]
+      - state.u_Dt[1] * parameters.A * state.C_Biofilm[Comp_Index][1]
+      - parameters.D_x * (state.C_Biofilm[Comp_Index][1] - state.C_Biofilm[Comp_Index][2]) * parameters.A / state.d_layer[1] ; }; 
+ //Layer 2 to 9 - SOLUBLES
+ {FOREACH Layer_Index IN {2 .. NrOfLayersButOne} :
+      {FOREACH Comp_Index IN {IndexOfFirstSolubleComponent .. IndexOfLastSolubleComponent} :
+      DERIV (state.M_Biofilm[Comp_Index][Layer_Index], [independent.t]) =
+          state.Reaction_Term_Biofilm [Comp_Index][Layer_Index] * state.V_layer[Layer_Index]
+//      + state.Diffusion_Term_Biofilm[Comp_Index][Layer_Index]
+      + parameters.D_i[Comp_Index] * (state.C_Biofilm[Comp_Index][Layer_Index - 1] - state.C_Biofilm[Comp_Index][Layer_Index]) * parameters.A / state.d_layer[Layer_Index - 1]
+      - parameters.D_i[Comp_Index] * (state.C_Biofilm[Comp_Index][Layer_Index] - state.C_Biofilm[Comp_Index][Layer_Index + 1]) * parameters.A / state.d_layer[Layer_Index]
+      ; }; };
+//Layer 2 to 9 - PARTICULATES
+ {FOREACH Layer_Index IN {2 .. NrOfLayersButOne} :
+      {FOREACH Comp_Index IN {IndexOfFirstParticulateComponent .. NrOfComponents} :
+      DERIV (state.M_Biofilm[Comp_Index][Layer_Index], [independent.t]) =
+      state.Reaction_Term_Biofilm[Comp_Index][Layer_Index] * state.V_layer[Layer_Index]
+      - state.u_Dt[Layer_Index]* parameters.A * state.C_Biofilm[Comp_Index][Layer_Index]
+      - parameters.D_x * (state.C_Biofilm[Comp_Index][Layer_Index] - state.C_Biofilm[Comp_Index][Layer_Index + 1]) * parameters.A / state.d_layer[Layer_Index]
+      + parameters.D_x * (state.C_Biofilm[Comp_Index][Layer_Index - 1] - state.C_Biofilm[Comp_Index][Layer_Index]) * parameters.A / state.d_layer[Layer_Index - 1] ; }; };
+ //Layer no.10 - SOLUBLES
+ {FOREACH Comp_Index IN {IndexOfFirstSolubleComponent .. IndexOfLastSolubleComponent} :
+      DERIV (state.M_Biofilm[Comp_Index][NrOfLayers], [independent.t]) =
+      state.Reaction_Term_Biofilm[Comp_Index][NrOfLayers] * state.V_layer[NrOfLayers]
+//      + state.Diffusion_Term_Biofilm[Comp_Index][NrOfLayers]
+      + parameters.D_i[Comp_Index] * (state.C_Biofilm[Comp_Index][NrOfLayersButOne] - state.C_Biofilm[Comp_Index][NrOfLayers]) * parameters.A / state.d_layer[NrOfLayersButOne]
+      ;};
+ //Layer no.10 - PARTICULATES
+ {FOREACH Comp_Index IN {IndexOfFirstParticulateComponent .. NrOfComponents} :
+      DERIV (state.M_Biofilm[Comp_Index][NrOfLayers], [independent.t]) =
+      state.Reaction_Term_Biofilm[Comp_Index][NrOfLayers] * state.V_layer[NrOfLayers]
+      - state.u_Dt[NrOfLayers]* parameters.A * state.C_Biofilm[Comp_Index][NrOfLayers]
+      + parameters.D_x * (state.C_Biofilm[Comp_Index][NrOfLayersButOne] - state.C_Biofilm[Comp_Index][NrOfLayers]) * parameters.A / state.d_layer[NrOfLayersButOne] ; };
+ //
+ // ... ... 7) CALCULATION OF THE OUTFLOW ... ...
+ interface.Outflow[IndexOfSolvent] = - interface.Inflow[IndexOfSolvent] ;
+ {FOREACH Comp_Index IN {IndexOfFirstSolubleComponent .. NrOfComponents} :
+      interface.Outflow[Comp_Index] = - state.Q_In * state.C[Comp_Index] ; };
+
+    state.Temp_Actual = interface.Temp;
+
+// AERATION ENERGY
+  DERIV(state.Integ_AE,[independent.t])= state.Kla_Actual * state.V ;
+  interface.AerationEnergy = state.S_O_Saturation / (parameters.Period * parameters.OTR_Energy) * state.Integ_AE ;
+ }; 
+ 
+:};
+
+#include "biofilm/wwtp.base.biofilms.ifas1D.msl"
+#include "biofilm/wwtp.base.biofilms.tricklingfilter1D.msl"
+
+#endif // StandardCategoryModels
+
+#endif // BASE_BIOFILM

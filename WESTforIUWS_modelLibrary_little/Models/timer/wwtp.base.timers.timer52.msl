@@ -1,0 +1,110 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 23. marts 2012 12:41:35$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_BASE_TIMERS_TIMER52
+#define WWTP_BASE_TIMERS_TIMER52
+
+CLASS Timer52
+  (* icon = "timer" *)
+  "Timer with 5 periods and 2 outputs"
+
+// The value of the manipulated variabele changes after a certain time            
+
+  SPECIALISES
+  PhysicalDAEModelType :=
+  {:
+    interface <-
+    {
+     OBJ u1 (* terminal = "out_1" *) "Controlled variable" : 
+               Real := {: causality <- "COUT" ; group <- "Control action" :};
+     OBJ u2 (* terminal = "out_1" *) "Controlled variable" : 
+               Real := {: causality <- "COUT" ; group <- "Control action" :};
+    OBJ u11 (* terminal = "in_2"; manip = "1" *) "Output 1 in the first period" : Real := {: causality <- "CIN" ; value <- 1 ; group <- "Operational" :};
+    OBJ u12 (* terminal = "in_2"; manip = "1" *) "Output 1 in the second period" : Real := {: causality <- "CIN" ; value <- 100 ; group <- "Operational" :};   
+    OBJ u13 (* terminal = "in_2"; manip = "1" *) "Output 1 in the third period" : Real := {: causality <- "CIN" ; value <- 1 ; group <- "Operational" :};
+    OBJ u14 (* terminal = "in_2"; manip = "1" *) "Output 1 in the fourth period" : Real := {: causality <- "CIN" ; value <- 1 ; group <- "Operational" :}; 
+    OBJ u15 (* terminal = "in_2"; manip = "1" *) "Output 1 in the fifth period" : Real := {: causality <- "CIN" ; value <- 1 ; group <- "Operational" :};         
+    OBJ u21 (* terminal = "in_2"; manip = "1" *) "Output 2 in the first period" : Real := {: causality <- "CIN" ; value <- 1 ; group <- "Operational" :}; 
+    OBJ u22 (* terminal = "in_2"; manip = "1" *) "Output 2 in the second reaction period" : Real := {: causality <- "CIN" ; value <- 1 ; group <- "Operational" :};
+    OBJ u23 (* terminal = "in_2"; manip = "1" *) "Output 2 in the third reaction period" : Real := {: causality <- "CIN" ; value <- 1 ; group <- "Operational" :};   
+    OBJ u24 (* terminal = "in_2"; manip = "1" *) "Output 2 in the fourth period" : Real := {: causality <- "CIN" ; value <- 800 ; group <- "Operational" :};   
+    OBJ u25 (* terminal = "in_2"; manip = "1" *) "Output 2 in the fifth period" : Real := {: causality <- "CIN" ; value <- 800 ; group <- "Operational" :};               
+    OBJ T1 (* terminal = "in_2"; manip = "1" *) "First period" : Time := {:causality <- "CIN" ; value <- 0.04 ; group <- "Operational" :};
+    OBJ T2 (* terminal = "in_2"; manip = "1" *) "Second reaction period" : Time := {:causality <- "CIN" ; value <- 0.065 ; group <- "Operational" :};
+    OBJ T3 (* terminal = "in_2"; manip = "1" *) "Third reaction period" : Time := {:causality <- "CIN" ; value <- 0.060 ; group <- "Operational" :};
+    OBJ T4 (* terminal = "in_2"; manip = "1" *) "Fourth and draw period" : Time := {:causality <- "CIN" ; value <- 0.065 ; group <- "Operational" :};
+    OBJ T5 (* terminal = "in_2"; manip = "1" *) "Fifth period" : Time := {:causality <- "CIN" ; value <- 0.02 ; group <- "Operational" :};
+    };
+
+    parameters <-
+    {
+    };
+
+    independent <- 
+    { 
+    OBJ t "Time" : Time := {: group <- "Time" :}; 
+    };
+
+    state <-
+     {
+    OBJ Prev_t (* hidden = "1" *) "Help variable to calculate the begin of each period" : Time ;
+    OBJ T "Total cycle" : Time := {: group <- "Operational" :};
+     };
+
+    initial <-
+    {
+    };
+
+    equations <-
+    {
+    state.T = interface.T1 + interface.T2 + interface.T3 + interface.T4+ interface.T5 ;
+
+    state.Prev_t =  IF  (independent.t - previous(state.Prev_t) < state.T)
+        THEN  previous(state.Prev_t)
+        ELSE  previous(state.Prev_t) + state.T;
+
+    interface.u1 = IF (independent.t - state.Prev_t < interface.T1)
+        THEN interface.u11
+        ELSE
+          IF   (independent.t - state.Prev_t < (interface.T1 + interface.T2))
+          THEN interface.u12
+          ELSE 
+        IF    (independent.t - state.Prev_t < (interface.T1 + interface.T2 + interface.T3))
+            THEN  interface.u13
+            ELSE
+          IF    (independent.t - state.Prev_t < (interface.T1 + interface.T2 + interface.T3 + interface.T4))
+              THEN  interface.u14
+              ELSE  interface.u15;
+
+    interface.u2 = IF (independent.t - state.Prev_t < interface.T1)
+        THEN  interface.u21
+        ELSE
+          IF   (independent.t - state.Prev_t < (interface.T1 + interface.T2))
+          THEN interface.u22
+          ELSE
+        IF    (independent.t - state.Prev_t < (interface.T1 + interface.T2 + interface.T3))
+            THEN  interface.u23
+            ELSE
+          IF    (independent.t - state.Prev_t < (interface.T1 + interface.T2 + interface.T3 + interface.T4))
+              THEN  interface.u24
+              ELSE  interface.u25;
+
+    };
+  :};
+
+  
+#endif // WWTP_BASE_TIMERS_TIMER52
+

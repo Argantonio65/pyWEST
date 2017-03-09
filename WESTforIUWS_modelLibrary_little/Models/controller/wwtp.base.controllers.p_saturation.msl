@@ -1,0 +1,253 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 23. marts 2012 12:41:31$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_BASE_CONTROLLERS_PSATURATION
+#define WWTP_BASE_CONTROLLERS_PSATURATION
+
+CLASS P_Saturation
+  (* icon = "controller_p" *)
+  "P controller with saturation"
+
+// Purpose: 
+// Limit excursion of a signal. 
+// Description: 
+// The saturation block imposes upper and lower bounds on a signal. Within the range of the specified limits, the input   
+// signal is amplified by K_P. Outside these bounds, the signal is clipped to the maximum or minimum bound. 
+// When the lower and upper output limits are set to the same value, the block constantly outputs that value. A   
+// maximum bound which is lower than the minimum bound is not allowed. This means u_Max >= u_Min.         
+
+  SPECIALISES
+  PhysicalDAEModelType :=
+  {:
+    comments <- "A model for a proportional controller with saturation";
+    interface <-
+    {
+      OBJ y_M (* terminal = "in_1"; is_favorite = "1" *) "Sensor measured output" : 
+               Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+      OBJ u (* terminal = "out_1"; is_favorite = "1" *) "Controlled variable" : 
+               Real := {: causality <- "COUT" ; group <- "Control action" :};
+     OBJ y_S  (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Setpoint value for controlled variable " : 
+     Real := {: causality <- "CIN" ; value <- 0 ; group <- "Operational" :};
+     OBJ K_P  (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) " Factor of proportionality" : 
+     Real := {: causality <- "CIN" ; value <- 1 ; group <- "Operational" :};
+     OBJ u0 (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "No error action" : 
+     Real := {: causality <- "CIN" ; value <- 1 ; group <- "Operational" :};
+     OBJ u_Min  (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Minimum control action" : 
+     Real := {: causality <- "CIN" ; value <- 0 ; group <- "Operational" :};
+     OBJ u_Max  (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Maximum control action" : 
+     Real := {: causality <- "CIN" ; value <- 1000 ; group <- "Operational" :};
+     // u_Max >= u_Min
+    };
+
+    parameters <-
+    {
+    };
+
+    independent <- 
+    { 
+    OBJ t "Time" : Time := {: group <- "Time" :}; 
+    };
+
+    state <-
+    {
+     OBJ e (* is_favorite = "1" *) "Error" : PhysicalQuantityType := {: group <- "Operational" :};
+     OBJ uhelp (* hidden = "1" *) "Help variable to calculate the proportional control action" : Real;
+    };
+
+    equations <-
+    {
+
+     state.e = interface.y_S - interface.y_M ;
+     state.uhelp = interface.u0 + interface.K_P * state.e;
+
+     interface.u = IF(state.uhelp < interface.u_Min)
+                   THEN (interface.u_Min)
+                   ELSE
+                     IF (state.uhelp > interface.u_Max)
+                     THEN interface.u_Max
+                     ELSE state.uhelp;
+   };
+
+ :};
+
+CLASS P_sp_Saturation
+  (* icon = "controller_p" *)
+  "P controller with saturation, proportional to set-point"
+
+  SPECIALISES
+  PhysicalDAEModelType :=
+  {:
+    comments <- "A model for a proportional controller with saturation";
+    interface <-
+    {
+     OBJ u (* terminal = "out_1"; is_favorite = "1" *) "Controlled variable" : 
+               Real := {: causality <- "COUT" ; group <- "Control action" :};
+     OBJ y_S  (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Setpoint value for controlled variable " : 
+     Real := {: causality <- "CIN" ; value <- 0 ; group <- "Operational" :};
+	   OBJ u0 (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "u=u0+kp*ys" : 
+     Real := {: causality <- "CIN" ; value <- 1 ; group <- "Operational" :};
+     OBJ K_P  (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) " Factor of proportionality" : 
+     Real := {: causality <- "CIN" ; value <- 1 ; group <- "Operational" :};
+     OBJ u_Min  (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Minimum control action" : 
+     Real := {: causality <- "CIN" ; value <- 0 ; group <- "Operational" :};
+     OBJ u_Max  (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Maximum control action" : 
+     Real := {: causality <- "CIN" ; value <- 1000 ; group <- "Operational" :};
+     // u_Max >= u_Min
+    };
+
+    parameters <-
+    {
+    };
+
+    independent <- 
+    { 
+    OBJ t "Time" : Time := {: group <- "Time" :}; 
+    };
+
+    state <-
+    {
+     OBJ uhelp (* hidden = "1" *) "Help variable to calculate the proportional control action" : Real;
+    };
+
+    equations <-
+    {
+
+     state.uhelp = interface.u0 + interface.K_P * interface.y_S;
+
+     interface.u = IF(state.uhelp < interface.u_Min)
+                   THEN (interface.u_Min)
+                   ELSE
+                     IF (state.uhelp > interface.u_Max)
+                     THEN interface.u_Max
+                     ELSE state.uhelp;
+   };
+
+ :};
+
+CLASS P_Saturation_seas
+  (* icon = "controller_p" *)
+  "P controller with saturation, seasonal"
+
+// Purpose: 
+// Limit excursion of a signal. 
+// Description: 
+// The saturation block imposes upper and lower bounds on a signal. Within the range of the specified limits, the input   
+// signal is amplified by K_P. Outside these bounds, the signal is clipped to the maximum or minimum bound. 
+// When the lower and upper output limits are set to the same value, the block constantly outputs that value. A   
+// maximum bound which is lower than the minimum bound is not allowed. This means u_Max >= u_Min.         
+
+  SPECIALISES
+  PhysicalDAEModelType :=
+  {:
+    comments <- "A model for a proportional controller with saturation";
+    interface <-
+    {
+      OBJ y_M (* terminal = "in_1"; is_favorite = "1" *) "Sensor measured output" : 
+               Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+      OBJ u (* terminal = "out_1"; is_favorite = "1" *) "Controlled variable" : 
+               Real := {: causality <- "COUT" ; group <- "Control action" :};
+     OBJ y_S_s  (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Setpoint value for controlled variable, summer" : 
+     Real := {: causality <- "CIN" ; value <- 0 ; group <- "Operational" :};
+	   OBJ y_S_w  (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Setpoint value for controlled variable, winter" : 
+     Real := {: causality <- "CIN" ; value <- 0 ; group <- "Operational" :};
+     OBJ K_P  (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) " Factor of proportionality" : 
+     Real := {: causality <- "CIN" ; value <- 1 ; group <- "Operational" :};
+     OBJ u0 (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "No error action" : 
+     Real := {: causality <- "CIN" ; value <- 1 ; group <- "Operational" :};
+     OBJ u_Min  (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Minimum control action" : 
+     Real := {: causality <- "CIN" ; value <- 0 ; group <- "Operational" :};
+     OBJ u_Max  (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Maximum control action" : 
+     Real := {: causality <- "CIN" ; value <- 1000 ; group <- "Operational" :};
+	   OBJ seas  (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Season: 1 = winter, 0 = summer" : 
+     Real := {: causality <- "CIN" ; value <- 1 ; group <- "Operational" :};
+     // u_Max >= u_Min
+    };
+
+    parameters <-
+    {
+    };
+
+    independent <- 
+    { 
+    OBJ t "Time" : Time := {: group <- "Time" :}; 
+    };
+
+    state <-
+    {
+     OBJ e (* is_favorite = "1" *) "Error" : PhysicalQuantityType := {: group <- "Operational" :};
+     OBJ uhelp (* hidden = "1" *) "Help variable to calculate the proportional control action" : Real;
+	   OBJ y_S (* hidden = "0" *) "Set-point" : Real;
+    };
+
+    equations <-
+    {
+     state.y_S = IF(interface.seas == 1)
+                 THEN interface.y_S_w
+                 ELSE interface.y_S_s;
+     state.e = state.y_S - interface.y_M ;
+     state.uhelp = interface.u0 + interface.K_P * state.e;
+
+     interface.u = IF(state.uhelp < interface.u_Min)
+                   THEN (interface.u_Min)
+                   ELSE
+                     IF (state.uhelp > interface.u_Max)
+                     THEN interface.u_Max
+                     ELSE state.uhelp;
+   };
+
+ :};
+
+CLASS shared_capacity
+  (* icon = "controller_p" *)
+  "Defines set-point of downstream controller as spare capacity from a shared resource"  
+
+  SPECIALISES
+  PhysicalDAEModelType :=
+  {:
+    comments <- "A model for a proportional controller with saturation";
+    interface <-
+    {
+      OBJ y_M (* terminal = "in_1"; is_favorite = "1" *) "Used capacity" : 
+               Real := {: causality <- "CIN" ; group <- "Measurement data" :};
+      OBJ u (* terminal = "out_1"; is_favorite = "1" *) "Spare capacity" : 
+               Real := {: causality <- "COUT" ; group <- "Control action" :};
+          // u_Max >= u_Min
+    };
+
+    parameters <-
+    {
+	   OBJ max  "Maximum capacity" : Real := {: group <- "Operational" :};
+    };
+
+    independent <- 
+    { 
+    OBJ t "Time" : Time := {: group <- "Time" :}; 
+    };
+
+    state <-
+    {
+    };
+
+    equations <-
+    {
+     interface.u = parameters.max - interface.y_M;
+   };
+
+ :};
+
+ 
+#endif // WWTP_BASE_CONTROLLERS_PSATURATION
+

@@ -1,0 +1,436 @@
+/*******************************************************************************
+ *
+ * Developped by BIOMATH in the frame of the Kallisto project
+ * Author Elena Torfs, Youri Amerlinck
+ *
+ ******************************************************************************/
+ 
+// The model was develped by Burger et al. (2012) and implemented at BIOMATH (Ghent University).
+
+#ifndef WWTP_SECONDARY_CLARIFIER_BURGER_DOUBLE_EXPONENTIAL
+#define WWTP_SECONDARY_CLARIFIER_BURGER_DOUBLE_EXPONENTIAL
+
+#ifdef StandardCategoryModels
+
+  OBJ Legendre_Index "Temporary iteration variable, index of Gaussian quadrature" : Integer;
+  OBJ NrOfNodes "The number of nodes and weights used in the Gaussian Quadrature for compression calculation" : Integer := 16; 
+
+CLASS BurgerDoubleExponential
+ (* icon = "secondary_clarifier" ; is_default = "" *)
+ "Layered clarifier model by Burger with double exponential settling function"
+
+// This model was developed by Burger et al. (2011).
+
+ SPECIALISES PhysicalDAEModelType :=
+ {:
+   comments <- "A model for a secondary settler by Takacs";
+   interface <-
+   { 
+    OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+         InWWTPTerminal := {: causality <- "CIN" ; group <- "Influent" :};
+    OBJ Overflow (* terminal = "out_1" *) "Overflow" : 
+         OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent" :};
+    OBJ Underflow (* terminal = "out_2" *) "Underflow" : 
+         OutWWTPTerminal := {: causality <- "COUT" ; group <- "Underflow" :};
+    OBJ Sludge_Blanket_Height (* terminal = "out_3" *) "Height of the sludge blanket" : 
+        Length := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ TSS(* terminal = "out_3" *) "Total suspended solids concentration" : 
+        Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ V_Clarifier (* terminal = "out_3" *)"Volume measurement data" : 
+        Volume := {: causality <- "COUT" ; group <- "Measurement data" :};
+		OBJ Q_Under (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Underflow rate" : 
+	 		 FlowRate := {: causality <- "CIN" ; value <- 200 ; group <- "Operational" :}; 
+   };
+
+   parameters <- 
+   {     
+  //  OBJ WWTPSpecificVolume (* hidden = "1" *) "Vector containing specific volume for all the components" : SpecificVolumeVector;
+    OBJ A "Surface area of the clarifier" : Area := {: value <- 1500 ; group <- "Dimension" :};
+    OBJ H "Height of the clarifier" : Length := {: value <- 4 ; group <- "Dimension" :};
+    OBJ v0 "Maximum theoretical settling velocity" : Velocity := {: value <- 474 ; group <- "Settling" :};
+    OBJ F_TSS_COD "Fraction TSS/COD" : Fraction := {: value <- 0.75 ; group <- "Conversion factors" :};
+  	OBJ X_Lim "Minimal concentration in sludge blanket" : Concentration := {: value <- 900 ; group <- "Settling" :};
+    OBJ r_H "Settling parameter (hindered settling)" : SpecificVolume := {: value <- 0.000576 ; group <- "Settling" :}; 
+    OBJ f_ns "Non-settleable fraction of suspended solids" : Fraction := {: value <- 0.00228 ; group <- "Settling" :};
+	  OBJ r_P "Settling parameter (low concentration)" : SpecificVolume := {: value <- 0.00286 ; group <- "Settling" :};
+
+
+   //Removed parameters 
+     //OBJ v00 "Maximum practical settling velocity" : Velocity := {: value <- 250 ; group <- "Settling" :};	
+//OBJ r_V "Settling parameter" : SpecificVolume := {: value <- 0.00286 ; group <- "Settling" :};
+//OBJ X_T "Treshold suspended solids concentration" : Concentration := {: value <- 3000 ; group <- "Settling" :};
+	 
+   //New parameters for Burger model
+     //Compression
+       OBJ NoComp "Parameter to switch off compression": Integer :={: value <- 1 ; group <- "Compression" :};
+	   OBJ alpha "Effective solids stress parameter" : NormalStress := {: value <- 5 ; group <- "Compression" :};
+       OBJ beta "Effective solids stress parameter" : Concentration := {: value <- 4 ; group <- "Compression" :};
+	   OBJ rhos "Solid density": Density := {: value <- 1050 ; group <- "Compression" :};
+	   OBJ rhof "Fluid density": Density := {: value <- 998 ; group <- "Compression" :};
+	   OBJ C_crit "Gel point" : Concentration := {: value <- 600 ; group <- "Compression" :};
+	   OBJ gr "Acceleration of gravity": Acceleration := {: value <- 9.81 ; group <- "Compression" :};
+	   OBJ wl (* hidden = "1" *) "Vector of Legendre weights used in the Gaussian quadrature for the calculation of compression": 
+	   	   Real[NrOfNodes;] := [{: value <- 2.715245941175406e-2 :},{: value <- 6.225352393864778e-2 :},{: value <- 9.515851168249290e-2 :},
+		   {: value <- 1.246289712555339e-1 :},{: value <- 1.495959888165768e-1 :},{: value <- 1.691565193950026e-1 :},{: value <- 1.826034150449236e-1 :},
+		   {: value <- 1.894506104550684e-1 :},{: value <- 1.894506104550684e-1 :},{: value <- 1.826034150449236e-1 :},
+		   {: value <- 1.691565193950026e-1 :},{: value <- 1.495959888165768e-1 :},{: value <- 1.246289712555339e-1 :},
+		   {: value <- 9.515851168249290e-2 :},{: value <- 6.225352393864778e-2 :},{: value <- 2.715245941175406e-2 :}]; 
+	   OBJ nl (* hidden = "1" *) "Vector of Legendre nodes used in the Gaussian quadrature for the calculation of compression": 
+	   	   Real[NrOfNodes;] := [{: value <- 9.894009349916499e-1 :},{: value <- 9.445750230732326e-1 :},{: value <- 8.656312023878319e-1 :},
+		   {: value <- 7.554044083550031e-1 :},{: value <- 6.178762444026438e-1 :},{: value <- 4.580167776572273e-1 :},{: value <- 2.816035507792589e-1 :},
+		   {: value <- 9.501250983763748e-2 :},{: value <- -9.501250983763748e-2 :},{: value <- -2.816035507792589e-1 :},
+		   {: value <- -4.580167776572273e-1 :},{: value <- -6.178762444026438e-1 :},{: value <- -7.554044083550031e-1 :},
+		   {: value <- -8.656312023878319e-1 :},{: value <- -9.445750230732326e-1 :},{: value <- -9.894009349916499e-1 :}];
+	   //Godunov flux
+	   OBJ C_min "Minimal packing concentration" : Concentration := {: value <- 0 ; group <- "Settling" :};
+	   OBJ C_max "Maximal packing concentration" : Concentration := {: value <- 2000 ; group <- "Settling" :};
+	   OBJ TOL "Tolerance level to calculate CHat" : Fraction := {: value <- 1e-15 ; group <- "Settling" :};     
+   };
+
+   state <-
+   {
+   //New vector classes created (in wwtp.general.msl): BurgerConcentrationVector, BurgerVelocityVector, BurgerArealFluxVector
+    
+	OBJ Q_In "Influent flow rate" : FlowRate := {: group <- "Operational" :};
+    OBJ Q_Out "Effluent flow rate" : FlowRate := {: group <- "Operational" :};
+    OBJ Q_Under_Actual "Actual underflow rate" : FlowRate := {: group <- "Operational" :};
+    OBJ IndexOfSludgeBlanket (* hidden = "1" *) "Index of top layer of sludge blanket" : Integer ;
+    OBJ H_S "Height of sludge blanket" : Length := {: group <- "Settling" :}; 
+	OBJ X_In "Influent suspended solids concentration" : Concentration := {: group <- "Concentration" :};
+    OBJ X_Out "Effluent suspended solids concentration" : Concentration := {: group <- "Concentration" :};	
+    OBJ X_Under "Underflow suspended solids concentration" : Concentration := {: group <- "Concentration" :};	 
+    OBJ X_Layer "Vector containing concentration of particulates for all the layers" : BurgerConcentrationVector := {: group <- "Concentration" :};
+	OBJ v_Up (* hidden = "1" *) "Upward bulk velocity" : Velocity ;	
+    OBJ v_Dn (* hidden = "1" *) "Downward bulk velocity" : Velocity ;
+    OBJ v_S (* hidden = "0" *) "Static settling velocity" : BurgerVelocityVector;
+    OBJ J_Up "Upward sludge flux" : BurgerArealFluxVector;
+    OBJ J_Dn "Downward sludge flux" : BurgerArealFluxVector;
+    OBJ J_G "Static sludge flux" : BurgerArealFluxVector;
+    OBJ J_G_Help (* hidden = "1" *) "Static sludge flux": BurgerArealFluxVector;
+	OBJ InFluxPerComponent (* hidden = "1" *) "Vector containing incoming fluxes for all the components" : MassFluxVector;
+    OBJ SolidFlux_In (* hidden = "1" *) "Sum of massfluxes of particulates" : MassFlux ;
+    OBJ SolidConcentration (* hidden = "1" *) "Sum of concentrations of particulates" : Concentration ;
+    OBJ V_Layer (* hidden = "1" *)	"Volume of the layer" : Volume ;	
+    OBJ H_Layer (* hidden = "1" *) "Height of layer" : Length ;
+	OBJ SolidFlux_Out (* hidden = "1" *) "Fraction of influx that goes to the effluent" : MassFlux ;
+    OBJ SolidFlux_Under (* hidden = "1" *) "Fraction of influx that goes to the underflow" : MassFlux ;
+
+	
+	//Removed states 
+	  //OBJ v0_P (* hidden = "1" *) "Correction term for non-settleables" : Velocity ;
+      //OBJ v0_H (* hidden = "1" *) "Correction term for non-settleables" : Velocity ; 
+//OBJ v_S_Help (* hidden = "1" *) "Static settling velocity help variable": BurgerVelocityVector;	
+//OBJ X_Min "Non-settleable sludge concentration" : Concentration := {: group <- "Settling" :};
+
+    
+	//New states for Burger model
+	  //Compression
+	    OBJ X_comp (* hidden = "1" *) "Vector with max(Cj,Ccrit)" : BurgerConcentrationVector := {: group <- "Concentration" :};
+	    OBJ J_comp_help (* hidden = "1" *) "Compression sludge flux" : BurgerArealFluxVector;
+		OBJ J_comp (* hidden = "1" *) "Compression sludge flux" : BurgerArealFluxVector;
+		OBJ HelpPar1 (* hidden = "1" *) "rhos*v0*alpha/(g*(rhos-rhof))" : Real;
+		OBJ HelpPar2 (* hidden = "1" *) "-Ccrit+beta" : Concentration; 
+//		OBJ HelpVar1 (* hidden = "1" *) "Help variable for Gaussian quadrature: (b-a)/2" : BurgerConcentrationVector;
+//		OBJ HelpVar2 (* hidden = "1" *) "Help variable for Gaussian quadrature: (b+a)/2" : BurgerConcentrationVector;
+		OBJ HelpVar1 (* hidden = "1" *) "Help variable for Gaussian quadrature: (b-a)/2" : Real[NrOfLayersPlusFourBurger;];
+		OBJ HelpVar2 (* hidden = "1" *) "Help variable for Gaussian quadrature: (b+a)/2" : BurgerConcentrationVector;
+	  //Godunov flux
+  	    OBJ Fbk_max "Maximum flux" : ArealFlux;
+	    OBJ C_fbk_max "Concentration corresponding to maximal settling flux" : Concentration ;
+ };
+
+   initial <-
+   {
+   // parameters.WWTPSpecificVolume[IndexOfSolvent] := 1e-6;
+    state.V_Layer = parameters.A * (parameters.H / NrOfLayersBurger); 
+    state.H_Layer = parameters.H / NrOfLayersBurger;
+
+	//Compute maximum of batch settling flux  (for calculation Godunov flux)
+	state.C_fbk_max=CHat_DExp(parameters.v0,parameters.r_H,parameters.r_P,parameters.C_min,parameters.C_max,parameters.TOL);
+	state.Fbk_max= parameters.v0*(exp(-parameters.r_H* state.C_fbk_max) - exp(- parameters.r_P*state.C_fbk_max));
+    
+	
+	//Compute help parameters for calculation of compression
+	state.HelpPar1 = parameters.NoComp * parameters.rhos * parameters.v0 * parameters.alpha / (parameters.gr * (parameters.rhos - parameters.rhof));
+	state.HelpPar2 = -parameters.C_crit + parameters.beta;
+    
+	};
+  
+  independent <- 
+  { 
+    OBJ t "Time" : Time := {: group <- "Time" :}; 
+   };
+   
+  equations <-
+   {
+    state.Q_Under_Actual = IF (state.Q_In <= interface.Q_Under)
+				 THEN state.Q_In
+				 ELSE interface.Q_Under;
+
+    state.v_Dn = state.Q_Under_Actual / parameters.A; 
+	
+	{ FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+       state.InFluxPerComponent[Comp_Index] =
+       SUMOVER In_Terminal IN {SelectByType(interface,InWWTPTerminal)}:
+        In_Terminal[Comp_Index]; 
+    };
+
+    { state.Q_In = 
+       (0.000001
+                * state.InFluxPerComponent[IndexOfSolvent]);
+    };
+
+    state.Q_Out = state.Q_In - state.Q_Under_Actual; 
+
+#ifdef CalculateTSSComponent
+    { state.SolidFlux_In =
+       SUMOVER Comp_Index IN {IndexOfFirstTSSComponent .. IndexOfLastTSSComponent}:
+       state.InFluxPerComponent[Comp_Index] * parameters.F_TSS_COD ;
+    };
+#endif // CalculateTSSComponent
+
+#ifdef UseTSSComponent
+    state.SolidFlux_In =  state.InFluxPerComponent[IndexOfTSSComponent];
+#endif // UseTSSComponent
+
+    {state.X_In = IF (state.Q_In == 0)
+			THEN 0
+			ELSE state.SolidFlux_In / state.Q_In;
+     };
+
+    {
+     state.SolidConcentration = ( SUMOVER Layer_Index IN {3 .. NrOfLayersPlusTwoBurger}:
+                                         state.X_Layer[Layer_Index]) / NrOfLayersBurger;
+    };
+
+	//state.X_Min = IF (state.Q_In == 0)
+		//THEN parameters.f_ns * state.SolidConcentration
+		//ELSE parameters.f_ns * state.SolidFlux_In / state.Q_In ;
+
+    	//state.v0_P = parameters.v0 * exp(parameters.r_P * state.X_Min);
+
+		//state.v0_H = parameters.v0 * exp(parameters.r_H * state.X_Min); 
+
+    	state.v_Up = state.Q_Out / parameters.A; 
+
+    	//{ FOREACH Layer_Index IN {1 .. NrOfLayers}:
+    	//   state.v_S_Help[Layer_Index] =
+    	//    IF (state.X_Layer[Layer_Index] < state.X_Min) 
+    	//    THEN 0 
+    	//    ELSE (state.v0_H * exp( - parameters.r_H * state.X_Layer[Layer_Index]) 
+    	//          - state.v0_P * exp( - parameters.r_P * state.X_Layer[Layer_Index]));
+    	//};
+
+   		{ FOREACH Layer_Index IN {1 .. NrOfLayersPlusFourBurger}:
+         state.v_S[Layer_Index] = 
+parameters.v0*(exp(-parameters.r_H* state.X_Layer[Layer_Index]) -exp(- parameters.r_P * state.X_Layer[Layer_Index]));
+
+//parameters.v0*exp(-parameters.r_V*state.X_Layer[Layer_Index]);
+          //(IF (state.v_S_Help[Layer_Index] > parameters.v00)
+          	 // THEN parameters.v00
+          	 // ELSE state.v_S_Help[Layer_Index]);
+    	}; 
+	
+    
+	//Calculate flux limitation: Godunov flux limitation instead of Takacs flux limitation
+		{ FOREACH Layer_Index IN {1 .. NrOfLayersPlusFourBurger}:
+       	   state.J_G_Help[Layer_Index] =
+           state.v_S[Layer_Index] * state.X_Layer[Layer_Index];
+    	};
+
+		//{ FOREACH Layer_Index IN {2 .. IndexOfFeedLayer}:
+       		//state.J_G[Layer_Index-1] =
+        	//IF (state.X_Layer[Layer_Index] < parameters.X_T)
+        	//THEN state.J_G_Help[Layer_Index-1]
+        	//ELSE
+        	// IF (state.J_G_Help[Layer_Index-1] > state.J_G_Help[Layer_Index])
+        	// THEN state.J_G_Help[Layer_Index]
+        	// ELSE state.J_G_Help[Layer_Index-1];
+    		//};
+	
+			//{ FOREACH Layer_Index IN {IndexOfFeedLayer .. NrOfLayersButOne}:
+			//  state.J_G[Layer_Index] = 
+			// 	IF (state.J_G_Help[Layer_Index] > state.J_G_Help[Layer_Index+1])
+			//	THEN state.J_G_Help[Layer_Index+1]
+			//	ELSE state.J_G_Help[Layer_Index] ;
+			//};
+			
+		//Computation of Godunov flux (Algorithm 3.1)
+			{ FOREACH Layer_Index IN {1 .. NrOfLayersPlusThreeBurger}:
+    		  state.J_G[Layer_Index] = 
+			   IF (state.X_Layer[Layer_Index]<state.X_Layer[Layer_Index+1])
+			   THEN MSLUGetMin2(state.J_G_Help[Layer_Index],state.J_G_Help[Layer_Index+1])
+			   ELSE
+			     IF (((state.C_fbk_max-state.X_Layer[Layer_Index])*(state.C_fbk_max-state.X_Layer[Layer_Index+1]))<0)
+				 THEN state.Fbk_max
+				 ELSE MSLUGetMax2(state.J_G_Help[Layer_Index],state.J_G_Help[Layer_Index+1]);
+    		};
+	
+
+	{ FOREACH Layer_Index IN {2 .. IndexOfFeedLayerBurger}:
+       state.J_Up[Layer_Index] =
+        state.v_Up * state.X_Layer[Layer_Index];
+    };
+
+    { FOREACH Layer_Index IN {IndexOfFeedLayerBurger .. NrOfLayersPlusFourBurger}:
+       state.J_Dn[Layer_Index] =
+        state.v_Dn * state.X_Layer[Layer_Index];
+    };
+
+	
+	//New: compression
+	  //Check if Cj>Ccrit
+	  { FOREACH Layer_Index IN {1 .. NrOfLayersPlusFourBurger}:
+        state.X_comp[Layer_Index] = MSLUGetMax2(parameters.C_crit,state.X_Layer[Layer_Index]);
+      };
+	  
+	  //Compute help variables for Gaussian quadrature
+	  { FOREACH Layer_Index IN {1 .. NrOfLayersPlusThreeBurger}:
+	    state.HelpVar1[Layer_Index] = (state.X_comp[Layer_Index+1]-state.X_comp[Layer_Index])/2;
+	  };
+	  
+	  { FOREACH Layer_Index IN {1 .. NrOfLayersPlusThreeBurger}:
+	    state.HelpVar2[Layer_Index] = (state.X_comp[Layer_Index+1]+state.X_comp[Layer_Index])/2;
+	  };
+	
+	  //Algorithm 3.3
+	  { FOREACH Layer_Index IN {1 .. NrOfLayersPlusThreeBurger}:
+        state.J_comp_help[Layer_Index] = 
+//	    IF (state.X_comp[Layer_Index]==state.X_comp[Layer_Index+1])
+	    IF (state.X_comp[Layer_Index]>=state.X_comp[Layer_Index+1])
+	    THEN 0
+	    ELSE SUMOVER Legendre_Index IN {1 .. NrOfNodes}:
+	  	  	   (state.HelpPar1*(exp(-parameters.r_H*(state.HelpVar1[Layer_Index] * parameters.nl[Legendre_Index] 
+			   + state.HelpVar2[Layer_Index]))-exp(-parameters.r_P*(state.HelpVar1[Layer_Index] 
+			   * parameters.nl[Legendre_Index]+ state.HelpVar2[Layer_Index])))/((state.HelpVar1[Layer_Index] 
+			   * parameters.nl[Legendre_Index]+ state.HelpVar2[Layer_Index]) + state.HelpPar2)) * parameters.wl[Legendre_Index]; 
+      };
+	  
+	  { FOREACH Layer_Index IN {1 .. NrOfLayersPlusThreeBurger}:
+	    state.J_comp[Layer_Index] = state.J_comp_help[Layer_Index] * state.HelpVar1[Layer_Index];
+	  };
+
+	
+	//4 extra layers: 2 in effluent zone + 2 in underflow zone
+	
+		//Extra layers in effluent zone
+		{ DERIV(state.X_Layer[1],[independent.t]) =
+       	  (1 / state.H_Layer) * (state.J_Up[2])
+	   	  - (state.Q_Out / state.V_Layer) * state.X_Layer[1];
+    	};
+
+		{ DERIV(state.X_Layer[2],[independent.t]) =
+       	  (1 / state.H_Layer) * (state.J_Up[3] - state.J_Up[2] 
+		  - state.J_G[2]
+	   	  //+(1 / state.H_Layer) * state.J_comp[2]
+	   	  );
+    	};
+	
+		//Layers 1 to N-1 IN settler
+		{ FOREACH Layer_Index IN {3 .. NrOfLayersPlusOneBurger}:
+       	  DERIV(state.X_Layer[Layer_Index],[independent.t]) =
+          IF (Layer_Index == IndexOfFeedLayerBurger)
+          THEN (1 / state.H_Layer) *
+          	  (- state.J_Up[Layer_Index] - state.J_Dn[Layer_Index]
+              + state.J_G[Layer_Index-1] - state.J_G[Layer_Index]
+			  //+ (1 / state.H_Layer)*(state.J_comp[Layer_Index]-state.J_comp[Layer_Index-1])
+			 ) + (1 / state.V_Layer) * state.SolidFlux_In 
+          ELSE (1 / state.H_Layer) * (state.J_Up[Layer_Index+1] - state.J_Up[Layer_Index]
+              + state.J_Dn[Layer_Index-1] - state.J_Dn[Layer_Index]
+              + state.J_G[Layer_Index-1] - state.J_G[Layer_Index]
+			 // + (1 / state.H_Layer)*(state.J_comp[Layer_Index]-state.J_comp[Layer_Index-1])
+			  );
+    	};
+
+    	//Last layer IN settler
+		{ DERIV(state.X_Layer[NrOfLayersPlusTwoBurger],[independent.t]) =
+       	  (1 / state.H_Layer) *
+       	  (state.J_Dn[NrOfLayersPlusOneBurger] - state.J_Dn[NrOfLayersPlusTwoBurger] 
+	   	  + state.J_G[NrOfLayersPlusOneBurger] - state.J_G[NrOfLayersPlusTwoBurger] 
+	   	  //- (1 / state.H_Layer)*(state.J_comp[NrOfLayersPlusOneBurger] + state.J_comp[NrOfLayersPlusTwoBurger])
+	   	  ) ;
+    	};
+
+		//Extra layers in underflow zone
+		{ DERIV(state.X_Layer[NrOfLayersPlusThreeBurger],[independent.t]) =
+       	  (1 / state.H_Layer) *
+       	  (state.J_Dn[NrOfLayersPlusTwoBurger] - state.J_Dn[NrOfLayersPlusThreeBurger] 
+	   	  + state.J_G[NrOfLayersPlusTwoBurger] 
+	   	  //- (1 / state.H_Layer)*state.J_comp[NrOfLayersPlusTwoBurger]
+	   	  ) ;
+    	};
+	
+		{ DERIV(state.X_Layer[NrOfLayersPlusFourBurger],[independent.t]) =
+       	  (1 / state.H_Layer) * (state.J_Dn[NrOfLayersPlusThreeBurger]
+	   	  -state.J_Dn[NrOfLayersPlusFourBurger]);
+    	};
+
+	
+    state.X_Out = IF (state.Q_Out == 0)
+			THEN 0
+			ELSE state.X_Layer[1];
+
+    state.X_Under = IF (state.Q_Under_Actual == 0)
+			  THEN 0
+			  ELSE state.X_Layer[NrOfLayersPlusFourBurger];
+
+// Calculation of the height of the sludge blanket
+
+    state.IndexOfSludgeBlanket =
+     MSLUFindThreshold(ref(state.X_Layer[1]),NrOfLayersPlusFourBurger,parameters.X_Lim);
+
+    state.H_S = (NrOfLayersPlusFourBurger - state.IndexOfSludgeBlanket - 2) *
+                state.H_Layer;
+
+
+// Calculation of the fluxes of all components in the effluent
+ 
+    state.SolidFlux_Out = state.X_Out * state.Q_Out;
+
+    { FOREACH Comp_Index IN {IndexOfSolvent .. IndexOfLastSolubleComponent}:
+      interface.Overflow[Comp_Index] =
+		IF (state.Q_In == 0)
+	      THEN 0
+		ELSE - state.InFluxPerComponent[Comp_Index] * (state.Q_Out / state.Q_In);
+    };
+
+    { FOREACH Comp_Index IN {IndexOfFirstParticulateComponent .. IndexOfLastParticulateComponent}:
+      interface.Overflow[Comp_Index] =
+		IF (state.SolidFlux_In == 0)
+		THEN 0
+		ELSE - (state.InFluxPerComponent[Comp_Index] / state.SolidFlux_In) * state.SolidFlux_Out ;
+    };
+
+// Calculation of the fluxes of all components in the underflow
+
+    state.SolidFlux_Under = state.X_Under * state.Q_Under_Actual;
+
+    interface.Underflow[IndexOfSolvent] = - state.Q_Under_Actual / 0.000001 ;
+
+    { FOREACH Comp_Index IN {IndexOfFirstSolubleComponent .. IndexOfLastSolubleComponent}:
+      interface.Underflow[Comp_Index] = - state.InFluxPerComponent[Comp_Index] - interface.Overflow[Comp_Index] ;
+    };
+
+    { FOREACH Comp_Index IN {IndexOfFirstParticulateComponent .. IndexOfLastParticulateComponent}:
+      interface.Underflow[Comp_Index] =
+		IF (state.Q_In == 0)
+		THEN 0
+		ELSE - (state.InFluxPerComponent[Comp_Index] / state.SolidFlux_In) * state.SolidFlux_Under ;
+    };
+// Here the assumption is made that if state.Q_In differs from zero that also state.SolidFlux_In differs from zero (i.e. The water always contains particulate COD)
+
+// calculation of TakacsDataTerminal
+
+    interface.Sludge_Blanket_Height = state.H_S;
+
+    interface.TSS = state.SolidConcentration;
+
+    interface.V_Clarifier = parameters.A * parameters.H;  
+   };
+
+ :};
+
+#endif // StandardCategoryModels
+
+#endif // WWTP_SECONDARY_CLARIFIER_BURGER_DOUBLE_EXPONENTIAL
+

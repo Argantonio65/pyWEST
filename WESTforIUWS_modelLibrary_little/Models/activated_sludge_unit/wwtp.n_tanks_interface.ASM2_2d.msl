@@ -1,0 +1,227 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 23. april 2012 08:05:08$
+ *
+ ******************************************************************************/
+
+// Define the sensor output interface for the ASM2(d)(Temp) models
+  
+#if (defined ASM2dModTemp)
+#ifdef ASU_TWO_TANK
+   
+    OBJ DO_ASU1 (* terminal = "out_2"; is_favorite = "1" *)"Dissolved oxygen concentration measurement in ASU1" :DissolvedOxygen:= {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NH4_ASU1 (* terminal = "out_2" *)"Ammonium concentration measurement in ASU1" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NO3_ASU1 (* terminal = "out_2" *)"Nitrate+Nitrite concentration measurement in ASU1" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ PO4_ASU1 (* terminal = "out_2" *)" Phosphorous concentration measurement in ASU 1" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ TSS_ASU1 (* terminal = "out_2" *)"Total suspended solids concentration in ASU1" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OnlineCOD_ASU1 (* terminal = "out_2" *)"Chemical Oxygen Demand measurement in ASU1" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OfflineBOD_ASU1 (* terminal = "out_2" *)"Biological Oxygen Demand measurement in ASU1" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OnlineTN_ASU1 (* terminal = "out_2" *)"Total nitrogen concentration measurement in ASU1" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OfflineTKN_ASU1 (* terminal = "out_2" *)"Total Kjeldal nitrogen concentration measurement in ASU1" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OnlineTP_ASU1 (* terminal = "out_2" *)"Total phosphorous concentration measurement in ASU 1" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ V_ASU1 (* terminal = "out_2" *)"Volume measurement data in ASU1" : Volume := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OUR_ASU1 (* terminal = "out_2" *)"OUR measurement data in ASU1" : OxygenUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NUR_ASU1 (* terminal = "out_2" *)"NUR measurement data in ASU1" : NitrateUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NPR_ASU1 (* terminal = "out_2" *)"NPR measurement data in ASU1" : NitrateProductionRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ AUR_ASU1 (* terminal = "out_2" *)"AUR measurement data in ASU1" : AmmoniumUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ PUR_ASU1 (* terminal = "out_2" *)"PUR measurement data in ASU1" : PhosphateUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ Kla_ASU1 (* terminal = "out_2" *)"Kla measurement data in ASU1" : OxygenTransferCoefficient := {: causality <- "COUT" ; group <- "Measurement data" :};
+ 
+    OBJ DO_ASU2 (* terminal = "out_2"; is_favorite = "1" *)"Dissolved oxygen concentration measurement in ASU2" :DissolvedOxygen:= {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NH4_ASU2 (* terminal = "out_2" *)"Ammonium concentration measurement in ASU2" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NO3_ASU2 (* terminal = "out_2" *)"Nitrate+Nitrite concentration measurement in ASU2" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ PO4_ASU2 (* terminal = "out_2" *)" Phosphorous concentration measurement in ASU 2" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ TSS_ASU2 (* terminal = "out_2" *)"Total suspended solids concentration in ASU2" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OnlineCOD_ASU2 (* terminal = "out_2" *)"Chemical Oxygen Demand measurement in ASU2" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OfflineBOD_ASU2 (* terminal = "out_2" *)"Biological Oxygen Demand measurement in ASU2" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OnlineTN_ASU2 (* terminal = "out_2" *)"Total nitrogen concentration measurement in ASU2" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OfflineTKN_ASU2 (* terminal = "out_2" *)"Total Kjeldal nitrogen concentration measurement in ASU2" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OnlineTP_ASU2 (* terminal = "out_2" *)"Total phosphorous concentration measurement in ASU 2" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ V_ASU2 (* terminal = "out_2" *)"Volume measurement data in ASU2" : Volume := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OUR_ASU2 (* terminal = "out_2" *)"OUR measurement data in ASU2" : OxygenUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NUR_ASU2 (* terminal = "out_2" *)"NUR measurement data in ASU2" : NitrateUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NPR_ASU2 (* terminal = "out_2" *)"NPR measurement data in ASU2" : NitrateProductionRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ AUR_ASU2 (* terminal = "out_2" *)"AUR measurement data in ASU2" : AmmoniumUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ PUR_ASU2 (* terminal = "out_2" *)"PUR measurement data in ASU2" : PhosphateUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ Kla_ASU2 (* terminal = "out_2" *)"Kla measurement data in ASU2" : OxygenTransferCoefficient := {: causality <- "COUT" ; group <- "Measurement data" :};
+#endif // ASU_TWO_TANK
+
+#ifdef ASU_THREE_TANK
+   
+    OBJ DO_ASU3 (* terminal = "out_2"; is_favorite = "1" *)"Dissolved oxygen concentration measurement in ASU3" :DissolvedOxygen:= {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NH4_ASU3 (* terminal = "out_2" *)"Ammonium concentration measurement in ASU3" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NO3_ASU3 (* terminal = "out_2" *)"Nitrate+Nitrite concentration measurement in ASU3" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ PO4_ASU3 (* terminal = "out_2" *)" Phosphorous concentration measurement in ASU 3" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ TSS_ASU3 (* terminal = "out_2" *)"Total suspended solids concentration in ASU3" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OnlineCOD_ASU3 (* terminal = "out_2" *)"Chemical Oxygen Demand measurement in ASU3" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OfflineBOD_ASU3 (* terminal = "out_2" *)"Biological Oxygen Demand measurement in ASU3" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OnlineTN_ASU3 (* terminal = "out_2" *)"Total nitrogen concentration measurement in ASU3" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OfflineTKN_ASU3 (* terminal = "out_2" *)"Total Kjeldal nitrogen concentration measurement in ASU3" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OnlineTP_ASU3 (* terminal = "out_2" *)"Total phosphorous concentration measurement in ASU 3" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ V_ASU3 (* terminal = "out_2" *)"Volume measurement data in ASU3" : Volume := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OUR_ASU3 (* terminal = "out_2" *)"OUR measurement data in ASU3" : OxygenUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NUR_ASU3 (* terminal = "out_2" *)"NUR measurement data in ASU3" : NitrateUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NPR_ASU3 (* terminal = "out_2" *)"NPR measurement data in ASU3" : NitrateProductionRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ AUR_ASU3 (* terminal = "out_2" *)"AUR measurement data in ASU3" : AmmoniumUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ PUR_ASU3 (* terminal = "out_2" *)"PUR measurement data in ASU3" : PhosphateUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ Kla_ASU3 (* terminal = "out_2" *)"Kla measurement data in ASU3" : OxygenTransferCoefficient := {: causality <- "COUT" ; group <- "Measurement data" :};
+#endif // ASU_THREE_TANK
+
+#ifdef ASU_FOUR_TANK
+   
+    OBJ DO_ASU4 (* terminal = "out_2"; is_favorite = "1" *)"Dissolved oxygen concentration measurement in ASU4" :DissolvedOxygen:= {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NH4_ASU4 (* terminal = "out_2" *)"Ammonium concentration measurement in ASU4" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NO3_ASU4 (* terminal = "out_2" *)"Nitrate+Nitrite concentration measurement in ASU4" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ PO4_ASU4 (* terminal = "out_2" *)" Phosphorous concentration measurement in ASU 4" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ TSS_ASU4 (* terminal = "out_2" *)"Total suspended solids concentration in ASU4" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OnlineCOD_ASU4 (* terminal = "out_2" *)"Chemical Oxygen Demand measurement in ASU4" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OfflineBOD_ASU4 (* terminal = "out_2" *)"Biological Oxygen Demand measurement in ASU4" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OnlineTN_ASU4 (* terminal = "out_2" *)"Total nitrogen concentration measurement in ASU4" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OfflineTKN_ASU4 (* terminal = "out_2" *)"Total Kjeldal nitrogen concentration measurement in ASU4" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OnlineTP_ASU4 (* terminal = "out_2" *)"Total phosphorous concentration measurement in ASU 4" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ V_ASU4 (* terminal = "out_2" *)"Volume measurement data in ASU4" : Volume := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OUR_ASU4 (* terminal = "out_2" *)"OUR measurement data in ASU4" : OxygenUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NUR_ASU4 (* terminal = "out_2" *)"NUR measurement data in ASU4" : NitrateUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NPR_ASU4 (* terminal = "out_2" *)"NPR measurement data in ASU4" : NitrateProductionRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ AUR_ASU4 (* terminal = "out_2" *)"AUR measurement data in ASU4" : AmmoniumUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ PUR_ASU4 (* terminal = "out_2" *)"PUR measurement data in ASU4" : PhosphateUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ Kla_ASU4 (* terminal = "out_2" *)"Kla measurement data in ASU4" : OxygenTransferCoefficient := {: causality <- "COUT" ; group <- "Measurement data" :};
+#endif // ASU_FOUR_TANK
+
+#ifdef ASU_FIVE_TANK
+   
+    OBJ DO_ASU5 (* terminal = "out_2"; is_favorite = "1" *)"Dissolved oxygen concentration measurement in ASU5" :DissolvedOxygen:= {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NH4_ASU5 (* terminal = "out_2" *)"Ammonium concentration measurement in ASU5" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NO3_ASU5 (* terminal = "out_2" *)"Nitrate+Nitrite concentration measurement in ASU5" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ PO4_ASU5 (* terminal = "out_2" *)" Phosphorous concentration measurement in ASU 5" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ TSS_ASU5 (* terminal = "out_2" *)"Total suspended solids concentration in ASU5" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OnlineCOD_ASU5 (* terminal = "out_2" *)"Chemical Oxygen Demand measurement in ASU5" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OfflineBOD_ASU5 (* terminal = "out_2" *)"Biological Oxygen Demand measurement in ASU5" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OnlineTN_ASU5 (* terminal = "out_2" *)"Total nitrogen concentration measurement in ASU5" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OfflineTKN_ASU5 (* terminal = "out_2" *)"Total Kjeldal nitrogen concentration measurement in ASU5" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OnlineTP_ASU5 (* terminal = "out_2" *)"Total phosphorous concentration measurement in ASU 5" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ V_ASU5 (* terminal = "out_2" *)"Volume measurement data in ASU5" : Volume := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OUR_ASU5 (* terminal = "out_2" *)"OUR measurement data in ASU5" : OxygenUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NUR_ASU5 (* terminal = "out_2" *)"NUR measurement data in ASU5" : NitrateUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NPR_ASU5 (* terminal = "out_2" *)"NPR measurement data in ASU5" : NitrateProductionRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ AUR_ASU5 (* terminal = "out_2" *)"AUR measurement data in ASU5" : AmmoniumUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ PUR_ASU5 (* terminal = "out_2" *)"PUR measurement data in ASU5" : PhosphateUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ Kla_ASU5 (* terminal = "out_2" *)"Kla measurement data in ASU5" : OxygenTransferCoefficient := {: causality <- "COUT" ; group <- "Measurement data" :};
+#endif // ASU_FIVE_TANK
+
+#ifdef ASU_SIX_TANK
+   
+    OBJ DO_ASU6 (* terminal = "out_2"; is_favorite = "1" *)"Dissolved oxygen concentration measurement in ASU6" :DissolvedOxygen:= {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NH4_ASU6 (* terminal = "out_2" *)"Ammonium concentration measurement in ASU6" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NO3_ASU6 (* terminal = "out_2" *)"Nitrate+Nitrite concentration measurement in ASU6" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ PO4_ASU6 (* terminal = "out_2" *)" Phosphorous concentration measurement in ASU 6" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ TSS_ASU6 (* terminal = "out_2" *)"Total suspended solids concentration in ASU6" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OnlineCOD_ASU6 (* terminal = "out_2" *)"Chemical Oxygen Demand measurement in ASU6" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OfflineBOD_ASU6 (* terminal = "out_2" *)"Biological Oxygen Demand measurement in ASU6" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OnlineTN_ASU6 (* terminal = "out_2" *)"Total nitrogen concentration measurement in ASU6" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OfflineTKN_ASU6 (* terminal = "out_2" *)"Total Kjeldal nitrogen concentration measurement in ASU6" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OnlineTP_ASU6 (* terminal = "out_2" *)"Total phosphorous concentration measurement in ASU 6" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ V_ASU6 (* terminal = "out_2" *)"Volume measurement data in ASU6" : Volume := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OUR_ASU6 (* terminal = "out_2" *)"OUR measurement data in ASU6" : OxygenUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NUR_ASU6 (* terminal = "out_2" *)"NUR measurement data in ASU6" : NitrateUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NPR_ASU6 (* terminal = "out_2" *)"NPR measurement data in ASU6" : NitrateProductionRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ AUR_ASU6 (* terminal = "out_2" *)"AUR measurement data in ASU6" : AmmoniumUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ PUR_ASU6 (* terminal = "out_2" *)"PUR measurement data in ASU6" : PhosphateUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ Kla_ASU6 (* terminal = "out_2" *)"Kla measurement data in ASU6" : OxygenTransferCoefficient := {: causality <- "COUT" ; group <- "Measurement data" :};
+#endif // ASU_SIX_TANK
+
+#ifdef ASU_SEVEN_TANK
+   
+    OBJ DO_ASU7 (* terminal = "out_2"; is_favorite = "1" *)"Dissolved oxygen concentration measurement in ASU7" :DissolvedOxygen:= {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NH4_ASU7 (* terminal = "out_2" *)"Ammonium concentration measurement in ASU7" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NO3_ASU7 (* terminal = "out_2" *)"Nitrate+Nitrite concentration measurement in ASU7" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ PO4_ASU7 (* terminal = "out_2" *)" Phosphorous concentration measurement in ASU 7" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ TSS_ASU7 (* terminal = "out_2" *)"Total suspended solids concentration in ASU7" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OnlineCOD_ASU7 (* terminal = "out_2" *)"Chemical Oxygen Demand measurement in ASU7" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OfflineBOD_ASU7 (* terminal = "out_2" *)"Biological Oxygen Demand measurement in ASU7" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OnlineTN_ASU7 (* terminal = "out_2" *)"Total nitrogen concentration measurement in ASU7" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OfflineTKN_ASU7 (* terminal = "out_2" *)"Total Kjeldal nitrogen concentration measurement in ASU7" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OnlineTP_ASU7 (* terminal = "out_2" *)"Total phosphorous concentration measurement in ASU 7" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ V_ASU7 (* terminal = "out_2" *)"Volume measurement data in ASU7" : Volume := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OUR_ASU7 (* terminal = "out_2" *)"OUR measurement data in ASU7" : OxygenUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NUR_ASU7 (* terminal = "out_2" *)"NUR measurement data in ASU7" : NitrateUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NPR_ASU7 (* terminal = "out_2" *)"NPR measurement data in ASU7" : NitrateProductionRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ AUR_ASU7 (* terminal = "out_2" *)"AUR measurement data in ASU7" : AmmoniumUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ PUR_ASU7 (* terminal = "out_2" *)"PUR measurement data in ASU7" : PhosphateUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ Kla_ASU7 (* terminal = "out_2" *)"Kla measurement data in ASU7" : OxygenTransferCoefficient := {: causality <- "COUT" ; group <- "Measurement data" :};
+#endif // ASU_SEVEN_TANK
+
+#ifdef ASU_EIGHT_TANK
+   
+    OBJ DO_ASU8 (* terminal = "out_2"; is_favorite = "1" *)"Dissolved oxygen concentration measurement in ASU8" :DissolvedOxygen:= {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NH4_ASU8 (* terminal = "out_2" *)"Ammonium concentration measurement in ASU8" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NO3_ASU8 (* terminal = "out_2" *)"Nitrate+Nitrite concentration measurement in ASU8" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ PO4_ASU8 (* terminal = "out_2" *)" Phosphorous concentration measurement in ASU 8" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ TSS_ASU8 (* terminal = "out_2" *)"Total suspended solids concentration in ASU8" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OnlineCOD_ASU8 (* terminal = "out_2" *)"Chemical Oxygen Demand measurement in ASU8" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OfflineBOD_ASU8 (* terminal = "out_2" *)"Biological Oxygen Demand measurement in ASU8" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OnlineTN_ASU8 (* terminal = "out_2" *)"Total nitrogen concentration measurement in ASU8" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OfflineTKN_ASU8 (* terminal = "out_2" *)"Total Kjeldal nitrogen concentration measurement in ASU8" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OnlineTP_ASU8 (* terminal = "out_2" *)"Total phosphorous concentration measurement in ASU 8" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ V_ASU8 (* terminal = "out_2" *)"Volume measurement data in ASU8" : Volume := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OUR_ASU8 (* terminal = "out_2" *)"OUR measurement data in ASU8" : OxygenUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NUR_ASU8 (* terminal = "out_2" *)"NUR measurement data in ASU8" : NitrateUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NPR_ASU8 (* terminal = "out_2" *)"NPR measurement data in ASU8" : NitrateProductionRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ AUR_ASU8 (* terminal = "out_2" *)"AUR measurement data in ASU8" : AmmoniumUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ PUR_ASU8 (* terminal = "out_2" *)"PUR measurement data in ASU8" : PhosphateUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ Kla_ASU8 (* terminal = "out_2" *)"Kla measurement data in ASU8" : OxygenTransferCoefficient := {: causality <- "COUT" ; group <- "Measurement data" :};
+#endif // ASU_EIGHT_TANK
+
+#ifdef ASU_NINE_TANK
+   
+    OBJ DO_ASU9 (* terminal = "out_2"; is_favorite = "1" *)"Dissolved oxygen concentration measurement in ASU9" :DissolvedOxygen:= {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NH4_ASU9 (* terminal = "out_2" *)"Ammonium concentration measurement in ASU9" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NO3_ASU9 (* terminal = "out_2" *)"Nitrate+Nitrite concentration measurement in ASU9" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ PO4_ASU9 (* terminal = "out_2" *)" Phosphorous concentration measurement in ASU 9" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ TSS_ASU9 (* terminal = "out_2" *)"Total suspended solids concentration in ASU9" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OnlineCOD_ASU9 (* terminal = "out_2" *)"Chemical Oxygen Demand measurement in ASU9" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OfflineBOD_ASU9 (* terminal = "out_2" *)"Biological Oxygen Demand measurement in ASU9" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OnlineTN_ASU9 (* terminal = "out_2" *)"Total nitrogen concentration measurement in ASU9" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OfflineTKN_ASU9 (* terminal = "out_2" *)"Total Kjeldal nitrogen concentration measurement in ASU9" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OnlineTP_ASU9 (* terminal = "out_2" *)"Total phosphorous concentration measurement in ASU 9" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ V_ASU9 (* terminal = "out_2" *)"Volume measurement data in ASU9" : Volume := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OUR_ASU9 (* terminal = "out_2" *)"OUR measurement data in ASU9" : OxygenUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NUR_ASU9 (* terminal = "out_2" *)"NUR measurement data in ASU9" : NitrateUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NPR_ASU9 (* terminal = "out_2" *)"NPR measurement data in ASU9" : NitrateProductionRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ AUR_ASU9 (* terminal = "out_2" *)"AUR measurement data in ASU9" : AmmoniumUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ PUR_ASU9 (* terminal = "out_2" *)"PUR measurement data in ASU9" : PhosphateUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ Kla_ASU9 (* terminal = "out_2" *)"Kla measurement data in ASU9" : OxygenTransferCoefficient := {: causality <- "COUT" ; group <- "Measurement data" :};
+#endif // ASU_NINE_TANK
+
+#ifdef ASU_TEN_TANK
+   
+    OBJ DO_ASU10 (* terminal = "out_2"; is_favorite = "1" *)"Dissolved oxygen concentration measurement in ASU10" :DissolvedOxygen:= {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NH4_ASU10 (* terminal = "out_2" *)"Ammonium concentration measurement in ASU10" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NO3_ASU10 (* terminal = "out_2" *)"Nitrate+Nitrite concentration measurement in ASU10" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ PO4_ASU10 (* terminal = "out_2" *)" Phosphorous concentration measurement in ASU 10" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ TSS_ASU10 (* terminal = "out_2" *)"Total suspended solids concentration in ASU10" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OnlineCOD_ASU10 (* terminal = "out_2" *)"Chemical Oxygen Demand measurement in ASU10" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OfflineBOD_ASU10 (* terminal = "out_2" *)"Biological Oxygen Demand measurement in ASU10" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OnlineTN_ASU10 (* terminal = "out_2" *)"Total nitrogen concentration measurement in ASU10" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OfflineTKN_ASU10 (* terminal = "out_2" *)"Total Kjeldal nitrogen concentration measurement in ASU10" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OnlineTP_ASU10 (* terminal = "out_2" *)"Total phosphorous concentration measurement in ASU 10" :Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ V_ASU10 (* terminal = "out_2" *)"Volume measurement data in ASU10" : Volume := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ OUR_ASU10 (* terminal = "out_2" *)"OUR measurement data in ASU10" : OxygenUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NUR_ASU10 (* terminal = "out_2" *)"NUR measurement data in ASU10" : NitrateUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ NPR_ASU10 (* terminal = "out_2" *)"NPR measurement data in ASU10" : NitrateProductionRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ AUR_ASU10 (* terminal = "out_2" *)"AUR measurement data in ASU10" : AmmoniumUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ PUR_ASU10 (* terminal = "out_2" *)"PUR measurement data in ASU10" : PhosphateUptakeRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ Kla_ASU10 (* terminal = "out_2" *)"Kla measurement data in ASU10" : OxygenTransferCoefficient := {: causality <- "COUT" ; group <- "Measurement data" :};
+#endif // ASU_TEN_TANK
+
+#endif // ASM2dModTemp

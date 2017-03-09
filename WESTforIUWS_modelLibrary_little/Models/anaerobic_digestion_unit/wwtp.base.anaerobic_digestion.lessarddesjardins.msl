@@ -1,0 +1,255 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 30. marts 2012 11:39:23$
+ *
+ ******************************************************************************/
+
+#ifndef ANAEROBIC_DIGESTION_LESSARDDESJARDINS
+#define ANAEROBIC_DIGESTION_LESSARDDESJARDINS
+
+#if (defined ASM1Temp)
+
+ CLASS Lessard_Desjardins
+ (* icon = "anaerobic_digester" *)
+ "anaerobic digester"
+
+ // The modelling of advanced anaerobic reactors is a difficult task. 
+ // It is an area where our ability to develop  
+ // new design concepts has greatly outstripped our ability to model them.  
+
+ // The model is only valid for a reactor system where the retained 
+ // biomass is encouraged to grow as readily settleable flocs or 
+ // granules that can be either retained in the reactor or separately 
+ // settled and returned to the main reaction tank.
+
+ // The proposed model of Lessard & Desjardins (1994) lumps together the 
+ // complex mechanisms of anaerobic digestion
+ // in a suite of simple and representative steps. The main features are :
+ // o  Sludge solids are first divided in two parts, inorganic and organic. 
+ //    The latter comprises a non-biodegradable (VSSnb)
+ //    and biodegradable (VSSb) fraction.
+ // o  The organic biodegradable matter is successively hydrolysed, 
+ //    assimilated and degraded by the fermentative bacteria.
+ //    By-products (volatile fatty acids = VFA, ammonia and phosphate) 
+ //    are then released. Hydrolysis being generally
+ //    the limiting step, it was considered that the kinetic of that 
+ //    whole step was governed by the hydrolysis kinetics.
+ // o  VFA are transformed by populations of acetogene and methane bacteria.
+ // o  Non biodegradable volatile and inert solids are not 
+ //    affected by the process.
+
+ // Alkalinity is not included in the model. This is a disadvantage of this model.            
+
+ // In order to close the mass balances, an adjustment has been made to the 
+ // original model. The non-biological degradable matter resulting from the 
+ // biomass decay is added to the VSSnb. The biological degradable matter 
+ // resulting from the biomass decay is added to the VSSb.
+
+ // Literature :            
+ // Desjardins B. and Lessard P. (1992), Modélisation du procédé de 
+ // digestion anaérobie, Sci. Wat. Tech., 25, 119-136.  
+
+ EXTENDS WWTPAtomicModelWithoutVolume WITH
+  {:
+   comments <- "A model for anaerobic digestion processes by Lessard and Desjardins";
+   interface <-
+   { 
+    OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+         InWWTPTerminal := {: causality <- "CIN" ; group <- "Influent" :};
+    OBJ Outflow (* terminal = "out_1" *) "Overflow" : 
+         OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent" :};
+    OBJ Underflow (* terminal = "out_2" *) "Underflow" : 
+         OutWWTPTerminal := {: causality <- "COUT" ; group <- "Underflow" :};
+    OBJ Q_Gas_LD (* terminal = "out_3"; is_favorite = "1" *) "gasflow" : 
+         FlowRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ C_X_B_Anaerobic (* terminal = "out_3" *) "Concentration of the anaerobic biomass" : 
+         Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ Q_Under (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Underflow rate" : 
+    FlowRate := {: causality <- "CIN" ; value <- 200 ; group <- "Operational" :}; 
+   };
+
+  parameters <- 
+   { 
+    OBJ S_PO4_In "Influent phosphate concentration" : Concentration := {: value <- 10 ; group <- "Influent characterization" :};
+    OBJ mu_H "Maximum specific growth rate for heterotrophic biomass" : MaxGrowthRate := {: value <- 0.3 ; group <- "Kinetic" :};
+    OBJ b_H "Decay Coefficient For Heterotrophic Biomass" : DecayCoeffHeterotr := {:value <- 0.40 ; group <- "Kinetic" :};
+    OBJ k_h "Maximum Specific Hydrolysis Rate" : MaxSpecificHydrolysisRate :=  {:value <- 2.00 ; group <- "Kinetic" :};
+    OBJ K_VFA "Substrate half saturation coeff for heterotrophic biomass" : HalfSatCoeff := {: value <- 140 ; group <- "Kinetic" :};
+    OBJ Y_XB_VFA "Yield for biomass production associated with VFA consumption" : Yield := {: value <- 0.06 ; group <- "Stoichiometry" :};
+    OBJ Y_NH_VSS "Yield for S_NH production associated with VSS hydrolysis" : Yield := {: value <- 0.038 ; group <- "Stoichiometry" :};
+    OBJ Y_PO_VSS "Yield for S_PO4 production associated with VSS hydrolysis" : Yield := {: value <- 0.00066 ; group <- "Stoichiometry" :};
+    OBJ Y_CH_XB "Yield for methane production associated with biomass growth" : Yield := {: value <- 0.6 ; group <- "Stoichiometry" :};
+    OBJ F_VFA_SS "VFA Fraction of SS" : Fraction := {: value <- 0.5 ; group <- "Conversion factors" :};
+    OBJ i_X_B     "Mass Of Nitrogen Per Mass Of COD In Biomass"
+      : MassOfNitrogenPerMassOfCODInBiomass := {:value <- 0.086 ; group <- "Composition parameters" :};
+    OBJ i_X_P     "Mass Of Nitrogen Per Mass Of COD In Products Formed"
+      : MassOfNitrogenPerMassOfCODInProdFromBiomass := {:value <- 0.06 ; group <- "Composition parameters" :};
+    OBJ f_P      "Fraction Of Biomass Converted To Inert Matter"
+      : FractOfBiomassLeadingToPartProd := {:value<- 0.08 ; group <- "Conversion factors":};
+    OBJ rho_CH4 "Density of CH4" : Density := {: value <- 717 ; group <- "Conversion factors":};
+    OBJ V (* is_favorite = "1" *) "Volume of the tank" : Volume := {: value <- 1000 ; group <- "Dimension":};
+//    OBJ F_TSS_COD "Fraction TSS/COD" : Fraction := {: value <- 0.75 :};
+   };
+
+  state <-
+   {
+    OBJ Help1 (* hidden = "1" *) "Rate of reaction for hydrolysis" : Real;
+    OBJ Help2 (* hidden = "1" *) "Rate of reaction for growth" : Real;
+    OBJ Q_Out (* is_favorite = "1" *) "Effluent flow rate" : FlowRate := {: group <- "Operational" :};
+    OBJ VSSnb_In "Non-biodegradable susp. solids conc. of the influent" : Concentration := {: group <- "Influent characterization" :};
+    OBJ VSSnb "Non-biodegradable susp. solids conc." : Concentration := {: group <- "Concentration" :};
+    OBJ VSSb_In "Biodegradable susp. solids conc. of the influent" : Concentration := {: group <- "Influent characterization" :};
+    OBJ VSSb "Biodegradable susp. solids conc." : Concentration := {: group <- "Concentration" :};
+    OBJ VFA_In "Volatile fatty acids conc. in the influent" : Concentration := {: group <- "Influent characterization" :};
+    OBJ VFA "Volatile fatty acids conc." : Concentration := {: group <- "Concentration" :};
+    OBJ X_B "Methane and acetogene bacteria conc." : Concentration := {: group <- "Concentration" :};
+    OBJ S_PO4 "Phosphate" : Concentration := {: group <- "Concentration" :};
+    OBJ S_NH "Ammonia" : Concentration := {: group <- "Concentration" :};
+    OBJ X_ND "Soluble biodegradable organic nitrogen" : Concentration := {: group <- "Concentration" :};
+    OBJ CH4 "Methane" : MolConcentration := {: group <- "Concentration" :};
+    OBJ Q_Under_Real (* is_favorite = "1" *) "Real underflow rate" : FlowRate := {: group <- "Operational" :};
+   };
+
+  initial <-
+   {
+   };
+
+  equations <-
+   {
+   state.Q_Under_Real = IF (interface.Q_Under > state.Q_In)
+        THEN state.Q_In
+        ELSE interface.Q_Under;
+
+   state.Q_Out = state.Q_In - state.Q_Under_Real ;
+
+   state.VSSnb_In = IF (state.Q_In == 0)
+        THEN 0
+        ELSE interface.Inflow[X_I] / state.Q_In ;
+   state.VSSb_In = IF (state.Q_In == 0)
+       THEN 0
+       ELSE ( interface.Inflow[X_S] + interface.Inflow[X_BH] + interface.Inflow[X_BA] ) / state.Q_In ;
+   state.VFA_In = IF (state.Q_In == 0)
+      THEN 0
+      ELSE parameters.F_VFA_SS * interface.Inflow[S_S] / state.Q_In ;
+
+   state.Help1 = parameters.k_h * state.VSSb ;
+   state.Help2 = parameters.mu_H * (state.VFA / (parameters.K_VFA + state.VFA)) *  state.X_B ;
+
+   // Correction for decay of biomass
+   {DERIV(state.VSSb,[independent.t]) =
+          - state.Help1 
+      + parameters.b_H * state.X_B * (1-parameters.f_P) 
+      + state.Q_In / parameters.V * (state.VSSb_In - state.VSSb) ;
+   };
+
+   // Correction for decay of biomass
+
+   {DERIV(state.VSSnb,[independent.t]) =
+          parameters.b_H * state.X_B * parameters.f_P
+      + state.Q_In / parameters.V * (state.VSSnb_In - state.VSSnb) ;
+   };
+   {DERIV(state.VFA,[independent.t]) =
+          state.Help1 - 1 / parameters.Y_XB_VFA * state.Help2 
+          + state.Q_In / parameters.V * (state.VFA_In - state.VFA) ;
+   };
+   {DERIV(state.S_NH,[independent.t]) =
+          parameters.Y_NH_VSS * state.Help1 
+          + 1 / parameters.V * (interface.Inflow[S_NH] - state.Q_In * state.S_NH) ;
+   };
+
+   // Correction for decay of biomass
+
+   {DERIV(state.X_ND,[independent.t]) =
+          parameters.b_H * state.X_B * (parameters.i_X_B - parameters.f_P * parameters.i_X_P)
+      + 1 / parameters.V * (interface.Inflow[X_ND] - state.Q_In * state.X_ND) ;
+   };
+
+   {DERIV(state.S_PO4,[independent.t]) =
+          parameters.Y_PO_VSS * state.Help1 
+          + state.Q_In / parameters.V * (parameters.S_PO4_In - state.S_PO4) ;
+   };
+
+   {DERIV(state.X_B,[independent.t]) =
+          state.Help2 - parameters.b_H * state.X_B - state.Q_In / parameters.V *  state.X_B;
+   };
+   {DERIV(state.CH4,[independent.t]) =
+          parameters.Y_CH_XB * state.Help2 ;
+   };
+
+   // 1 mol CH4 = 16 g CH4 
+   // rho_CH4 : g/m^3 CH4, is temperature dependent !!
+
+   interface.Q_Gas_LD = 16 * parameters.Y_CH_XB * state.Help2 * parameters.V / parameters.rho_CH4 ;
+   interface.C_X_B_Anaerobic = state.X_B;
+
+   interface.Outflow[X_BH] = 0 ;
+   interface.Outflow[X_BA] = 0 ;
+   interface.Outflow[S_O] = 0 ;   
+// Balance :  ( Ss_i - VFA_i ) * Q_i + VFA_e * ( Q_e + Q_u ) = Ss_e * Q_e + Ss_u * Q_u ;
+// Because :   Ss_e = Ss_u  and   Q_u + Q_e = Q_i
+   interface.Outflow[S_S] = IF (state.Q_In == 0)
+              THEN 0 
+              ELSE - ( interface.Inflow[S_S] / state.Q_In - state.VFA_In + state.VFA ) * state.Q_Out ;   
+   interface.Outflow[X_S] = -( state.VSSb * state.Q_Out + state.X_B * state.Q_Out);   
+   interface.Outflow[X_I] = - state.VSSnb * state.Q_Out;
+   interface.Outflow[S_NH] = - state.S_NH * state.Q_Out; 
+   interface.Outflow[X_ND] = - state.X_ND * state.Q_Out;
+   interface.Outflow[S_ND] = IF (state.Q_In == 0)
+               THEN 0
+               ELSE - interface.Inflow[S_ND] * state.Q_Out / state.Q_In; 
+   interface.Outflow[S_I] = IF (state.Q_In == 0)
+              THEN 0
+              ELSE - interface.Inflow[S_I] * state.Q_Out / state.Q_In;
+   interface.Outflow[S_ALK] = IF (state.Q_In == 0)
+            THEN 0
+            ELSE - interface.Inflow[S_ALK] * state.Q_Out / state.Q_In;
+   interface.Outflow[S_NO] = IF (state.Q_In == 0)
+               THEN 0
+               ELSE - interface.Inflow[S_NO] * state.Q_Out / state.Q_In;
+   interface.Outflow[X_P] = IF (state.Q_In == 0)
+              THEN 0
+              ELSE - interface.Inflow[X_P] * state.Q_Out / state.Q_In;
+
+   interface.Underflow[X_BH] = 0 ;
+   interface.Underflow[X_BA] = 0 ;
+   interface.Underflow[S_O] = 0 ;   
+   interface.Underflow[S_S] = IF (state.Q_In == 0)
+            THEN 0
+            ELSE - ( interface.Inflow[S_S] / state.Q_In - state.VFA_In + state.VFA ) * state.Q_Under_Real ;   
+   interface.Underflow[X_S] = -( state.VSSb * state.Q_Under_Real + state.X_B * state.Q_Under_Real);   
+   interface.Underflow[X_I] = - state.VSSnb * state.Q_Under_Real ;
+   interface.Underflow[S_NH] = - state.S_NH * state.Q_Under_Real ; 
+   interface.Underflow[X_ND] = - state.X_ND * state.Q_Under_Real;
+   interface.Underflow[S_ND] = IF (state.Q_In == 0)
+            THEN 0
+            ELSE - interface.Inflow[S_ND] * state.Q_Under_Real / state.Q_In; 
+   interface.Underflow[S_I] = IF (state.Q_In == 0)
+            THEN 0
+            ELSE - interface.Inflow[S_I] * state.Q_Under_Real / state.Q_In;
+   interface.Underflow[S_ALK] = IF (state.Q_In == 0)
+              THEN 0
+              ELSE - interface.Inflow[S_ALK] * state.Q_Under_Real / state.Q_In;
+   interface.Underflow[S_NO] = IF (state.Q_In == 0)
+             THEN 0
+             ELSE - interface.Inflow[S_NO] * state.Q_Under_Real / state.Q_In;
+   interface.Underflow[X_P] = IF (state.Q_In == 0)
+                THEN 0
+                ELSE - interface.Inflow[X_P] * state.Q_Under_Real / state.Q_In;
+
+  };
+
+ :};
+ 
+#endif //ASM1Temp
+
+#endif // ANAEROBIC_DIGESTION_LESSARDDESJARDINS

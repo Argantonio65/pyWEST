@@ -1,0 +1,118 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 26. juni 2012 15:01:08$
+ *
+ ******************************************************************************/
+
+#ifdef ASMG1
+
+	// Composition and Conversion
+	OBJ i_X_B	"Mass Of Nitrogen Per Mass Of COD In Biomass" : MassOfNitrogenPerMassOfCODInBiomass	:= {: value <- 0.086 ; group <- "Composition parameters" :}; 
+	OBJ i_X_P	"Mass Of Nitrogen Per Mass Of COD In Products Formed" : MassOfNitrogenPerMassOfCODInProdFromBiomass	:= {: value <- 0.06 ; group <- "Composition parameters" :}; 
+	OBJ F_TSS_COD	"Fraction TSS/COD" : Fraction	:= {: value <- 0.75 ; group <- "Conversion factors" :}; 
+	OBJ F_BOD_COD	"Conversion factor BOD/COD" : Fraction	:= {: value <- 0.65 ; group <- "Conversion factors" :}; 
+	//
+	// Stoichiometry
+	OBJ Y_H	"Yield For Heterotrophic Biomass" : YieldForHeterotrophicBiomass	:= {: value <- 0.6 ; group <- "Stoichiometry" :}; 
+	OBJ Y_A1	"Autotrophic Yield, AOB" : YieldForAutotrophicBiomass	:= {: value <- 0.18 ; group <- "Stoichiometry" :}; 
+	OBJ Y_A2	"Autotrophic Yield, NOB" : YieldForAutotrophicBiomass	:= {: value <- 0.06 ; group <- "Stoichiometry" :}; 
+	OBJ f_P	"Fraction Of Biomass Converted To Inert Matter" : FractOfBiomassLeadingToPartProd	:= {: value <- 0.08 ; group <- "Stoichiometry" :}; 
+	//
+	// Kinetics
+	OBJ switch_model "Model switch: MampaeyA=1, modified MampaeyA=0" : Integer := {: value <- 0 ; group <- "Kinetic" :};
+	OBJ a_KlaN2O "a Value for KlaN2O under anoxic condition" : Real	:= {: value <- 1.0 ; group <- "Kinetic" :}; 
+	OBJ b_A1	"Decay Coefficient For AOB" : DecayCoeffAutotr	:= {: value <- 0.096 ; group <- "Kinetic" :}; 
+	OBJ b_A2	"Decay Coefficient For NOB" : DecayCoeffAutotr	:= {: value <- 0.096 ; group <- "Kinetic" :}; 
+	OBJ b_H	"Decay Coefficient For Heterotrophic Biomass" : DecayCoeffHeterotr	:= {: value <- 0.408 ; group <- "Kinetic" :}; 
+	OBJ D_N2	"Diffusion Coefficien of Nitrogen at 20 degrees" : MolecularDiffusivity	:= {: value <- 0.00000000186 ; group <- "Kinetic" :}; 
+	OBJ D_N2O	"DiffusionCoefficient of Nitrous Oxide at 20 degrees" : MolecularDiffusivity	:= {: value <- 0.00000000177 ; group <- "Kinetic" :}; 
+	OBJ D_NO	"Diffusion Coefficien of Nitric Oxide at 20 degrees" : MolecularDiffusivity	:= {: value <- 0.000000000087 ; group <- "Kinetic" :}; 
+	OBJ D_O2	"DiffusionCoefficient of Oxygen at 20 degrees" : MolecularDiffusivity	:= {: value <- 0.00000000212 ; group <- "Kinetic" :}; 
+	OBJ H_N2	"Henry Coefficient for Nitrogen at 20 degrees" : HenryCoefficient	:= {: value <- 1.64 ; group <- "Kinetic" :}; 
+	OBJ H_N2O	"Henry Coefficient for Nitrous Oxide at 20 degrees" : HenryCoefficient	:= {: value <- 0.04 ; group <- "Kinetic" :}; 
+	OBJ H_NO	"Henry Coefficient for Nitric Oxide at 20 degrees" : HenryCoefficient	:= {: value <- 0.53 ; group <- "Kinetic" :}; 
+	OBJ KlaN2O_anoxic	"N2O transfer constant under anoxic condition" : OxygenTransferCoefficient	:= {: value <- 20.0 ; group <- "Kinetic" :}; 
+	OBJ k_a	"Maximum Specific Ammonification Rate" : AmmonificationRate	:= {: value <- 0.1 ; group <- "Kinetic" :}; 
+	OBJ K_FA	"Half Saturation Coefficient for Free Ammonia" : FreeAmmoniaSatCoeffForAutotr	:= {: value <- 0.004 ; group <- "Kinetic" :}; 
+	OBJ K_FNA	"Half Saturation Coefficient for Free Nitrous Acid" : FreeNitrousAcidSatCoeffForAutotr	:= {: value <- 5E-06 ; group <- "Kinetic" :}; 
+	OBJ k_h	"Maximum Specific Hydrolysis Rate" : MaxSpecificHydrolysisRate	:= {: value <- 5 ; group <- "Kinetic" :}; 
+	OBJ K_I10FA	"Free Ammonia Inhibition Coefficient, R10" : FreeAmmoniaInhibitionCoeff	:= {: value <- 0.5 ; group <- "Kinetic" :}; 
+	OBJ K_I10FNA	"Free Nitrous Acid Inhibition Coefficient, R10" : FreeNitrousAcidInhibitionCoeff	:= {: value <- 0.1 ; group <- "Kinetic" :}; 
+	OBJ K_I3NO	"Nitric Oxide Inhibition Coefficient, R3" : NitricOxideInhibitionCoeffForDenitrification	:= {: value <- 0.5 ; group <- "Kinetic" :}; 
+	OBJ K_I4NO	"Nitric Oxide Inhibition Coefficient, R4" : NitricOxideInhibitionCoeffForDenitrification	:= {: value <- 0.3 ; group <- "Kinetic" :}; 
+	OBJ K_I5NO	"Nitric Oxide Inhibition Coefficient, R5" : NitricOxideInhibitionCoeffForDenitrification	:= {: value <- 0.2 ; group <- "Kinetic" :}; 
+	OBJ K_I9FA	"Free Ammonia Inhibition Coefficient, R9" : FreeAmmoniaInhibitionCoeff	:= {: value <- 1.0 ; group <- "Kinetic" :}; 
+	OBJ K_I9FNA	"Free Nitrous Acid Inhibition Coefficient, R9" : FreeNitrousAcidInhibitionCoeff	:= {: value <- 0.1 ; group <- "Kinetic" :}; 
+	OBJ K_N2O	"Half Saturation Coefficient for Nitrous Oxide-N, Hetero" : NHalfSatCoeffForDenitrification	:= {: value <- 0.02 ; group <- "Kinetic" :}; 
+	OBJ K_NO	"Half Saturation Coefficient for Nitric Oxide-N, Hetero" : NHalfSatCoeffForDenitrification	:= {: value <- 0.04 ; group <- "Kinetic" :}; 
+	OBJ K_NO2	"Half Saturation Coefficient for Nitrite-N, Hetero" : NHalfSatCoeffForDenitrification	:= {: value <- 0.3 ; group <- "Kinetic" :}; 
+	OBJ K_NO3	"Half Saturation Coefficient for Nitrate-N, Hetero" : NHalfSatCoeffForDenitrification	:= {: value <- 1.5 ; group <- "Kinetic" :}; 
+	OBJ K_OA1	"Oxygen Half-Saturation Coefficient For Autotrophic Biomass" : OxygenHalfSatCoeffForAutotr	:= {: value <- 0.6 ; group <- "Kinetic" :}; 
+	OBJ K_OA2	"Oxygen Half-Saturation Coefficient For Autotrophic Biomass" : HalfSatCoeffForHetero	:= {: value <- 1.2 ; group <- "Kinetic" :}; 
+	OBJ K_OH	"Oxygen Half-Saturation Coefficient For Heterotrophic Biomass, R1" : OxygenHalfSatCoeffForHetero	:= {: value <- 0.2 ; group <- "Kinetic" :}; 
+	OBJ K_OH1	"Oxygen Half-Saturation Coefficient For Heterotrophic Biomass, R1" : OxygenHalfSatCoeffForHetero	:= {: value <- 0.2 ; group <- "Kinetic" :}; 
+	OBJ K_OH2	"Oxygen Half-Saturation Coefficient For Heterotrophic Biomass, R2" : OxygenHalfSatCoeffForHetero	:= {: value <- 0.2 ; group <- "Kinetic" :}; 
+	OBJ K_OH3	"Oxygen Half-Saturation Coefficient For Heterotrophic Biomass, R3" : OxygenHalfSatCoeffForHetero	:= {: value <- 0.2 ; group <- "Kinetic" :}; 
+	OBJ K_OH4	"Oxygen Half-Saturation Coefficient For Heterotrophic Biomass, R4" : OxygenHalfSatCoeffForHetero	:= {: value <- 0.2 ; group <- "Kinetic" :}; 
+	OBJ K_OH5	"Oxygen Half-Saturation Coefficient For Heterotrophic Biomass, R5" : OxygenHalfSatCoeffForHetero	:= {: value <- 0.2 ; group <- "Kinetic" :}; 
+	OBJ K_S1	"Half-Saturation Coefficient For Heterotrophic Biomass,R1" : HalfSatCoeffForHetero	:= {: value <- 15.0 ; group <- "Kinetic" :}; 
+	OBJ K_S2	"Half-Saturation Coefficient For Heterotrophic Biomass R2" : HalfSatCoeffForHetero	:= {: value <- 20.0 ; group <- "Kinetic" :}; 
+	OBJ K_S3	"Half-Saturation Coefficient For Heterotrophic Biomass R3" : HalfSatCoeffForHetero	:= {: value <- 20.0 ; group <- "Kinetic" :}; 
+	OBJ K_S4	"Half-Saturation Coefficient For Heterotrophic Biomass R4" : HalfSatCoeffForHetero	:= {: value <- 20.0 ; group <- "Kinetic" :}; 
+	OBJ K_S5	"Half-Saturation Coefficient For Heterotrophic Biomass R5" : HalfSatCoeffForHetero	:= {: value <- 30.0 ; group <- "Kinetic" :}; 
+	OBJ K_SNH_aob1	"Ammonium half saturation coeff for autotrophic biomass" : AmmonHalfSatCoeffForAutotrForMampaeyA	:= {: value <- 1.0 ; group <- "Kinetic" :}; 
+	OBJ K_SNH_aob2	"Ammonium half saturation coeff for autotrophic biomass" : AmmonHalfSatCoeffForAutotrForMampaeyA	:= {: value <- 1.0 ; group <- "Kinetic" :}; 
+	OBJ K_SNO2_aob	"Saturation coeff for nitrite" : NSaturationCoefficientForMampaey	:= {: value <- 2.0 ; group <- "Kinetic" :}; 
+	OBJ K_SNO_aob	"Saturation coeff for nitric oxide" : NSaturationCoefficientForMampaey	:= {: value <- 1.0 ; group <- "Kinetic" :}; 
+	OBJ K_SO_aob1	"Half-Saturation Coefficient For SNO2 to SNO" : OxygenHalfSatCoeffForAutotrForMampaeyA	:= {: value <- 1.0 ; group <- "Kinetic" :}; 
+	OBJ K_SO_aob2	"Half-Saturation Coefficient For SNO to SN2O" : OxygenHalfSatCoeffForAutotrForMampaeyA	:= {: value <- 1.0 ; group <- "Kinetic" :}; 
+	OBJ K_SO_AOBden1 "Half-Saturation Coefficient For SNO2 to SNO in modified MampaeyA" : OxygenHalfSatCoeffForAutotrForMampaeyA	:= {: value <- 11.40 ; group <- "Kinetic" :}; 
+	OBJ K_IO_AOBden1 "Half-Saturation Coefficient For SNO2 to SNO in modified MampaeyA" : OxygenHalfSatCoeffForAutotrForMampaeyA	:= {: value <- 0.035 ; group <- "Kinetic" :}; 
+	OBJ K_SO_AOBden2 "Half-Saturation Coefficient For SNO to SN2O in modified MampaeyA" : OxygenHalfSatCoeffForAutotrForMampaeyA	:= {: value <- 11.40 ; group <- "Kinetic" :}; 
+	OBJ K_IO_AOBden2 "Half-Saturation Coefficient For SNO to SN2O in modified MampaeyA" : OxygenHalfSatCoeffForAutotrForMampaeyA	:= {: value <- 0.035 ; group <- "Kinetic" :}; 
+	OBJ K_X	"Half Saturation Coefficient For Hydrolysis Of Slowly Biodegradable Substrate" : HalfSatCoeffForHydrolSlowBioDegradeSubstr	:= {: value <- 0.1 ; group <- "Kinetic" :}; 
+	OBJ n_AOB	"Growth Factor for AOB denitrification" : CorrectionFactor	:= {: value <- 0.5 ; group <- "Kinetic" :}; 
+	OBJ n_g2	"Anoxic Growth Factor, R2" : CorrectionFactor	:= {: value <- 0.3 ; group <- "Kinetic" :}; 
+	OBJ n_g3	"Anoxic Growth Factor, R3" : CorrectionFactor	:= {: value <- 0.3 ; group <- "Kinetic" :}; 
+	OBJ n_g4	"Anoxic Growth Factor, R4" : CorrectionFactor	:= {: value <- 0.6 ; group <- "Kinetic" :}; 
+	OBJ n_g5	"Anoxic Growth Factor, R5" : CorrectionFactor	:= {: value <- 0.8 ; group <- "Kinetic" :}; 
+	OBJ n_h	"Correction Factor For Anoxic Hydrolysis" : CorrectionFactor	:= {: value <- 0.8 ; group <- "Kinetic" :}; 
+	OBJ n_Y	"Anoxic Yield Factor" : CorrectionFactor	:= {: value <- 0.9 ; group <- "Kinetic" :}; 
+	OBJ n_Y_AOB	"Yield Factor for AOB denitrification" : CorrectionFactor := {: value <- 0.83 ; group <- "Kinetic" :}; 
+	OBJ pH_tank "pH" : pH := {: value <- 7.0 ; group <- "Kinetic" :}; 
+	OBJ P_N2O_air "Nitrous Oxide Partial Pressure in Air" : PartialPressureInAir	:= {: value <- 0 ; group <- "Kinetic" :}; 
+	OBJ P_N2_air "Nitrogen Partial Pressure in Air" : PartialPressureInAir	:= {: value <- 0.78 ; group <- "Kinetic" :};
+	OBJ P_NO_air "Nitric Oxide Partial Pressure in Air" : PartialPressureInAir	:= {: value <- 0 ; group <- "Kinetic" :}; 
+	//
+	// Temperature
+	OBJ b_Ratkowsky_mu_A1	"b coefficient of Ratkowsky temperature correction for mu_A1" : bCoeffForRatkowsky	:= {: value <- 0.0255 ; group <- "Temperature correction" :}; 
+	OBJ b_Ratkowsky_mu_A2	"b coefficient of Ratkowsky temperature correction for mu_A2" : bCoeffForRatkowsky	:= {: value <- 0.0235 ; group <- "Temperature correction" :}; 
+	OBJ b_Ratkowsky_mu_H	"b coefficient of Ratkowsky temperature correction for mu_H" : bCoeffForRatkowsky	:= {: value <- 0.0625 ; group <- "Temperature correction" :}; 
+	OBJ c_Ratkowsky_mu_A1	"c coefficient of Ratkowsky temperature correction for mu_A1": cCoeffForRatkowsky	:= {: value <- 0.15 ; group <- "Temperature correction" :}; 
+	OBJ c_Ratkowsky_mu_A2	"c coefficient of Ratkowsky temperature correction for mu_A2" : cCoeffForRatkowsky	:= {: value <- 0.05 ; group <- "Temperature correction" :}; 
+	OBJ c_Ratkowsky_mu_H	"c coefficient of Ratkowsky temperature correction for mu_H" : cCoeffForRatkowsky	:= {: value <- 0.30 ; group <- "Temperature correction" :}; 
+	OBJ Temp_Ref	"Reference temperature for Arrhenius equations" : CelsiusTemperature	:= {: value <- 20.0 ; group <- "Temperature correction" :}; 
+	OBJ theta_b_A1	"Arrhenius parameter for decay of AOB" : Real	:= {: value <- 1.116 ; group <- "Temperature correction" :}; 
+	OBJ theta_b_A2	"Arrhenius parameter for decay of NOB" : Real	:= {: value <- 1.116 ; group <- "Temperature correction" :}; 
+	OBJ theta_b_H	"Arrhenius parameter for decay of heterotrophs" : Real	:= {: value <- 1.12 ; group <- "Temperature correction" :}; 
+	OBJ theta_kla	"Arrhenius parameter for kLa" : Real	:= {: value <- 1.024 ; group <- "Temperature correction" :}; 
+	OBJ theta_k_h	"Arrhenius parameter for hydrolisis factor" : Real	:= {: value <- 1.116 ; group <- "Temperature correction" :}; 
+	OBJ theta_k_a	"Arrhenius parameter for ammonification factor" : Real	:= {: value <- 1.072 ; group <- "Temperature correction" :}; 
+	OBJ Tmax_Ratkowsky_mu_A1	"Maximum temperature of Ratkowsky temperature correction for mu_A1" : CelsiusTemperature	:= {: value <- 50.0 ; group <- "Temperature correction" :}; 
+	OBJ Tmax_Ratkowsky_mu_A2	"Maximum temperature of Ratkowsky temperature correction for mu_A2" : CelsiusTemperature	:= {: value <- 57.0 ; group <- "Temperature correction" :}; 
+	OBJ Tmax_Ratkowsky_mu_H	"Maximum temperature of Ratkowsky temperature correction for mu_H" : CelsiusTemperature	:= {: value <- 50.0 ; group <- "Temperature correction" :}; 
+	OBJ Tmin_Ratkowsky_mu_A1	"Minimum temperature of Ratkowsky temperature correction for mu_A1" : CelsiusTemperature	:= {: value <- -15.0 ; group <- "Temperature correction" :}; 
+	OBJ Tmin_Ratkowsky_mu_A2	"Minimum temperature of Ratkowsky temperature correction for mu_A2" : CelsiusTemperature	:= {: value <- -25.0 ; group <- "Temperature correction" :}; 
+	OBJ Tmin_Ratkowsky_mu_H	"Minimum temperature of Ratkowsky temperature correction for mu_H" : CelsiusTemperature	:= {: value <- -20.0 ; group <- "Temperature correction" :}; 
+
+#endif

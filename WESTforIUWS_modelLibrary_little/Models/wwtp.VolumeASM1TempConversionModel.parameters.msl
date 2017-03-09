@@ -1,0 +1,80 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 5. september 2011 16:01:11$
+ *
+ ******************************************************************************/
+
+#ifdef ASM1Temp
+//  OBJ Temp  "Temperature of the activated sludge"
+//  : CelsiusTemperature  := {: value <- 15 ; group <- "Operational" :}; 
+  OBJ Temp_Ref  "Reference temperature of the activated sludge"
+  : CelsiusTemperature  := {: value <- 20 ; group <- "Kinetic" :}; 
+  OBJ theta_mu_H  "Temperature correction factor for mu_H"
+  : Real  := {: value <- 1.072 ; group <- "Kinetic" :}; 
+  OBJ theta_mu_A  "Temperature correction factor for mu_A"
+  : Real  := {: value <- 1.103 ; group <- "Kinetic" :}; 
+  OBJ theta_b_H "Temperature correction factor for b_H"
+  : Real  := {: value <- 1.12 ; group <- "Kinetic" :}; 
+  OBJ theta_b_A "Temperature correction factor for b_A"
+  : Real  := {: value <- 1.116 ; group <- "Kinetic" :}; 
+  OBJ theta_k_h "Temperature correction factor for k_h"
+  : Real  := {: value <- 1.116 ; group <- "Kinetic" :}; 
+  OBJ theta_k_a "Temperature correction factor for k_a"
+  : Real  := {: value <- 1.072 ; group <- "Kinetic" :}; 
+  OBJ theta_K_X "Temperature correction factor for K_X"
+  : Real  := {: value <- 1.116 ; group <- "Kinetic" :}; 
+  OBJ Y_H "Yield For Heterotrophic Biomass"
+  : YieldForHeterotrophicBiomass  := {: value <- 0.67 ; group <- "Stoichiometry" :}; 
+  OBJ i_X_B "Mass Of Nitrogen Per Mass Of COD In Biomass"
+  : MassOfNitrogenPerMassOfCODInBiomass := {: value <- 0.086 ; group <- "Composition parameters" :}; 
+  OBJ Y_A "Yield For Autotrophic Biomass"
+  : YieldForAutotrophicBiomass  := {: value <- 0.24 ; group <- "Stoichiometry" :}; 
+  OBJ f_P "Fraction Of Biomass Converted To Inert Matter"
+  : FractOfBiomassLeadingToPartProd := {: value <- 0.08 ; group <- "Stoichiometry" :}; 
+  OBJ i_X_P "Mass Of Nitrogen Per Mass Of COD In Products Formed"
+  : MassOfNitrogenPerMassOfCODInProdFromBiomass := {: value <- 0.06 ; group <- "Composition parameters" :}; 
+  OBJ mu_H  "Maximum Specific Growth Rate For Heterotrophic Biomass"
+  : MaxSpecifGrowthRateHetero := {: value <- 6 ; group <- "Kinetic" :}; 
+  OBJ mu_A  "Maximum Specific Growth Rate For Autotrophic Biomass"
+  : MaxSpecifGrowthRateAutotr := {: value <- 0.8 ; group <- "Kinetic" :}; 
+  OBJ K_S "Half-Saturation Coefficient For Heterotrophic Biomass"
+  : HalfSatCoeffForHetero := {: value <- 20 ; group <- "Kinetic" :}; 
+  OBJ K_OH  "Oxygen Half-Saturation Coefficient For Heterotrophic Biomass"
+  : OxygenHalfSatCoeffForHetero := {: value <- 0.2 ; group <- "Kinetic" :}; 
+  OBJ K_X "Half Saturation Coefficient For Hydrolysis Of Slowly Biodegradable Substrate"
+  : HalfSatCoeffForHydrolSlowBioDegradeSubstr := {: value <- 0.03 ; group <- "Kinetic" :}; 
+  OBJ b_H "Decay Coefficient For Heterotrophic Biomass"
+  : DecayCoeffHeterotr  := {: value <- 0.62 ; group <- "Kinetic" :}; 
+  OBJ b_A "Decay Coefficient For Autotrophic Biomass"
+  : DecayCoeffAutotr  := {: value <- 0.15 ; group <- "Kinetic" :}; 
+  OBJ n_h "Correction Factor For Anoxic Hydrolysis"
+  : CorrectionFactor  := {: value <- 0.4 ; group <- "Kinetic" :}; 
+  OBJ n_g "Correction Factor For Anoxic Growth Of Heteritrophs"
+  : CorrectionFactor  := {: value <- 0.8 ; group <- "Kinetic" :}; 
+  OBJ k_a "Maximum Specific Ammonification Rate"
+  : AmmonificationRate  := {: value <- 0.08 ; group <- "Kinetic" :}; 
+  OBJ k_h "Maximum Specific Hydrolysis Rate"
+  : MaxSpecificHydrolysisRate := {: value <- 3 ; group <- "Kinetic" :}; 
+  OBJ K_NO  "Nitrate Half-Saturation Coefficient For Denitrifying Heterotrophic Biomass"
+  : NitrateHalfSatCoeffForDenitrifHetero  := {: value <- 0.5 ; group <- "Kinetic" :}; 
+  OBJ K_NH  "Ammonia Half-Saturation Coefficient For Autotrophic Biomass"
+  : AmmonHalfSatCoeffForAutotr  := {: value <- 1 ; group <- "Kinetic" :}; 
+  OBJ K_NH_H  "Saturation coeff of heterotrophs for ammonium"
+  : SaturationCoefficient := {: value <- 0.05 ; group <- "Kinetic" :}; 
+  OBJ K_OA  "Oxygen Half-Saturation Coefficient For Autotrophic Biomass"
+  : OxygenHalfSatCoeffForAutotr := {: value <- 0.4 ; group <- "Kinetic" :}; 
+  OBJ F_TSS_COD "Fraction TSS/COD"
+  : Fraction  := {: value <- 0.75 ; group <- "Conversion factors" :}; 
+  OBJ F_BOD_COD "Conversion factor BOD/COD"
+  : Fraction  := {: value <- 0.65 ; group <- "Conversion factors" :}; 
+#endif // ASM1Temp

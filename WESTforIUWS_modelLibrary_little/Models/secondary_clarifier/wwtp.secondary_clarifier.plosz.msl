@@ -1,0 +1,446 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 2$ EURE
+ * $Date: 27. juli 2012 11:47:48$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_SECONDARY_CLARIFIER_PLOSZ
+#define WWTP_SECONDARY_CLARIFIER_PLOSZ
+
+
+#ifdef StandardCategoryModels
+CLASS BasePlosz
+ "One-dimensional (1-D) convection-dispersion model of the secondary settling tank (SST) - Benedek Gy. Plosz"
+
+// To develop the 1-D SST model (Plósz et al., 2007), CFD simulation results were implemented as numerical experiments. 
+// The 2-D axisymmetric CFD model (Weiss et al., 2007) was calibrated and confirmed using measured data.
+// A number of 60 grid points are found to be sufficient to compute 1-D concentration profiles that are independent 
+// of the discretisation scheme and to keep the computational efforts to a minimum.
+// The 1-D SST model includes a feed flow dependent reduction factor in the downward convection term 
+// and the dispersion-coefficient is governed as a function of the clarifier overflow velocity. 
+// Clarifier feed is facilitated in layers from 2 to 59. 
+// Density currents are taken into account by positioning the feed layer  
+// above the first layer that has a concentration greater than the clarifier feed concentration. 
+// The simulation performance is further optimised by restricting the maximum height 
+// of the feed layer to 53 % of the clarifier depth.
+// Suction-type sludge removal is accounted for including an array of negative fluxes (sink terms) 
+// in layers L_53-60. A default parameter distribution is given that was obtained using 2-D CFD simulation results. 
+// For conical SSTs with "scaper", L_53-59 parameters should be set to zero, and L_60 to 1.
+// Minimum settling flux condiditions are formulated above and below the feed layer using the Godunov scheme.
+// 
+// CLASS Plosz was confirmed against CFD simulation data under
+// 0.27<=v_Under/v_Feed<=0.71 flow conditions and up to 8 kg/(m2.h) solids loading rate, SLR.
+// 
+// Literature:
+// Plósz, B.G., Weiss, M., Printemps, C., Essemiani, K., Meinhold, J. (2007) 
+// One-dimensional modelling of the secondary clarifier - 
+// factors affecting simulation in the clarification zone and the assessment of the thickening flow dependence. 
+// WATER RESEARCH, 41(15), 3359-3371.
+// Weiss, M., Plósz, B.G., Essemiani, K., Meinhold, J. (2007) 
+// Suction-Lift Sludge Removal and Non-Newtonian Flow Behaviour in Circular Secondary Clarifiers: 
+// Numerical Modelling and Measurements. CHEMICAL ENGINEERING JOURNAL, 132 (1-3), 241–255.
+
+ SPECIALISES PhysicalDAEModelType :=
+ {:
+   interface <-
+   {
+   OBJ Inflow (* terminal = "in_1" *) "Inflow" : InWWTPTerminal := {: causality <- "CIN" :};
+   OBJ Overflow (* terminal = "out_1" *) "Overflow" : OutWWTPTerminal := {: causality <- "COUT" :};
+   OBJ Underflow (* terminal = "out_2" *) "Underflow" : OutWWTPTerminal := {: causality <- "COUT" :};
+   OBJ Sludge_Blanket_Height (* terminal = "out_3" *) "Height of the sludge blanket" : Length := {: causality <- "COUT" :};
+   OBJ TSS(* terminal = "out_3" *) "Total suspended solids concentration" : Concentration := {: causality <- "COUT" :};
+   OBJ V_Clarifier (* terminal = "out_3" *)"Volume measurement data" : Volume := {: causality <- "COUT" :};
+   OBJ PumpingEnergy (* terminal = "out_3" *)"Pumping energy" : ElectricalEnergy := {: causality <- "COUT"; group <- "Energy" :};
+   //
+   OBJ Q_Under (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Underflow rate" : FlowRate := {: causality <- "CIN" ; value <- 200 ; group <- "Operational" :}; 
+   };
+
+   parameters <- 
+   {     
+   // OBJ WWTPSpecificVolume (* hidden = "1" *) "Vector containing specific volume for all the components" : SpecificVolumeVector;
+    OBJ A (* is_favorite = "1" *) "Surface area of the clarifier" : Area := {: value <- 754 ; group <- "Dimension" :};
+    OBJ H (* is_favorite = "1" *) "Height of the clarifier" : Length := {: value <- 3 ; group <- "Dimension" :};
+//    OBJ v0 "Maximum theoretical settling velocity" : Velocity := {: value <- 103.012 ; group <- "Settling" :};
+    OBJ r_P "Settling parameter (low concentration)" : SpecificVolume := {: value <- 0.00286 ; group <- "Settling" :};
+//    OBJ r_H "Settling parameter (hindered settling)" : SpecificVolume := {: value <- 0.0002526 ; group <- "Settling" :}; 
+    OBJ f_ns "Non-settleable fraction of suspended solids" : Fraction := {: value <- 0.001375 ; group <- "Settling" :};
+    OBJ X_Lim "Minimal concentration in sludge blanket" : Concentration := {: value <- 900 ; group <- "Settling" :};
+    OBJ F_TSS_COD "Fraction TSS/COD" : Fraction := {: value <- 0.75 ; group <- "Conversion factors" :};
+// Parameters for sludge removal from layers (54-60) see more on that in Plósz et al. (2007)
+    OBJ L_60 (* hidden = "1" *) "Fraction of underflow withdrawn from layer 60" : Fraction := {: value <- 1.0 :};
+/*
+    OBJ L_59 "Fraction of  underflow withdrawn from layer 59" : Real := {: value <- 0.25 :};
+    OBJ L_58 "Fraction of  underflow withdrawn from layer 58" : Real := {: value <- 0.25 :};
+    OBJ L_57 "Fraction of  underflow withdrawn from layer 57" : Real := {: value <- 0.075 :};
+    OBJ L_56 "Fraction of  underflow withdrawn from layer 56" : Real := {: value <- 0.075 :};
+    OBJ L_55 "Fraction of  underflow withdrawn from layer 55" : Real := {: value <- 0.05 :};
+    OBJ L_54 "Fraction of  underflow withdrawn from layer 54" : Real := {: value <- 0.05 :};
+*/
+// end 
+    OBJ Eta_Con "Downwards convection control" : Velocity := {: value <- 0.504 :};
+    OBJ D_01 "Over flow dependent dispersion model parameter" : Diffusivity := {: value <- 3.95 :}; 
+    OBJ V_OV_DIS "Boundary overflow velocity for dispersion" : Velocity := {: value <- 15 :}; 
+    OBJ V_F_CON "Boundary feedflow velocity for convection" : Length := {: value <- 30.5 :};
+    OBJ g_DIS "Dispersion function coefficient" : Time := {: value <- 0.022 :}; 
+// Value of the dispersion coefficient
+    OBJ D_C_max "Maximum value of the dispersion coefficient" : Diffusivity := {: value <- 15 :};
+// end
+// Dynamic feed layer
+    OBJ L_F_max "Maximum height of the feed layer" : Integer := {: value <- 32 :};
+// end
+// PUMPING ENERGY
+    OBJ F_Energy_FlowRate "Conversion factor Energy needed/Pump flow rate" : Ratio := {: value <- 0.04 ; group <- "Energy":};
+   };
+
+   state <-
+   {
+    OBJ Q_In (* is_favorite = "1" *) "Influent flow rate" : FlowRate := {: group <- "Operational" :};
+    OBJ Q_Out (* is_favorite = "1" *) "Effluent flow rate" : FlowRate := {: group <- "Operational" :};
+    OBJ Q_Under_Actual (* is_favorite = "1" *) "Actual underflow rate" : FlowRate := {: group <- "Operational" :};
+    OBJ IndexOfSludgeBlanket (* hidden = "1" *) "Index of top layer of sludge blanket" : Integer ;
+    OBJ H_S "Height of sludge blanket" : Length := {: group <- "Settling" :}; 
+    OBJ X_Min "Non-settleable sludge concentration" : Concentration := {: group <- "Settling" :}; 
+    OBJ X_In (* is_favorite = "1" *) "Influent suspended solids concentration" : Concentration := {: group <- "Concentration" :};
+    OBJ X_Out (* is_favorite = "1" *) "Effluent suspended solids concentration" : Concentration := {: group <- "Concentration" :};  
+    OBJ X_Under (* is_favorite = "1" *) "Underflow suspended solids concentration" : Concentration := {: group <- "Concentration" :};  
+    OBJ X_Layer "Vector containing concentration of particulates for all the layers" : PloszConcentrationVector := {: group <- "Concentration" :};
+// Flow dependence of the thickening performance 
+    OBJ D_Con_Help (* hidden = "1" *) "Help for the over flow velocity dependent dispersion coefficient" : Diffusivity;
+    OBJ D_Con "Over flow velocity dependent dispersion coefficient" : Diffusivity;
+    OBJ V_Ff "Clarifier feed velocity" : Velocity;
+    OBJ V_Fo "Clarifier overflow velocity" : Velocity;
+    OBJ Eta_CC "Feed velocity dependent convection reduction factor" : Real;
+    OBJ Eta_Con_Help (* hidden = "1" *) "Help for convection reduction factor" : Real;
+// end
+    OBJ v_Up (* hidden = "1" *) "Upward bulk velocity" : Velocity ;	
+    OBJ v_Dn (* hidden = "1" *) "Downward bulk velocity" : Velocity ;
+    OBJ v0_P (* hidden = "1" *) "Correction term for non-settleables" : Velocity ;
+    OBJ v0_H (* hidden = "1" *) "Correction term for non-settleables" : Velocity ; 
+    OBJ v_S (* hidden = "1" *) "Static settling velocity" : PloszVelocityVector;
+    OBJ v_S_Help (* hidden = "1" *) "Static settling velocity help variable": PloszVelocityVector;
+    OBJ J_Up (* hidden = "1" *) "Upward sludge flux" : PloszArealFluxVector;
+    OBJ J_Dn (* hidden = "1" *) "Downward sludge flux" : PloszArealFluxVector;
+    OBJ J_G (* hidden = "1" *) "Static sludge flux" : PloszArealFluxVector;
+    OBJ J_G_Help (* hidden = "1" *) "Static sludge flux": PloszArealFluxVector;
+// Dynamic feed layer  
+    OBJ DynamicIndexOfFeedLayer_Help (* hidden = "1" *) "Dynamic Index of Feed Layer - HELP" : Real := {: group <- "Operational" :};
+    OBJ DynamicIndexOfFeedLayer "Dynamic Index of Feed Layer" : Real := {: group <- "Operational" :};
+// Dispersion model 
+    OBJ J_Dis (* hidden = "1" *) "Dispersion flux": PloszArealFluxVector;
+    OBJ D_1 (* hidden = "1" *) "Dispersion with the following layer ": PloszDiffusivityVector; 
+    OBJ D_2 (* hidden = "1" *) " Dispersion with the precedent layer ": PloszDiffusivityVector; 
+    OBJ J_GUp_Help (* hidden = "1" *) "Treatment of the minimum settling flux conditions by Godunov - gravity and upwards convective help fluxes": PloszArealFluxVector; 
+    OBJ J_GUp (* hidden = "1" *) " Treatment of the minimum settling flux conditions by Godunov - gravity and upwards convective fluxes": PloszArealFluxVector; 
+// end
+    OBJ InFluxPerComponent (* hidden = "1" *) "Vector containing incoming fluxes for all the components" : MassFluxVector;
+    OBJ SolidFlux_In (* hidden = "1" *) "Sum of massfluxes of particulates" : MassFlux ;
+    OBJ SolidConcentration (* hidden = "1" *) "Sum of concentrations of particulates" : Concentration ;
+    OBJ V_Layer (* hidden = "1" *)	"Volume of the layer" : Volume ;	
+    OBJ H_Layer (* hidden = "1" *) "Height of layer" : Length ;
+    OBJ SolidFlux_Out (* hidden = "1" *) "Fraction of influx that goes to the effluent" : MassFlux ;
+    OBJ SolidFlux_Under (* hidden = "1" *) "Fraction of influx that goes to the underflow" : MassFlux ;
+// PUMPING ENERGY
+    OBJ Integ_PE (* hidden = "1" *)"Integral Pumping energy" : ElectricalEnergy ;
+   };
+
+   initial <-
+   {
+  //  parameters.WWTPSpecificVolume[H2O] := 1e-6;
+    state.V_Layer = parameters.A * (parameters.H / 60); 
+    state.H_Layer = parameters.H / 60;
+   };
+
+  independent <- { OBJ t "Time": Time; };
+
+  equations <-
+   {
+    state.Q_Under_Actual = IF (state.Q_In <= interface.Q_Under)
+         THEN state.Q_In
+         ELSE interface.Q_Under;
+
+// Modified downward convective velocity term 
+    state.v_Dn = (state.Q_Under_Actual / parameters.A) * state.Eta_CC; 
+
+// Dynamic feed-layer calculation - The function MSLUFindThreshold calculates the first layer of which a 
+// certain element exceeds a threshold
+    state.DynamicIndexOfFeedLayer_Help = MSLUFindThreshold(ref(state.X_Layer[1]),60,state.X_In);
+    state.DynamicIndexOfFeedLayer = MSLUGetMax2(state.DynamicIndexOfFeedLayer_Help,parameters.L_F_max);
+// end 
+
+    { FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}: state.InFluxPerComponent[Comp_Index] =
+			SUMOVER In_Terminal IN {SelectByType(interface,InWWTPTerminal)}: In_Terminal[Comp_Index] ; };
+
+    state.Q_In = (0.000001 * state.InFluxPerComponent[IndexOfSolvent]) ;
+
+    state.Q_Out = state.Q_In - state.Q_Under_Actual; 
+
+#ifdef CalculateTSSComponent
+    { state.SolidFlux_In = SUMOVER Comp_Index IN {IndexOfFirstTSSComponent .. IndexOfLastTSSComponent}:
+			state.InFluxPerComponent[Comp_Index] * parameters.F_TSS_COD ; };
+#endif
+
+#ifdef UseTSSComponent
+    state.SolidFlux_In =  state.InFluxPerComponent[IndexOfTSSComponent];
+#endif
+
+    state.X_In = IF (state.Q_In == 0) THEN 0
+			ELSE state.SolidFlux_In / state.Q_In ;
+
+	{ state.SolidConcentration =
+			(SUMOVER Layer_Index IN {1 .. 60}: state.X_Layer[Layer_Index]) / 60 ; };
+
+    state.X_Min = IF (state.Q_In == 0) THEN parameters.f_ns * state.SolidConcentration
+			ELSE parameters.f_ns * state.SolidFlux_In / state.Q_In ;
+
+/*
+IN DERIVED CLASS(ES)
+    state.v0_P
+    state.v0_H 
+*/
+    state.v_Up = state.Q_Out / parameters.A; 
+
+// Flow dependence of the thickening performance 
+    state.V_Ff = state.Q_In / parameters.A;
+    state.V_Fo = state.Q_Out / parameters.A;
+
+    state.D_Con_Help = IF (state.V_Fo < parameters.V_OV_DIS) THEN parameters.D_01
+			ELSE parameters.D_01 + parameters.g_DIS * (state.V_Fo - parameters.V_OV_DIS) * (state.V_Fo - parameters.V_OV_DIS) ;
+
+    state.D_Con = MSLUGetMin2(state.D_Con_Help, parameters.D_C_max);
+	 
+    state.Eta_Con_Help = IF (state.V_Ff < parameters.V_F_CON) THEN parameters.Eta_Con
+			ELSE parameters.Eta_Con + (state.V_Ff - parameters.V_F_CON) /  parameters.V_F_CON * (state.V_Ff - parameters.V_F_CON) / parameters.V_F_CON;
+
+    state.Eta_CC = MSLUGetMin2(state.Eta_Con_Help, 1.0);
+// end 
+    
+// Calculation of dispersion state variables
+    { FOREACH Layer_Index IN {1 .. 59}: state.D_1[Layer_Index] = state.D_Con ; };
+    { FOREACH Layer_Index IN {1 .. 60}: state.D_2[Layer_Index] = state.D_Con ; };
+// end
+
+/*
+IN DERIVED CLASS(ES)
+    { FOREACH Layer_Index IN {1 .. 60}: state.v_S_Help[Layer_Index] =
+
+// Maximum practical settling velocity, v00, is omitted (parameters.v00 replaced by v0)
+    { FOREACH Layer_Index IN {1 .. 60}: state.v_S[Layer_Index] =
+// end 
+*/
+        
+    { FOREACH Layer_Index IN {1 .. 60}: state.J_G_Help[Layer_Index] =
+			state.v_S[Layer_Index] * state.X_Layer[Layer_Index] ; };
+
+// Calculation of J_Up (Upward flow flux) for all layers (except top layer)
+    { FOREACH Layer_Index IN {2 .. 60}: state.J_Up[Layer_Index] = 
+			IF (Layer_Index > state.DynamicIndexOfFeedLayer) THEN 0		  // i.e. Beneath the feed layer
+					ELSE state.v_Up * state.X_Layer[Layer_Index]; };	// i.e. Above the feed layer
+
+// Calculation of J_Dn (Downward flow flux) for all layers except bottom layer
+    { FOREACH Layer_Index IN {1 .. 59}: state.J_Dn[Layer_Index] =
+			IF (Layer_Index >= state.DynamicIndexOfFeedLayer) THEN state.v_Dn * state.X_Layer[Layer_Index]	// i.e. Beneath the feed layer
+					ELSE 0; }; 								  	   		// i.e. Above the feed layer
+
+// Calculation of dispersion state variables
+    { FOREACH Layer_Index IN {2 .. 59}: state.J_Dis[Layer_Index] =
+			- state.D_2[Layer_Index] * (state.X_Layer[Layer_Index] - state.X_Layer[Layer_Index-1]) / state.H_Layer
+			+ state.D_1[Layer_Index] * (state.X_Layer[Layer_Index+1] - state.X_Layer[Layer_Index]) / state.H_Layer ; };
+// end
+
+// The Takacs flux limitation is excluded from the model, and replaced with the analytical Godunov-approach. - BPlosz
+
+//BPlosz - mathematical treatment of the minimum settling flux condition of Takacs is excluded
+
+//BPlosz - mathematical treatment of the minimum settling flux condition using the Godunov-approach
+    { FOREACH Layer_Index IN {2 .. 59}: state.J_G[Layer_Index-1] =
+			IF (Layer_Index <= state.DynamicIndexOfFeedLayer) THEN
+					IF (state.J_G_Help[Layer_Index-1] <= state.J_G_Help[Layer_Index]) THEN state.J_G_Help[Layer_Index-1]
+					   		ELSE state.J_G_Help[Layer_Index]
+			ELSE state.J_G_Help[Layer_Index-1] ; };
+
+    { FOREACH Layer_Index IN {1 .. 59}: state.J_G[Layer_Index] =
+			IF (Layer_Index > state.DynamicIndexOfFeedLayer) THEN 
+					IF (state.J_G_Help[Layer_Index] > state.J_G_Help[Layer_Index+1]) THEN state.J_G_Help[Layer_Index+1]
+							ELSE state.J_G_Help[Layer_Index]
+			ELSE state.J_G_Help[Layer_Index] ; };
+// end
+
+
+//Modification of the mass balance calculations 
+    { DERIV(state.X_Layer[1],[independent.t]) = (1 / state.H_Layer) * (state.J_Up[2] - state.J_G[1] + state.D_1[1] * (state.X_Layer[2]
+			- state.X_Layer[1]) / state.H_Layer) - (state.Q_Out / state.V_Layer) * state.X_Layer[1] ; };
+
+    { FOREACH Layer_Index IN {2 .. 59}:
+       DERIV(state.X_Layer[Layer_Index],[independent.t]) =
+        IF (Layer_Index == state.DynamicIndexOfFeedLayer)
+        THEN (1 / state.H_Layer) *
+             (- state.J_Up[Layer_Index] - state.J_Dn[Layer_Index]
+              + state.J_G[Layer_Index-1] - state.J_G[Layer_Index] + state.J_Dis[Layer_Index]) +
+             (1 / state.V_Layer) * state.SolidFlux_In 
+        ELSE (1 / state.H_Layer) *
+             (state.J_Up[Layer_Index+1] - state.J_Up[Layer_Index]
+              + state.J_Dn[Layer_Index-1] - state.J_Dn[Layer_Index]
+              + state.J_G[Layer_Index-1] - state.J_G[Layer_Index] + state.J_Dis[Layer_Index]);
+    };
+
+// Sludge removal from layers 54-60 - separate calculation of state.X_layer[60-54]
+/*
+    { DERIV(state.X_Layer[54],[independent.t]) = IF (54 == state.DynamicIndexOfFeedLayer)
+	  		THEN (1 / state.H_Layer) * (state.J_Up[55] - state.J_Up[54] + state.J_Dn[53] - state.J_Dn[54]
+			+ state.J_G[53] - state.J_G[54] + state.J_Dis[54]) - ((state.Q_Under_Actual * parameters.L_54)
+			/ state.V_Layer) * state.X_Layer[54] + (1 / state.V_Layer) * state.SolidFlux_In
+			ELSE (1 / state.H_Layer) * (state.J_Up[55] - state.J_Up[54] + state.J_Dn[53] - state.J_Dn[54]
+			+ state.J_G[53] - state.J_G[54] + state.J_Dis[54]) - ((state.Q_Under_Actual * parameters.L_54)
+			/ state.V_Layer) * state.X_Layer[54] ; };
+
+    { DERIV(state.X_Layer[55],[independent.t]) = IF (55 == state.DynamicIndexOfFeedLayer)
+			THEN (1 / state.H_Layer) * (state.J_Up[56] - state.J_Up[55] + state.J_Dn[54] - state.J_Dn[55]
+			+ state.J_G[54] - state.J_G[55] + state.J_Dis[55]) - ((state.Q_Under_Actual * parameters.L_55)
+			/ state.V_Layer) * state.X_Layer[55] + (1 / state.V_Layer) * state.SolidFlux_In
+			ELSE (1 / state.H_Layer) * (state.J_Up[56] - state.J_Up[55] + state.J_Dn[54] - state.J_Dn[55]
+			+ state.J_G[54] - state.J_G[55] + state.J_Dis[55]) - ((state.Q_Under_Actual * parameters.L_55)
+			/ state.V_Layer) * state.X_Layer[55] ; };
+
+    { DERIV(state.X_Layer[56],[independent.t]) = IF (56 == state.DynamicIndexOfFeedLayer)
+			THEN (1 / state.H_Layer) * (state.J_Up[57] - state.J_Up[56] + state.J_Dn[55] - state.J_Dn[56]
+			+ state.J_G[55] - state.J_G[56] + state.J_Dis[56]) - ((state.Q_Under_Actual * parameters.L_56)
+			/ state.V_Layer) * state.X_Layer[56] + (1 / state.V_Layer) * state.SolidFlux_In
+			ELSE (1 / state.H_Layer) * (state.J_Up[57] - state.J_Up[56] + state.J_Dn[55] - state.J_Dn[56]
+			+ state.J_G[55] - state.J_G[56] + state.J_Dis[56]) - ((state.Q_Under_Actual * parameters.L_56)
+			/ state.V_Layer) * state.X_Layer[56] ; };
+
+    { DERIV(state.X_Layer[57],[independent.t]) =  IF (57 == state.DynamicIndexOfFeedLayer)
+			THEN (1 / state.H_Layer) * (state.J_Up[58] - state.J_Up[57] + state.J_Dn[56] - state.J_Dn[57]
+			+ state.J_G[56] - state.J_G[57] + state.J_Dis[57]) - ((state.Q_Under_Actual * parameters.L_57)
+			/ state.V_Layer) * state.X_Layer[57] + (1 / state.V_Layer) * state.SolidFlux_In
+			ELSE (1 / state.H_Layer) * (state.J_Up[58] - state.J_Up[57] + state.J_Dn[56] - state.J_Dn[57]
+			+ state.J_G[56] - state.J_G[57] + state.J_Dis[57]) - ((state.Q_Under_Actual * parameters.L_57)
+			/ state.V_Layer) * state.X_Layer[57] ; };
+
+    { DERIV(state.X_Layer[58],[independent.t]) = IF (58 == state.DynamicIndexOfFeedLayer)
+			THEN (1 / state.H_Layer) * (state.J_Up[59] - state.J_Up[58] + state.J_Dn[57] - state.J_Dn[58]
+			+ state.J_G[57] - state.J_G[58] + state.J_Dis[58]) - ((state.Q_Under_Actual * parameters.L_58)
+			/ state.V_Layer) * state.X_Layer[58] + (1 / state.V_Layer) * state.SolidFlux_In
+			ELSE (1 / state.H_Layer) * (state.J_Up[59] - state.J_Up[58] + state.J_Dn[57] - state.J_Dn[58]
+			+ state.J_G[57] - state.J_G[58] + state.J_Dis[58]) - ((state.Q_Under_Actual * parameters.L_58)
+			/ state.V_Layer) * state.X_Layer[58] ; };
+
+    { DERIV(state.X_Layer[59],[independent.t]) = IF (59 == state.DynamicIndexOfFeedLayer)
+			THEN (1 / state.H_Layer) * (state.J_Up[60] - state.J_Up[59] + state.J_Dn[58] - state.J_Dn[59]
+			+ state.J_G[58] - state.J_G[59] + state.J_Dis[59]) - ((state.Q_Under_Actual * parameters.L_59)
+			/ state.V_Layer) * state.X_Layer[59] + (1 / state.V_Layer) * state.SolidFlux_In
+			ELSE (1 / state.H_Layer) * (state.J_Up[60] - state.J_Up[59] + state.J_Dn[58] - state.J_Dn[59]
+			+ state.J_G[58] - state.J_G[59] + state.J_Dis[59]) - ((state.Q_Under_Actual * parameters.L_59)
+			/ state.V_Layer) * state.X_Layer[59] ; };
+*/
+    { DERIV(state.X_Layer[60],[independent.t]) =  IF (60 == state.DynamicIndexOfFeedLayer)
+			THEN (1 / state.H_Layer) * (state.J_Dn[59] + state.J_G[59] - state.D_2[60] * (state.X_Layer[60]
+			- state.X_Layer[59]) / state.H_Layer) - ((state.Q_Under_Actual * parameters.L_60) / state.V_Layer) *
+			state.X_Layer[60] + (1 / state.V_Layer) * state.SolidFlux_In
+			ELSE (1 / state.H_Layer) * (state.J_Dn[59] + state.J_G[59] - state.D_2[60] * (state.X_Layer[60]
+			- state.X_Layer[59]) / state.H_Layer) - ((state.Q_Under_Actual * parameters.L_60) / state.V_Layer) *
+			state.X_Layer[60] ; };
+
+    state.X_Out = IF (state.Q_Out == 0) THEN 0
+			ELSE state.X_Layer[1]; 
+// end
+
+// Modification of state.X_under to account for multiple layer sludge withdrawal
+
+    state.X_Under = IF (state.Q_Under_Actual == 0)
+			  THEN 0
+			  ELSE state.X_Layer[60] ; 
+/*
+			  ELSE state.X_Layer[60] * parameters.L_60 + state.X_Layer[59] * parameters.L_59 + 
+			  state.X_Layer[58] * parameters.L_58 + state.X_Layer[57] * parameters.L_57 + state.X_Layer[56] * parameters.L_56 + state.X_Layer[55] * parameters.L_55 + state.X_Layer[54] * parameters.L_54; 
+*/
+// end
+
+// Calculation of the height of the sludge blanket
+    state.IndexOfSludgeBlanket = MSLUFindThreshold(ref(state.X_Layer[1]),60,parameters.X_Lim) ;
+    state.H_S = (60 - state.IndexOfSludgeBlanket + 1) * state.H_Layer ;
+
+// Calculation of the fluxes of all components in the effluent
+    state.SolidFlux_Out = state.X_Out * state.Q_Out;
+
+    { FOREACH Comp_Index IN {IndexOfSolvent .. IndexOfLastSolubleComponent}: interface.Overflow[Comp_Index] =
+	  		IF (state.Q_In == 0) THEN 0
+			ELSE - state.InFluxPerComponent[Comp_Index] * (state.Q_Out / state.Q_In) ; };
+
+    { FOREACH Comp_Index IN {IndexOfFirstParticulateComponent .. IndexOfLastParticulateComponent}: interface.Overflow[Comp_Index] =
+			IF (state.SolidFlux_In == 0) THEN 0
+			ELSE - (state.InFluxPerComponent[Comp_Index] / state.SolidFlux_In) * state.SolidFlux_Out ; };
+
+// Calculation of the fluxes of all components in the underflow
+    state.SolidFlux_Under = state.X_Under * state.Q_Under_Actual;
+    interface.Underflow[IndexOfSolvent] = - state.Q_Under_Actual / 0.000001 ;
+
+    { FOREACH Comp_Index IN {IndexOfFirstSolubleComponent .. IndexOfLastSolubleComponent}:
+			interface.Underflow[Comp_Index] = - state.InFluxPerComponent[Comp_Index] - interface.Overflow[Comp_Index] ; };
+
+    { FOREACH Comp_Index IN {IndexOfFirstParticulateComponent .. IndexOfLastParticulateComponent}: interface.Underflow[Comp_Index] =
+			IF (state.Q_In == 0) THEN 0
+			ELSE - (state.InFluxPerComponent[Comp_Index] / state.SolidFlux_In) * state.SolidFlux_Under ; };
+
+// Here the assumption is made that if state.Q_In differs from zero that also state.SolidFlux_In differs from zero (i.e. The water always contains particulate COD)
+// calculation of TakacsDataTerminal
+    interface.Sludge_Blanket_Height = state.H_S;
+    interface.TSS = state.SolidConcentration;
+    interface.V_Clarifier = parameters.A * parameters.H;  
+
+	// PUMPING ENERGY
+	DERIV(state.Integ_PE,[independent.t])=  state.Q_Under_Actual ;
+	interface.PumpingEnergy = parameters.F_Energy_FlowRate * state.Integ_PE ;
+   };
+
+ :};
+
+
+
+
+CLASS Plosz
+ (* icon = "secondary_clarifier" *)
+ "One-dimensional (1-D) convection-dispersion model of the secondary settling tank (SST) - Benedek Gy. Plosz"
+
+ EXTENDS BasePlosz WITH
+ {:
+   comments <- " A layered dispersion model calibrated and validated for flat-bottom secondary clarifiers - Benedek Plosz ";
+
+   parameters <- 
+   {     
+    OBJ v0 "Maximum theoretical settling velocity" : Velocity := {: value <- 103.012 ; group <- "Settling" :};
+    OBJ r_H "Settling parameter (hindered settling)" : SpecificVolume := {: value <- 0.0002526 ; group <- "Settling" :}; 
+   };
+
+  equations <-
+   {
+    state.v0_P = parameters.v0 * exp(parameters.r_P * state.X_Min);
+    state.v0_H = parameters.v0 * exp(parameters.r_H * state.X_Min); 
+
+    { FOREACH Layer_Index IN {1 .. 60}: state.v_S_Help[Layer_Index] =
+			IF (state.X_Layer[Layer_Index] < state.X_Min) THEN 0
+			   		ELSE (state.v0_H * exp( - parameters.r_H * state.X_Layer[Layer_Index])
+					- state.v0_P * exp( - parameters.r_P * state.X_Layer[Layer_Index])) ; };
+
+// Maximum practical settling velocity, v00, is omitted (parameters.v00 replaced by v0)
+    { FOREACH Layer_Index IN {1 .. 60}: state.v_S[Layer_Index] =
+			(IF (state.v_S_Help[Layer_Index] > parameters.v0) THEN parameters.v0
+					ELSE state.v_S_Help[Layer_Index]) ; }; 
+// end 
+   };
+
+ :};
+
+#endif
+
+#endif

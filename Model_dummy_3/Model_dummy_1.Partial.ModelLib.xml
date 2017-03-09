@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Tornado>
+<ModelLib Name="Model_dummy_1" Version="1.0">
+<Props>
+<Prop Name="TornadoVersion" Value="2016 "/>
+<Prop Name="Author" Value="TUD278183\localadmin"/>
+<Prop Name="Date" Value="Wed Mar 08 15:26:36 2017"/>
+<Prop Name="Desc" Value=""/>
+<Prop Name="FileName" Value="C:\Users\localadmin.TUD278183\Desktop\pyWEST\Model_dummy_1\Model_dummy_1.Partial.ModelLib.xml|.Tornado"/>
+<Prop Name="DisplayName" Value=""/>
+<Prop Name="Includes" Value=""/>
+<Prop Name="IncludeNamespaces" Value=""/>
+</Props>
+<Models>
+<Model Name="Model_dummy_1" DefaultValue="" Desc="" Elems="" FileName="" IconName="" IsDefault="false" IsLoopBreaker="false" LowerBound="" Parent="" SourceFileName="" SourceLineNo="0" Type="Model" Unit="" UpperBound="">
+<InterfaceVars>
+<InterfaceVar Name="Rural_baseflow" Causality="Input" ClassName="Real" DefaultValue="" Desc="" Elems="H2O,S_A,S_ALK,S_F,S_I,S_N2,S_NH,S_NO,S_O,S_PO,X_AUT,X_H,X_I,X_MEOH,X_MEP,X_PAO,X_PHA,X_PP,X_S,X_TSS" Fixed="false" Group="" Hidden="false" IsFavorite="false" IsFlow="false" IsInner="false" IsOuter="false" LowerBound="" Manip="false" PDF="" Terminal="" Unit="" UpperBound=""/>
+<InterfaceVar Name="Solar_Radiation" Causality="Input" ClassName="DensityOfHeatFlowRate" DefaultValue="" Desc="" Elems="H2O,S_A,S_ALK,S_F,S_I,S_N2,S_NH,S_NO,S_O,S_PO,X_AUT,X_H,X_I,X_MEOH,X_MEP,X_PAO,X_PHA,X_PP,X_S,X_TSS" Fixed="false" Group="" Hidden="false" IsFavorite="false" IsFlow="false" IsInner="false" IsOuter="false" LowerBound="" Manip="false" PDF="" Terminal="" Unit="" UpperBound=""/>
+<InterfaceVar Name="Temperature_water" Causality="Input" ClassName="CelsiusTemperature" DefaultValue="" Desc="" Elems="H2O,S_A,S_ALK,S_F,S_I,S_N2,S_NH,S_NO,S_O,S_PO,X_AUT,X_H,X_I,X_MEOH,X_MEP,X_PAO,X_PHA,X_PP,X_S,X_TSS" Fixed="false" Group="" Hidden="false" IsFavorite="false" IsFlow="false" IsInner="false" IsOuter="false" LowerBound="" Manip="false" PDF="" Terminal="" Unit="" UpperBound=""/>
+<InterfaceVar Name="Urban_CSO_flow" Causality="Input" ClassName="Real" DefaultValue="" Desc="" Elems="H2O,S_A,S_ALK,S_F,S_I,S_N2,S_NH,S_NO,S_O,S_PO,X_AUT,X_H,X_I,X_MEOH,X_MEP,X_PAO,X_PHA,X_PP,X_S,X_TSS" Fixed="false" Group="" Hidden="false" IsFavorite="false" IsFlow="false" IsInner="false" IsOuter="false" LowerBound="" Manip="false" PDF="" Terminal="" Unit="" UpperBound=""/>
+</InterfaceVars>
+<SubModels>
+<SubModel Name="River_1" ClassName="RivVarVolumeRIVER" Desc="" Elems=""/>
+<SubModel Name="River_2" ClassName="RivVarVolumeRIVER" Desc="" Elems=""/>
+<SubModel Name="River_3" ClassName="RivVarVolumeRIVER" Desc="" Elems=""/>
+<SubModel Name="River_4" ClassName="RivVarVolumeRIVER" Desc="" Elems=""/>
+<SubModel Name="River_5" ClassName="RivVarVolumeRIVER" Desc="" Elems=""/>
+<SubModel Name="Rural_inflow" ClassName="simple_Duflow_generator" Desc="" Elems=""/>
+<SubModel Name="Urban_InputEmulator" ClassName="simple_Duflow_generator_CSOload" Desc="" Elems=""/>
+</SubModels>
+</Model>
+</Models>
+</ModelLib>
+</Tornado>

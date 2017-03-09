@@ -1,0 +1,975 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 7. juni 2012 12:37:18$
+ *
+ ******************************************************************************/
+
+#ifndef GENERIC_QUANTITY_SI
+#define GENERIC_QUANTITY_SI
+
+// SI quantities, units, constants
+//
+// Based on the ISO 1000 standard as implemented
+// in the Modelica package http://www.Dynasim.se/Modelica/Modelica1.html
+//
+
+// Part 1: Space and time
+
+   CLASS Angle
+   "A class for angle"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "Angle";
+    unit      <- "rad";
+    displayunit <- "deg";
+   :};
+
+   CLASS SolidAngle
+   "A class for SolidAngle"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "SolidAngle";
+    unit      <- "sr";
+   :};
+
+   TYPE StringType
+   "The class for all kind of strings + some extra's"
+   =
+   RECORD
+   {
+    quantity   : QuantityType;
+    value      : String;
+    unit       : UnitType;
+   };
+
+   CLASS Date
+   "A class for date"
+   SPECIALISES StringType :=
+   {:
+    quantity  <- "Date";
+   :};
+
+   CLASS Time
+   "A class for time"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    quantity  <- "Time";
+    unit      <- "d";
+    interval  <- {: lowerBound <- 0; upperBound <- PLUS_INF :};
+   :};
+
+   CLASS Length
+   "A class for Length"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "Length";
+    unit      <- "m";
+   :};
+
+   CLASS Area
+   "A class for Area"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "Area";
+    unit      <- "m2";
+    interval  <- {: lowerBound <- 0; upperBound <- PLUS_INF:};
+   :};
+
+   CLASS Volume
+   "Volume"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    quantity  <- "Volume";
+    unit      <- "m3";
+    interval  <- {: lowerBound <- 0; upperBound <- PLUS_INF:};
+   :};
+
+   CLASS AngularVelocity
+   "A class for AngularVelocity"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "AngularVelocity";
+    unit      <- "rad/d";
+   :};
+
+   CLASS Velocity
+   "A class for Velocity"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "Velocity";
+    unit      <- "m/d";
+   :};
+
+// every change of something
+// per unit of time is in fact also
+// a velocity, also called a rate
+
+   CLASS Rate
+   "A class for rate"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    quantity  <- "Rate";
+    unit      <- "dUnit/dt";
+   :};
+
+   CLASS FlowRate
+   "Flow rate"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    quantity <- "FlowRate";
+    unit     <- "m3/d";
+    interval  <- {: lowerBound <- 0; upperBound <- PLUS_INF :};
+   :};
+
+   CLASS FlowRateRate
+   "Flow rate"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    quantity <- "FlowRateRate";
+    unit     <- "m3/d2";
+    interval  <- {: lowerBound <- 0; upperBound <- PLUS_INF :};
+   :};
+
+// DO NOT forget this is not the same as
+// e.g. d(volume)/d(pH)
+// which is in fact a ratio
+
+   CLASS Ratio
+   "A class for ratio"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    quantity  <- "Ratio";
+    unit      <- "dUnit/dUnit";
+   :};
+
+   CLASS AngularAcceleration
+   "A class for AngularAcceleration"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "AngularAcceleration";
+    unit      <- "rad/d2";
+   :};
+
+   CLASS Acceleration
+   "A class for Acceleration"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "Acceleration";
+    unit      <- "m/d2";
+   :};
+
+// Part 2: Periodic and related phenomens
+
+   CLASS Frequency
+   "The type of frequency"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    quantity  <- "Frequency";
+    unit      <- "Hz";
+    interval  <- {: lowerBound <- 0; upperBound <- PLUS_INF :};
+   :};
+
+// Part 3: Mechanics
+
+   CLASS Mass
+   "A class for Mass"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "Mass";
+    unit      <- "g";
+    interval  <- {: lowerBound <- 0; upperBound <- PLUS_INF; :};
+   :};
+
+   CLASS SludgeMass
+   "Sludge production"
+   SPECIALISES PhysicalQuantityType:=
+   {:
+   quantity <- "SludgeMass";
+   unit     <- "kg SS";
+   interval <- {: lowerBound <- MIN_INF; upperBound <- PLUS_INF:};
+   :};
+
+   CLASS SludgePerDay
+   "Sludge production"
+   SPECIALISES PhysicalQuantityType:=
+   {:
+   quantity <- "SludgePerDay";
+   unit     <- "kg SS/d";
+   interval <- {: lowerBound <- MIN_INF; upperBound <- PLUS_INF:};
+   :};
+ 
+   CLASS Density
+   "A class for Density"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "Density";
+    unit      <- "g/m3";
+    interval  <- {: lowerBound <- 0; upperBound <- PLUS_INF; :};
+   :};
+
+   CLASS SurfaceDensity
+   "A class for Areal Density"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    quantity  <- "Areal Density";
+    unit      <- "g/m2";
+    interval  <- {: lowerBound <- 0; upperBound <- PLUS_INF; :};
+   :};
+   
+   CLASS SpecificVolume
+   "Specific volume ((density)^-1)"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    quantity  <- "SpecificVolume";
+    unit      <- "m3/g";
+    interval  <- {: lowerBound <- 0; upperBound <- PLUS_INF:};
+   :};
+
+   CLASS SpecificArea
+   "Specific area ((surface density)^-1)"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    quantity  <- "SpecificArea";
+    unit      <- "m2/g";
+    interval  <- {: lowerBound <- 0; upperBound <- PLUS_INF:};
+   :};
+
+      CLASS SpecificLength
+   "Specific length ((length density)^-1)"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    quantity  <- "SpecificLength";
+    unit      <- "m/g";
+    interval  <- {: lowerBound <- 0; upperBound <- PLUS_INF:};
+   :};
+
+   
+   CLASS LinearDensity
+   "A class for LinearDensity"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "LinearDensity";
+    unit      <- "g/m";
+    interval  <- {: lowerBound <- 0; upperBound <- PLUS_INF; :};
+   :};
+
+   CLASS MomentOfInertia
+   "A class for MomentOfInertia"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "MomentOfInertia";
+    unit      <- "g*m2";
+   :};
+
+   CLASS Momentum
+   "A class for Momentum"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "Mass";
+    unit      <- "g*m/d";
+   :};
+
+   CLASS Force
+   "A class for Force"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "Force";
+    unit      <- "N";
+   :};
+
+   CLASS AngularMomentum
+   "A class for AngularMomentum"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "Mass";
+    unit      <- "g*m2/d";
+   :};
+
+   CLASS MomentOfForce
+   "A class for MomentOfForce"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "MomentOfForce";
+    unit      <- "N*m";
+   :};
+
+   CLASS PressureDifference
+   "A class for Pressure"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "Pressure";
+    unit      <- "Pa";
+    interval  <- {: lowerBound <- MIN_INF; upperBound <- PLUS_INF; :};
+   :};
+
+   
+   CLASS Pressure
+   "A class for Pressure"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "Pressure";
+    unit      <- "Pa";
+    interval  <- {: lowerBound <- 0; upperBound <- PLUS_INF; :};
+   :};
+
+   CLASS NormalStress
+   "A class for NormalStress"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "NormalStress";
+    unit      <- "Pa";
+   :};
+
+   CLASS Diffusivity
+   "A class for Diffusivity"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "Diffusivity";
+    unit      <- "m2/d";
+   :};
+
+   CLASS DynamicViscosity
+   "A class for DynamicViscosity"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "DynamicViscosity";
+    unit      <- "Pa*d";
+    interval  <- {: lowerBound <- 0; upperBound <- PLUS_INF; :};
+   :};
+
+   CLASS KinematicViscosity
+   "A class for KinematicViscosity"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "KinematicViscosity";
+    unit      <- "m2/d";
+    interval  <- {: lowerBound <- 0; upperBound <- PLUS_INF; :};
+   :};
+
+   CLASS SurfaceTension
+   "A class for SurfaceTension"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "SurfaceTension";
+    unit      <- "N/m";
+   :};
+   
+   CLASS Energy
+   "A class for Energy"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "Energy";
+    unit      <- "J";
+   :};
+
+   CLASS Power
+   "A class for Power"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "Power";
+    unit      <- "W";
+   :};
+
+   CLASS EnergyIndex
+   "Aeration and Pumping energy"
+   SPECIALISES PhysicalQuantityType:=
+   {:
+   quantity <- "EnergyIndex";
+   unit     <- "kWh/d";
+   interval <- {: lowerBound <- MIN_INF; upperBound <- PLUS_INF:};
+   :};
+
+   CLASS FiltrationResistance SPECIALISES PhysicalQuantityType :=
+   {:
+    quantity  <- "filtration resistance";
+    unit      <- "1/m";
+    interval  <- {: lowerBound <- 0; upperBound <- PLUS_INF :};
+   :};
+
+   CLASS SpecificAreaVolume
+   "Mass per time unit"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+   quantity  <- "specific area per volume";
+   unit      <- "1/m";
+   interval  <- {: lowerBound <- 0; upperBound <- PLUS_INF :};
+   :};
+
+// Part 4: Heat
+   CLASS KelvinTemperature
+   "A class for KelvinTemperature"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity    <- "KelvinTemperature";
+    unit        <- "K";
+    interval    <- {: lowerBound <- 0; upperBound <- PLUS_INF; :};
+   :};
+
+   CLASS CelsiusTemperature
+   "A class for CelsiusTemperature"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "CelsiusTemperature";
+    unit      <- "degC";
+    interval  <- {: lowerBound <- -273.15; upperBound <- PLUS_INF; :};
+   :};
+
+   CLASS LinearExpansionCoefficient
+   "A class for LinearExpansionCoefficient"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "LinearExpansionCoefficient";
+    unit      <- "1/K";
+   :};
+
+   CLASS CubicExpansionCoefficient
+   "A class for CubicExpansionCoefficient"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "CubicExpansionCoefficient";
+    unit      <- "1/K";
+   :};
+
+   CLASS RelativePressureCoefficient
+   "A class for RelativePressureCoefficient"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "RelativePressureCoefficient";
+    unit      <- "1/K";
+   :};
+
+   CLASS PressureCoefficient
+   "A class for PressureCoefficient"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "PressureCoefficient";
+    unit      <- "Pa/K";
+   :};
+
+   CLASS IsothermalCompressibility
+   "A class for IsothermalCompressibility"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "IsothermalCompressibility";
+    unit      <- "1/Pa";
+   :};
+
+   CLASS IsentropicCompressibility
+   "A class for IsentropicCompressibility"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "IsentropicCompressibility";
+    unit      <- "1/Pa";
+   :};
+
+   CLASS Heat = Energy;
+
+   CLASS HeatFlowRate
+   "A class for HeatFlowRate"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "HeatFlowRate";
+    unit      <- "W";
+   :};
+
+   CLASS DensityOfHeatFlowRate
+   "A class for DensityOfHeatFlowRate"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "DensityOfHeatFlowRate";
+    unit      <- "W/m2";
+   :};
+
+   CLASS ThermalConductivity
+   "A class for ThermalConductivity"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "ThermalConductivity";
+    unit      <- "W/(m*K)";
+   :};
+
+   CLASS CoefficientOfHeatTransfer
+   "A class for CoefficientOfHeatTransfer"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "CoefficientOfHeatTransfer";
+    unit      <- "W/(m2*K)";
+   :};
+
+   CLASS SurfaceCoefficientOfHeatTransfer
+   "A class for SurfaceCoefficientOfHeatTransfer"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "SurfaceCoefficientOfHeatTransfer";
+    unit      <- "W/(m2*K)";
+   :};
+
+   CLASS ThermalInsulance
+   "A class for ThermalInsulance"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "ThermalInsulance";
+    unit      <- "m2*K/W";
+   :};
+
+   CLASS ThermalResistance
+   "A class for ThermalResistance"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "ThermalResistance";
+    unit      <- "K/W";
+   :};
+
+   CLASS ThermalConductance
+   "A class for ThermalConductance"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "ThermalConductance";
+    unit      <- "W/K";
+   :};
+
+   CLASS ThermalDiffusivity
+   "A class for ThermalDiffusivity"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "ThermalDiffusivity";
+    unit      <- "m2/d";
+   :};
+
+   CLASS HeatCapacity
+   "A class for HeatCapacity"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "HeatCapacity";
+    unit      <- "J/K";
+   :};
+
+   CLASS SpecificHeatCapacity
+   "A class for SpecificHeatCapacity"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "SpecificHeatCapacity";
+    unit      <- "J/(g*K)";
+   :};
+
+// The specific heat capacity is most often taken in a "direction"
+// i. e. at constant pressure or constant volume. which one is meant 
+// should be specified in the appropriate aliases
+
+   CLASS RatioOfspecificHeatCapacities
+   "A class for RatioOfSpecificHeatCapacities"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "RatioOfSpecificHeatCapacities";
+    unit      <- "-";
+   :};
+
+   CLASS IsentropicExponent
+   "A class for IsentropicExponent"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "IsentropicExponent";
+    unit      <- "-";
+   :};
+
+   CLASS Entropy
+   "A class for Entropy"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "Entropy";
+    unit      <- "J/K";
+   :};
+
+   CLASS SpecificEntropy
+   "A class for SpecificEntropy"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "SpecificEntropy";
+    unit      <- "J/(g*K)";
+   :};
+
+   CLASS SpecificEnergy
+   "A class for SpecificEnergy"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "SpecificEnergy";
+    unit      <- "J/g";
+   :};
+
+// In thermodynamics, energy comes in many flavors. The ones defined
+// by the ISO are defined as aliases to the basic one.
+// All of these energy forms are also 
+// defined in a specific, i. e. divided by mass version.
+
+   CLASS ThermodynamicEnergy         = Energy;
+   CLASS HelmholtzFreeEnergy         = Energy;
+   CLASS GibbsFreeEnergy             = Energy;
+   CLASS Enthalpy                    = Energy;
+
+   CLASS SpecificThermodynamicEnergy = SpecificEnergy;
+   CLASS SpecificHelmholtzFreeEnergy = SpecificEnergy;
+   CLASS SpecificGibbsFreeEnergy     = SpecificEnergy;
+   CLASS SpecificEnthalpy            = SpecificEnergy;
+
+   CLASS PlanckFunction
+   "A class for PlanckFunction"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "PlanckFunction";
+    unit      <- "J/g";
+   :};
+
+// Part 5: Electricity and magnetism
+   CLASS ElectricCurrent
+   "A class for ElectricCurrent"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "ElectricCurrent";
+    unit      <- "A";
+   :};
+
+   CLASS ElectricCharge
+   "A class for ElectricCharge"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "ElectricCharge";
+    unit      <- "C";
+   :};
+
+   CLASS ElectricPotential
+   "A class for ElectricPotential"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "ElectricPotential";
+    unit      <- "V";
+   :};
+
+   CLASS Capacitance
+   "A class for Capacitance"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "Capacitance";
+    unit      <- "F";
+    interval  <- {: lowerBound <- 0; upperBound <- PLUS_INF; :};
+   :};
+
+   CLASS Inductance
+   "A class for Inductance"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "Inductance";
+    unit      <- "H";
+    interval  <- {: lowerBound <- 0; upperBound <- PLUS_INF; :};
+   :};
+
+   CLASS Resistance
+   "A class for Resistance"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "Resistance";
+    unit      <- "Ohm";
+    interval  <- {: lowerBound <- 0; upperBound <- PLUS_INF; :};
+   :};
+
+   CLASS Conductance
+   "A class for Conductance"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "Conductance";
+    unit      <- "S";
+    interval  <- {: lowerBound <- 0; upperBound <- PLUS_INF; :};
+   :};
+
+// Part 6: Light and related electromagnetic radiations
+
+   CLASS LuminousIntensity
+   "A class for LuminousIntensity"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "LuminousIntensity";
+    unit      <- "cd";
+   :};
+
+// Part 7: Physical chemistry and molecular physics
+
+   CLASS AmountOfSubstance
+   "A class for AmountOfSubstance"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "AmountOfSubstance";
+    unit      <- "mol";
+    interval  <- {: lowerBound <- 0; upperBound <- PLUS_INF; :};
+   :};
+
+// often used in chemistry, so I put it here
+
+   CLASS pH
+   "A class for pH"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    quantity  <- "pH";
+    interval  <- {: lowerBound <- 0; upperBound <- 14 :};
+   :};
+
+   CLASS Concentration
+   "A class for concentration"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    nature <- "ACROSS";
+    quantity <- "Concentration";
+    unit <- "g/m3";
+    interval <- {: lowerBound <- 0; upperBound <- PLUS_INF :};
+   :};
+
+// Part 8: Characteristic numbers
+// Momentum transport
+
+   CLASS ReynoldsNumber
+   "A class for ReynoldsNumber"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "ReynoldsNumber";
+    unit      <- "-";
+   :};
+
+   CLASS EulerNumber
+   "A class for EulerNumber"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "EulerNumber";
+    unit      <- "-";
+   :};
+
+   CLASS FroudeNumber
+   "A class for FroudeNumber"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "FroudeNumber";
+    unit      <- "-";
+   :};
+
+   CLASS GrashofNumber
+   "A class for GrashofNumber"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "GrashofNumber";
+    unit      <- "-";
+   :};
+
+   CLASS WeberNumber
+   "A class for WeberNumber"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "WeberNumber";
+    unit      <- "-";
+   :};
+
+   CLASS MachNumber
+   "A class for MachNumber"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "MachNumber";
+    unit      <- "-";
+   :};
+
+   CLASS KnudsenNumber
+   "A class for KnudsenNumber"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "KnudsenNumber";
+    unit      <- "-";
+   :};
+
+   CLASS StrouhalNumber
+   "A class for StrouhalNumber"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "StrouhalNumber";
+    unit      <- "-";
+   :};
+
+// Transport of heat
+   CLASS FourierNumber
+   "A class for FourierNumber"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "FourierNumber";
+    unit      <- "-";
+   :};
+
+   CLASS PecletNumber
+   "A class for PecletNumber"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "PecletNumber";
+    unit      <- "-";
+   :};
+
+   CLASS RayleighNumber
+   "A class for RayleighNumber"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "RayleighNumber";
+    unit      <- "-";
+   :};
+
+   CLASS NusseltNumber
+   "A class for NusseltNumber"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "NusseltNumber";
+    unit      <- "-";
+   :};
+
+   CLASS BiotNumber = NusseltNumber;
+// The name Biot number, Bi, is used
+// when the Nusselt number is reserved
+// for convective transport of heat.
+
+   CLASS StantonNumber
+   "A class for StantonNumber"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "StantonNumber";
+    unit      <- "-";
+   :};
+
+// Constants of matter
+   CLASS PrandtlNumber
+   "A class for PrandtlNumber"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "PrandtlNumber";
+    unit      <- "-";
+   :};
+
+   CLASS SchmidtNumber
+   "A class for SchmidtNumber"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "SchmidtNumber";
+    unit      <- "-";
+   :};
+
+   CLASS LewisNumber
+   "A class for LewisNumber"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "LewisNumber";
+    unit      <- "-";
+   :};
+
+//
+//end SI unit;
+//
+
+//
+// begin constants of nature
+//
+
+// (from: E.R. Cohen, and B.N. Taylor: The 1986 Adjustment of the Fundamental
+//        Physical Constants, CODATA Bulletin, Pergamon: Elmsford, NY, 1986.
+//        see also: http://physics.nist.gov/PhysRefData/codata86/article.html
+//                  http://physics.nist.gov/PhysRefData/codata86/codata86.html)
+//
+
+/*
+  OBJ C "Velocity of light in vacuum" : Velocity := 
+  {:
+    value     <- 299792458;
+  :};
+
+  OBJ G_EARTH "Gravity acceleration on earth" : Acceleration :=
+  {:
+    value     <- 73231257600;//9.81;
+  :};
+
+  OBJ AvogadroConstant
+   "The Avogadro Constant" : PhysicalQuantityType := 
+   {:
+    quantity  <- "AvogadroConstant_NA";
+    unit      <- "1/mol";
+    value     <- 6.0221367E23;
+   :};
+
+  OBJ UniversalGravityConstant
+  "Universal gravity constant" : PhysicalQuantityType := 
+   {:
+    quantity  <- "G";
+    unit      <- "m3/(g*s2)";
+    value     <- 6.67259E-11;
+   :};
+
+  OBJ PlancksConstant
+  "Plancks constant" : PhysicalQuantityType := 
+   {:
+    quantity  <- "H";
+    unit      <- "J*s";
+    value     <- 6.6260755E-34
+   :};
+
+  OBJ BoltzmannConstant
+  "Boltzmann constant" : PhysicalQuantityType := 
+   {:
+    quantity  <- "K";
+    unit      <- "J/K";
+    value     <- 1.380658E-23
+   :};
+
+  OBJ UniversalGasConstant
+  "Universal gas constant" : PhysicalQuantityType := 
+   {:
+    quantity  <- "RO";
+    unit      <- "J/(mol*K)";
+    value     <- 8.314510
+   :};
+
+  OBJ StefanBoltzmannConstant
+  "Stefan Boltzmann constant" : PhysicalQuantityType := 
+   {:
+    quantity  <- "SIGMA";
+    unit      <- "W/(m2*K4)";
+    value     <- 5.67051E-8
+   :};
+
+  OBJ AbsoluteZeroTemperature
+  "Absolute zero temperature" : PhysicalQuantityType := 
+   {:
+    quantity  <- "T_ZERO";
+    unit      <- "degC";
+    value     <- -273.15
+   :};
+*/
+
+//
+// 7. june 2012 :: CLASSES used in the GHG model ::
+//
+   CLASS PartialPressureInAir
+   "A class for Partial Pressure in air"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "Pressure";
+    unit      <- "atm";
+    interval  <- {: lowerBound <- 0; upperBound <- PLUS_INF; :};
+   :};
+
+   CLASS MolecularDiffusivity
+   "A class for Diffusivity"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "Diffusivity";
+    unit      <- "m2/s";
+    interval  <- {: lowerBound <- 0; upperBound <- PLUS_INF; :};
+   :};
+
+#endif

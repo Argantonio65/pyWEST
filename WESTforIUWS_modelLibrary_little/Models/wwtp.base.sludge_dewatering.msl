@@ -1,0 +1,155 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 29. marts 2012 17:08:57$
+ *
+ ******************************************************************************/
+
+#ifndef SLUDGE_DEWATERING
+#define SLUDGE_DEWATERING
+
+CLASS SolidSeparationModel EXTENDS WWTPAtomicModelWithoutVolume WITH
+ {:
+   
+   interface <-
+   { 
+   OBJ Inflow (* terminal = "in_1" *) "Inflow" : InWWTPTerminal := {: causality <- "CIN" ; group <- "Influent" :};
+   OBJ OutflowPermeate (* terminal = "out_1" *) "Permeate flow" : OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent" :};
+   OBJ OutflowConcentrate (* terminal = "out_3" *) "Concentrate flow" : OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent" :};
+   // sensor terminals in derived classes
+   };
+
+   parameters <-
+   { 
+   OBJ rho_sludge "Specific gravity of dewatered sludge" : Concentration := {: value <- 1.07e6 ; group <- "Operational" :};
+   //#if (defined ASM1Temp || defined ASM3Temp)
+   OBJ F_TSS_COD "Fraction TSS/COD" : Fraction := {: value <- 0.75 ; group <- "Conversion factors" :};
+   //#endif
+   };
+
+   state <-
+   {
+   OBJ Q_Permeate "Effluent flow rate" : FlowRate := {: group <- "Operational" :};
+   OBJ Q_Concentrate_Actual "Concentrate flow rate" : FlowRate := {: group <- "Operational" :};
+   // 
+   OBJ Help_X_Sludge (* hidden = "1" *) "Working variable to calculate TSS in the concentrate" : MassFlux;
+   OBJ f_Out (* hidden = "1" *) "Fraction of the influent flux going to the outflow" : Fraction ;
+   };
+
+   equations <-
+   {
+   // for categories which DO NOT have a TSS state variable, eg ASM1
+   #ifdef CalculateTSSComponent
+   state.Help_X_Sludge = (SUMOVER Comp_Index IN {IndexOfFirstTSSComponent .. IndexOfLastTSSComponent}:
+               (- interface.OutflowConcentrate[Comp_Index]) * parameters.F_TSS_COD);
+   #endif // CalculateTSSComponent
+   //
+   // for categories which DO have a TSS state variable, eg ASM2
+   #ifdef UseTSSComponent
+   state.Help_X_Sludge = (- interface.OutflowConcentrate[IndexOfTSSComponent]) ;
+   #endif // UseTSSComponent 
+   };
+
+ :};
+
+// Simple model that separates the soluble and solid fractions, based on the
+// efficiencies of solids 'retention' (e, %)  
+// It is not a dynamical model but only based on mass balances.       
+CLASS EfficiencyDewateringModel
+ "efficiency-based dewatering"
+ EXTENDS SolidSeparationModel WITH
+ {:
+
+  interface <-
+  {
+  OBJ DS (* terminal = "out_2" *) "Dry solids" : Real := {: causality <- "COUT" ; group <- "Measurement" :};
+  OBJ e_X (* terminal = "in_2"; manip = "1" *) "Separation efficiency (fraction of solids going to sludge flow)" :
+    Fraction := {: causality <- "CIN" ; value <- 0.96; group <- "Operational" :}; 
+  OBJ Q_Concentrate (* terminal = "in_2"; manip = "1" *) "Desired flow rate of the concentrated sludge" :
+    FlowRate := {: causality <- "CIN" ; value <- 10 ; group <- "Operational" :};
+  };
+
+  parameters <-
+  { 
+  };
+ 
+  state <-
+  {
+  OBJ DrySolids "Dry solid content (of the cake)" : Real := {: group <- "Operational" :};
+  };
+  
+  equations <-
+  {
+  // Dry solids (DS) indicates the fraction of total solids in a certain matrix (in this case, the
+  // dewatered sludge cake. It is calculated as (obviously, fluxes can be used instead of weights):
+  //             DS = 100 * (Weight_Of_TSS / Weight_Of_Sludge)
+  // where: Weight_Of_TSS (g/d) = Flow_Of_Sludge (m3/d) * Concentration_Of_TSS (g/m3), and
+  // Weight_Of_Sludge (g/d) =  Flow_Of_Sludge (m3/d) * Density_Of_Sludge (g/m3)
+  // Note that:
+  // - Weight_Of_TSS = OutflowConcentrate[TSS]
+  // - Specific gravity of the dewatered sludge = 1.07e6 (ref. Metcalf & Eddy)
+  //
+  state.DrySolids = IF (state.Q_Concentrate_Actual == 0.0)
+              THEN 0.0
+            ELSE 100.0 * (state.Help_X_Sludge / (state.Q_Concentrate_Actual * parameters.rho_sludge));
+  //
+  // the actual sludge extraction cannot exceed the flow going in
+  state.Q_Concentrate_Actual = IF (state.Q_In <= interface.Q_Concentrate)
+                     THEN state.Q_In
+                     ELSE interface.Q_Concentrate;
+  // balance of the FLOWRATES across the point-node
+  state.Q_Permeate = state.Q_In - state.Q_Concentrate_Actual;
+  //
+  // Soluble components + water are splitted into permeate and concentrate flow
+  // proportionally to the ratio between the flow rates
+  state.f_Out = IF (state.Q_In <= interface.Q_Concentrate)
+            THEN 0
+            ELSE (state.Q_In - interface.Q_Concentrate) / state.Q_In ;
+  // Mass Balance
+  // 1) Solubles + water in the PERMEATE
+  {FOREACH Comp_Index IN {IndexOfSolvent .. IndexOfLastSolubleComponent}:
+   interface.OutflowPermeate[Comp_Index] =
+      - state.InFluxPerComponent[Comp_Index] * state.f_Out;
+  };
+  // 2) Solubles + water in the CONCENTRATE
+  {FOREACH Comp_Index IN {IndexOfSolvent .. IndexOfLastSolubleComponent}:
+   interface.OutflowConcentrate[Comp_Index] =
+         - state.InFluxPerComponent[Comp_Index] * (1 - state.f_Out);
+  };
+  //
+  // Particulate components are splitted into effluent and sludge flow according
+  // to the separation efficiency e_X = (Q_Concentrate * X_Concentrate)/ (Q_In *¨X_In) (fluxes) 
+  // Outflow (Permeate) = - Inflow * (1 - e_X)
+  // Outflow (Concentrate) = - Inflow * e_X 
+  // 4) Particulates in the PERMEATE
+  {FOREACH Comp_Index IN {IndexOfFirstParticulateComponent .. IndexOfLastParticulateComponent}:
+   interface.OutflowPermeate[Comp_Index] = IF (state.Q_Concentrate_Actual == 0.0)
+                         THEN - state.InFluxPerComponent[Comp_Index]
+                       ELSE - state.InFluxPerComponent[Comp_Index] * (1-interface.e_X);
+  };   
+  // 5) Particulates in the CONCENTRATE
+  {FOREACH Comp_Index IN {IndexOfFirstParticulateComponent .. IndexOfLastParticulateComponent}:
+   interface.OutflowConcentrate[Comp_Index] = - state.InFluxPerComponent[Comp_Index] * interface.e_X;
+  };
+  // implementation of the sensor
+  interface.DS = state.DrySolids ;
+  }; 
+ 
+ :};
+
+#include "sludge_dewatering/wwtp.base.sludge_dewatering.efficiencythickener.msl"
+#include "sludge_dewatering/wwtp.base.sludge_dewatering.efficiencycentrifuge.msl"
+#include "sludge_dewatering/wwtp.base.sludge_dewatering.efficiencybeltpress.msl"
+
+
+
+#endif    // SLUDGE_DEWATERING

@@ -1,0 +1,93 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 26. juni 2012 15:00:25$
+ *
+ ******************************************************************************/
+
+#ifdef ASMG1
+
+	state.rate02 = state.mu_H_Temp * parameters.n_g2 * state.C[X_BH] * state.Monod_SS2 * state.Monod_NO3 * state.OH2_inhi;
+	state.rate04 = state.mu_H_Temp * parameters.n_g4 * state.C[X_BH] * state.Monod_SS4 * state.Monod_NO * state.OH4_inhi;
+	state.rate03 = state.mu_H_Temp * parameters.n_g3 * state.C[X_BH] * state.Monod_SS3 * state.Monod_NO2 * state.OH3_inhi * state.NO_inhi3;
+	state.rate05 = state.mu_H_Temp * parameters.n_g5 * state.C[X_BH] * state.Monod_SS5 * state.Monod_N2O * state.OH5_inhi * state.NO_inhi5;
+	state.rate07 = state.mu_A1_Temp * state.C[X_BA1] * state.FA_inhibi9 * state.Monod_OA1 * state.FNA_inhi9;
+	state.rate08 = state.mu_A2_Temp * state.C[X_BA2] * state.FNA_inhi10 * state.Monod_OA2 * state.FA_inhi10;
+	state.rate09 = state.b_A1_Temp * state.C[X_BA1];
+	state.rate10 = state.b_A2_Temp * state.C[X_BA2];
+	state.Monod_NO3 = state.C[S_NO3] / (parameters.K_NO3 + state.C[S_NO3]);
+	state.Monod_SS2 = state.C[S_S] / (state.C[S_S] + parameters.K_S2);
+	state.OH2_inhi = parameters.K_OH2 / (parameters.K_OH2 + state.C[S_O]);
+	state.Monod_SS3 = state.C[S_S] / (state.C[S_S] + parameters.K_S3);
+	state.Monod_SS4 = state.C[S_S] / (state.C[S_S] + parameters.K_S4);
+	state.Monod_SS5 = state.C[S_S] / (state.C[S_S] + parameters.K_S5);
+	state.OH3_inhi = parameters.K_OH3 / (parameters.K_OH3 + state.C[S_O]);
+	state.OH4_inhi = parameters.K_OH4 / (parameters.K_OH4 + state.C[S_O]);
+	state.OH5_inhi = parameters.K_OH5 / (parameters.K_OH5 + state.C[S_O]);
+	state.Monod_NO2 = state.C[S_NO2] / (parameters.K_NO2 + state.C[S_NO2]);
+	state.NO_inhi3 = parameters.K_I3NO / (parameters.K_I3NO + state.C[S_NO]);
+	state.Monod_NO = state.C[S_NO] / (parameters.K_NO + state.C[S_NO] + (pow(state.C[S_NO],2) / parameters.K_I4NO));
+	state.Monod_N2O = state.C[S_N2O] / (parameters.K_N2O + state.C[S_N2O]);
+	state.NO_inhi5 = parameters.K_I5NO / (parameters.K_I5NO + state.C[S_NO]);
+	state.FA_inhibi9 = state.S_FA / (parameters.K_FA + state.S_FA + pow(state.S_FA,2) / parameters.K_I9FA);
+	state.Monod_OA1 = state.C[S_O] / (parameters.K_OA1 + state.C[S_O]);
+	state.FNA_inhi9 = parameters.K_I9FNA / (parameters.K_I9FNA + state.S_FNA);
+	state.FNA_inhi10 = state.S_FNA / (parameters.K_FNA + state.S_FNA + pow(state.S_FNA,2) / parameters.K_I10FNA);
+	state.Monod_OA2 = state.C[S_O] / (parameters.K_OA2 + state.C[S_O]);
+	state.FA_inhi10 = parameters.K_I10FA / (parameters.K_I10FA + state.S_FA);
+	state.S_NOx = state.C[S_NO3] + state.C[S_NO2] + state.C[S_NO] + state.C[S_N2O];
+	state.S_FNA = state.C[S_NO2] * 1.0 / (1.0 + state.K_A * pow(10,parameters.pH_tank));
+	state.K_A = exp( - (2300.0 / (273.15 + state.Temp_Actual)));
+	state.Kb_Kw = exp((6344.0 / (273.15 + state.Temp_Actual)));
+	state.S_FA = state.C[S_NH] * pow(10,parameters.pH_tank) / (state.Kb_Kw + pow(10.0,parameters.pH_tank));
+	state.X_TSS = (state.C[X_BH] + state.C[X_BA1] + state.C[X_BA2] + state.C[X_I] + state.C[X_S] + state.C[X_P]) * parameters.F_TSS_COD;
+	state.Kla_N2O = (parameters.KlaN2O_anoxic * parameters.a_KlaN2O) + ((1-parameters.a_KlaN2O) * (pow(parameters.D_N2O,0.5) / pow(parameters.D_O2,0.5) * state.Kla_Actual_Temp));
+	state.Kla_NO = pow(parameters.D_NO,0.5) / pow(parameters.D_N2O,0.5) * state.Kla_N2O;
+	state.Kla_N2 = pow(parameters.D_N2,0.5) / pow(parameters.D_N2O,0.5) * state.Kla_N2O;
+	state.FluxN2O_gas =  - state.Kla_N2O * ((parameters.P_N2O_air * 28 / parameters.H_N2O) - state.C[S_N2O]) * state.V;
+	state.FluxN2_gas =  - state.Kla_N2 * ((parameters.P_N2_air * 28 / parameters.H_N2) - state.C[S_N2]) * state.V;
+	state.FluxNO_gas =  - state.Kla_NO * ((parameters.P_NO_air * 14 / parameters.H_NO) - state.C[S_NO]) * state.V;
+	state.mu_H_Temp = pow((parameters.b_Ratkowsky_mu_H * (state.Temp_Actual + parameters.Tmin_Ratkowsky_mu_H) * (1.0 - exp(parameters.c_Ratkowsky_mu_H * (state.Temp_Actual - parameters.Tmax_Ratkowsky_mu_H)))),2);
+	state.mu_A1_Temp = pow((parameters.b_Ratkowsky_mu_A1 * (state.Temp_Actual + parameters.Tmin_Ratkowsky_mu_A1) * (1.0 - exp(parameters.c_Ratkowsky_mu_A1 * (state.Temp_Actual - parameters.Tmax_Ratkowsky_mu_A1)))),2);
+	state.mu_A2_Temp = pow((parameters.b_Ratkowsky_mu_A2 * (state.Temp_Actual + parameters.Tmin_Ratkowsky_mu_A2) * (1.0 - exp(parameters.c_Ratkowsky_mu_A2 * (state.Temp_Actual - parameters.Tmax_Ratkowsky_mu_A2)))),2);
+	state.b_H_Temp = parameters.b_H * pow(parameters.theta_b_H,state.Temp_Actual - parameters.Temp_Ref);
+	state.b_A1_Temp = parameters.b_A1 * pow(parameters.theta_b_A1,state.Temp_Actual - parameters.Temp_Ref);
+	state.b_A2_Temp = parameters.b_A2 * pow(parameters.theta_b_A2,state.Temp_Actual - parameters.Temp_Ref);
+	state.k_h_Temp = parameters.k_h * pow(parameters.theta_k_h,state.Temp_Actual - parameters.Temp_Ref);
+	state.k_a_Temp = parameters.k_a * pow(parameters.theta_k_a,state.Temp_Actual - parameters.Temp_Ref);
+    state.S_O_Saturation = 14.65 - 0.41 * state.Temp_Actual + 0.00799 * state.Temp_Actual * state.Temp_Actual - 0.0000778 * state.Temp_Actual * state.Temp_Actual * state.Temp_Actual;
+	state.Kla_Actual_Temp = state.Kla_Actual * pow(parameters.theta_kla,state.Temp_Actual - parameters.Temp_Ref);
+	state.rate01 = state.mu_H_Temp * state.C[X_BH] * (state.C[S_S] / (parameters.K_S1 + state.C[S_S])) * (state.C[S_O] / (parameters.K_OH1 + state.C[S_O]));
+
+	state.Kinetics[AerGrowthHetero] = state.rate01;
+	state.Kinetics[AnGrowthHeteroNO3_NO2] = state.rate02;
+	state.Kinetics[AnGrowthHeteroNO2_NO] = state.rate03;
+	state.Kinetics[AnGrowthHeteroNO_N2O] = state.rate04;
+	state.Kinetics[AnGrowthHeteroN2O_N2] = state.rate05;
+	state.Kinetics[DecayOfHetero] = state.b_H_Temp * state.C[X_BH];
+	state.Kinetics[AutoGrowthAOB] = state.rate07;
+	state.Kinetics[AutoGrowthNOB] = state.rate08;
+	state.Kinetics[DecayOfAOB] = state.rate09;
+	state.Kinetics[DecayOfNOB] = state.rate10;
+	state.Kinetics[AmmonOfSolOrgN] = state.k_a_Temp * state.C[S_ND] * state.C[X_BH];
+	state.Kinetics[HydrolOfEntrOrg] = state.k_h_Temp * (state.C[X_S] / state.C[X_BH]) / (parameters.K_X + (state.C[X_S] / state.C[X_BH])) * ((state.C[S_O] / (parameters.K_OH + state.C[S_O])) + parameters.n_h * (parameters.K_OH / (parameters.K_OH + state.C[S_O])) * (state.S_NOx / (parameters.K_NO3 + state.S_NOx))) * state.C[X_BH];
+	state.Kinetics[HydrolOfEntrOrgN] = state.k_h_Temp * (state.C[X_S] / state.C[X_BH]) / (parameters.K_X + (state.C[X_S] / state.C[X_BH])) * ((state.C[S_O] / (parameters.K_OH + state.C[S_O])) + parameters.n_h * (parameters.K_OH / (parameters.K_OH + state.C[S_O])) * (state.S_NOx / (parameters.K_NO3 + state.S_NOx))) * state.C[X_BH] * (state.C[X_ND] / state.C[X_S]);
+	state.Kinetics[Aeration] = state.Kla_Actual_Temp * (state.S_O_Saturation - state.C[S_O]);
+	state.Kinetics[StrippingN2] = state.Kla_N2 * ((parameters.P_N2_air * 28 / parameters.H_N2) - state.C[S_N2]);
+	state.Kinetics[StrippingNO] = state.Kla_NO * ((parameters.P_NO_air * 14 / parameters.H_NO) - state.C[S_NO]);
+	state.Kinetics[StrippingN2O] = state.Kla_N2O * ((parameters.P_N2O_air * 28 / parameters.H_N2O) - state.C[S_N2O]);
+	state.SO_Comp_AOBden1 = state.C[S_O] / (parameters.K_SO_AOBden1 + (1 - 2 * pow ((parameters.K_SO_AOBden1 / parameters.K_IO_AOBden1), 0.5)) * state.C[S_O] + (pow (state.C[S_O], 2.0) / parameters.K_IO_AOBden1));
+	state.SO_Comp_AOBden2 = state.C[S_O] / (parameters.K_SO_AOBden2 + (1 - 2 * pow ((parameters.K_SO_AOBden2 / parameters.K_IO_AOBden2), 0.5)) * state.C[S_O] + (pow (state.C[S_O], 2.0) / parameters.K_IO_AOBden2));
+    state.Kinetics[AutoNO2_NO] = parameters.switch_model * parameters.n_AOB * (state.mu_A1_Temp * state.C[X_BA1] * (state.C[S_NO2] / (parameters.K_SNO2_aob + state.C[S_NO2])) * (state.C[S_NH] / (parameters.K_SNH_aob1 + state.C[S_NH])) * (state.C[S_O] / (parameters.K_SO_aob1 + state.C[S_O]))) + (1-parameters.switch_model) * parameters.n_AOB * (state.mu_A1_Temp * state.C[X_BA1] * (state.C[S_NO2] / (parameters.K_SNO2_aob + state.C[S_NO2])) * (state.C[S_NH] / (parameters.K_SNH_aob1 + state.C[S_NH])) * (state.SO_Comp_AOBden1));
+	state.Kinetics[AutoNO_N2O] = parameters.switch_model * parameters.n_AOB * (state.mu_A1_Temp * state.C[X_BA1] * (state.C[S_NO] / (parameters.K_SNO_aob + state.C[S_NO])) * (state.C[S_NH] / (parameters.K_SNH_aob2 + state.C[S_NH])) * (state.C[S_O] / (parameters.K_SO_aob2 + state.C[S_O]))) + (1-parameters.switch_model) * parameters.n_AOB * (state.mu_A1_Temp * state.C[X_BA1] * (state.C[S_NO] / (parameters.K_SNO_aob + state.C[S_NO])) * (state.C[S_NH] / (parameters.K_SNH_aob2 + state.C[S_NH])) * (state.SO_Comp_AOBden2));
+
+#endif

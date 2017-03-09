@@ -1,0 +1,751 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 17. april 2012 11:17:53$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_BASE_ADM1
+#define WWTP_BASE_ADM1
+
+#if (defined ASM1Temp)
+
+CLASS AnaerobicDigestionAtomicModel
+    "anaerobic digester"
+    SPECIALISES PhysicalDAEModelType =
+{:
+   comments <- "ADM1 model for anaerobic digestion according to BSM2. This is different from the STR 
+   implementation in terms of the Hill functions used for inhibition and the alternative simple equation 
+   for the gas flow calculation. This implementation uses an algebraic model to calculate S_H for speeding 
+   up calculations (DAE2 - both pH and H2 are calculated algebraically)";
+   interface <-
+   {
+    OBJ Inflow (* terminal = "in_1" *) "Inflow" : InADM1ConcTerminal = {: causality <- "CIN"; group <- "Influent" :};
+    OBJ Outflow (* terminal = "out_1" *) "Overflow" : OutADM1ConcTerminal = {: causality <- "COUT"; group <- "Effluent" :};
+    OBJ T_op (* terminal = "in_2"; manip = "1" *) "Operating temperature": CelsiusTemperature = {: causality <- "CIN"; value <- 35; group <- "Operational" :};
+	OBJ pH_ADM (* terminal = "out_4" *) "pH_ADM" : pH = {: causality <- "COUT"; group <- "Data" :};
+	OBJ T_oper  (* terminal = "out_4" *) "Measured temperature" : CelsiusTemperature = {: causality <- "COUT"; group <- "Data" :};
+	OBJ p_gas_ch4 (* terminal = "out_4" *) "Partial methane pressure" : Pressure = {: causality <- "COUT"; group <- "Data" :};
+	OBJ p_gas_tot (* terminal = "out_4" *) "Total headspace pressure" : Pressure = {: causality <- "COUT"; group <- "Data" :};
+	OBJ gas_flowrate  (* terminal = "out_4" *) "Gas flow rate" : FlowRate = {: causality <- "COUT"; group <- "Data" :};
+	OBJ V_liquid  (* terminal = "out_4" *) "Liquor volume" : Volume = {: causality <- "COUT"; group <- "Data" :};
+	OBJ V_tot   (* terminal = "out_4" *) "Total volume" : Volume = {: causality <- "COUT"; group <- "Data" :};
+	OBJ Q_Gas_LD (* terminal = "out_3" *) "Gasflow" : ADM1GasOutFromTheADVessel = {: causality <- "COUT"; group <- "Data" :};
+	//ER2009
+	OBJ Conc_An (* terminal = "out_4" *) "Vector containing masses for components of ADM1" : ADM1ConcVector = {: causality <- "COUT"; group <- "Concentration" :};
+	OBJ Conc_AnIon (* terminal = "out_4" *) "Vector containing masses for all ion components of ADM1" : ADM1IonConcVector = {: causality <- "COUT"; group <- "Concentration" :};
+	OBJ Conc_AnGas (* terminal = "out_4" *) "Vector containing masses for gas phase components of ADM1" : ADM1GasConcVector = {: causality <- "COUT"; group <- "Concentration" :};
+    };
+
+  parameters <- 
+   { 
+// Carbon contents
+OBJ C_aa "Carbon content of amino acids" : CarbonContentOfAminoAcids = {: value <- 0.03; group <- "Stoichiometry" :};
+OBJ C_pr "Carbon content of proteines" : CarbonContentOfAminoAcids = {: value <- 0.03; group <- "Stoichiometry" :};
+OBJ C_ac "Carbon content of acetate" : CarbonContentOfAcetate = {: value <- 0.0313; group <- "Stoichiometry" :};
+OBJ C_biom "Carbon content of biomass" : CarbonContentOfBiomass = {: value <- 0.0313; group <- "Stoichiometry" :};
+OBJ C_bu "Carbon content of butyrate" : CarbonContentOfButyrate = {: value <- 0.025; group <- "Stoichiometry" :};
+OBJ C_ch4 "Carbon content of methane" : CarbonContentOfMethane = {: value <- 0.0156; group <- "Stoichiometry" :};
+OBJ C_fa "Carbon content of long chain fatty acids" : CarbonContentOfLCFattyAcids = {: value <- 0.0217; group <- "Stoichiometry" :};
+OBJ C_li "Carbon content of lipids" : CarbonContentOfLipids = {: value <- 0.022; group <- "Stoichiometry" :};
+OBJ C_pro "Carbon content of propionate" : CarbonContentOfPropionate = {: value <- 0.0268; group <- "Stoichiometry" :};
+OBJ C_SI "Carbon content of soluble inert COD" : CarbonContentOfSolubleInertCOD = {: value <- 0.03; group <- "Stoichiometry" :};
+OBJ C_su "Carbon content of sugars" : CarbonContentOfSugars = {: value <- 0.0313; group <- "Stoichiometry" :};
+OBJ C_ch "Carbon content of carbohydrates" : CarbonContentOfSugars = {: value <- 0.0313; group <- "Stoichiometry" :};
+OBJ C_va "Carbon content of valerate" : CarbonContentOfValerate = {: value <- 0.024; group <- "Stoichiometry" :};
+OBJ C_Xc "Carbon content of complex particulate COD" : CarbonContentOfComplexParticulateCOD = {: value <- 0.02786; group <- "Stoichiometry" :};
+OBJ C_XI "Carbon content of particulate inert COD" : CarbonContentOfParticulateInertCOD = {: value <- 0.03; group <- "Stoichiometry" :};
+
+// Nitrogen contents
+
+OBJ N_aa "Nitrogen content of amino acids" : NitrogenContentOfAminoAcids = {: value <- 0.007; group <- "Stoichiometry" :};
+OBJ N_biom "Nitrogen content of  biomass" : NitrogenContentOfBiomass = {: value <- 0.00571428571428571; group <- "Stoichiometry" :};
+OBJ N_SI "Nitrogen content of soluble inert COD" : NitrogenContentOfSolubleInertCOD = {: value <- 0.00428571428571429; group <- "Stoichiometry" :};
+OBJ N_Xc "Nitrogen content of particulate degradable COD" : NitrogenContentOfParticulateDegradableCOD = {: value <- 0.00268571428571429; group <- "Stoichiometry" :};
+OBJ N_XI "Nitrogen content of particulate inert COD" : NitrogenContentOfParticulateInertCOD = {: value <- 0.00428571428571429; group <- "Stoichiometry" :};
+
+// pre-set fractions and yields
+
+OBJ f_ac_su "Yield of acetate from sugar degradation" : Ratio = {: value <- 0.41; group <- "Stoichiometry" :};
+OBJ f_ac_aa "Yield of acetate from amino acid degradation" : Ratio = {: value <- 0.4; group <- "Stoichiometry" :};
+OBJ f_bu_aa "Yield of butyrate from amino acid degradation" : Ratio = {: value <- 0.26; group <- "Stoichiometry" :};
+OBJ f_ch_xc "Yield of carbohydrates from disintegration of complex particulates" : Ratio = {: value <- 0.2; group <- "Stoichiometry" :};
+OBJ f_fa_li "Yield of long chain fatty acids (as opposed to glycerol) from lipids" : Ratio = {: value <- 0.95; group <- "Stoichiometry" :};
+OBJ f_h2_aa "Yield of hydrogen from amino acid degradation" : Ratio = {: value <- 0.06; group <- "Stoichiometry" :};
+OBJ f_pro_aa "Yield of propionate from amino acid degradation" : Ratio = {: value <- 0.05; group <- "Stoichiometry" :};
+OBJ f_pro_su "Yield of propionate from monosaccharide degradation" : Ratio= {: value <- 0.27; group <- "Stoichiometry" :};
+OBJ f_pr_xc "Yield of proteins from disintegration of complex particulates" : Ratio = {: value <- 0.2; group <- "Stoichiometry" :};
+OBJ f_SI_xc "Yield of soluble inerts from disintegration of complex particulates" : Ratio = {: value <- 0.1; group <- "Stoichiometry" :};
+OBJ f_va_aa "Yield of valerate from amino acid degradation" : Ratio = {: value <- 0.23; group <- "Stoichiometry" :};
+OBJ f_XI_xc "Yield of particulate inerts from disintegration of complex particulates" : Ratio = {: value <- 0.2; group <- "Stoichiometry" :};
+OBJ f_bu_su "Yield of butyrate from monosaccharide degradation" : Ratio= {: value <- 0.13; group <- "Stoichiometry" :};
+OBJ f_h2_su "Yield of hydrogen from monosaccharide degradation" : Ratio= {: value <- 0.19; group <- "Stoichiometry" :};
+OBJ f_li_xc "Yield of lipids from disintegration of complex particulates" : Ratio= {: value <- 0.3; group <- "Stoichiometry" :};
+
+// biomass yields 
+
+OBJ Y_aa "Yield of biomass on uptake of amino acids" : Ratio = {: value <- 0.08; group <- "Stoichiometry" :};
+OBJ Y_ac "Yield of biomass on uptake of acetate" : Ratio = {: value <- 0.05; group <- "Stoichiometry" :};
+OBJ Y_c4  "Yield of biomass on uptake of valerate or butyrate" : Ratio = {: value <- 0.06; group <- "Stoichiometry" :};
+OBJ Y_fa "Yield of biomass on uptake of long chain fatty acids" : Ratio = {: value <- 0.06; group <- "Stoichiometry" :};
+OBJ Y_h2 "Yield of biomass on uptake of elemental hydrogen" : Ratio = {: value <- 0.06; group <- "Stoichiometry" :};
+OBJ Y_pro "Yield of biomass on uptake of propionate" : Ratio = {: value <- 0.04; group <- "Stoichiometry" :};
+OBJ Y_su "Yield of biomass on uptake of monosaccharides" : Ratio = {: value <- 0.1; group <- "Stoichiometry" :};
+
+// pH inhibitory/not levels
+
+OBJ pH_ac_ll "pH level at which there is full inhibition of acetate degradation" : pH= {: value <- 6; group <- "Kinetics" :};
+OBJ pH_ac_ul "pH level at which there is no inhibition of acetate degrading organisms" : pH = {: value <- 7; group <- "Kinetics" :};
+OBJ pH_bac_ll "pH level at which there is full inhibition" : pH = {: value <- 4; group <- "Kinetics" :};
+OBJ pH_bac_ul "pH level at which there is no inhibition" : pH = {: value <- 5.5; group <- "Kinetics" :};
+OBJ pH_h2_ll "pH level at which there is full inhibition of hydrogen degrading organisms" : pH = {: value <- 5; group <- "Kinetics" :};
+OBJ pH_h2_ul "pH level at which there is no inhibition of hydrogen degrading organisms" : pH = {: value <- 6; group <- "Kinetics" :};
+
+// Ka values default are defined at 308.15k 
+
+OBJ Ka_ac "Acetate acidity constant (temperature correction can be ignored)" : Acidity= {: value <- 1.74e-5; group <- "System" :}; 
+OBJ Ka_bu "Butyrate acidity constant (temperature correction can be ignored)" : Acidity= {: value <- 1.51e-5; group <- "System" :};
+OBJ Ka_co2 "CO2 acidity constant (temperature correction needed)" : Acidity= {: value <- 4.94e-7; group <- "System" :};
+OBJ Ka_h2o "Water acidity constant (temperature correction needed)" : Acidity= {: value <- 2.08e-14; group <- "System" :};
+OBJ Ka_nh4 "NH4+ acidity constant (temperature correction needed)" : Acidity= {: value <- 1.11e-9; group <- "System" :};
+OBJ Ka_pro "Propionate acidity constant (temperature correction can be ignored)" : Acidity= {: value <- 1.32e-5; group <- "System" :};
+OBJ Ka_va "Valerate acidity constant (temperature correction can be ignored)" : Acidity= {: value <- 1.38e-5; group <- "System" :};
+
+// hydrogen inhibitory concentration
+OBJ KI_h2_fa "Hydrogen inhibitory concentration for FA degrading organisms" : HydrogenInhibitoryConcentrationForFADegradingOrganisms = {: value <- 5E-006; group <- "Kinetics" :};
+OBJ KI_h2_c4 "Hydrogen inhibitory concentration for C4 degrading organisms" : HydrogenInhibitoryConcentrationForC4DegradingOrganisms = {: value <- 1E-005; group <- "Kinetics" :};
+OBJ KI_h2_pro "Inhibitory hydrogen concentration for propionate degrading organisms" : InhibitoryHydrogenConcentrationForPropionateDegradingOrganisms = {: value <- 3.5E-006; group <- "Kinetics" :};
+OBJ KI_nh3_ac "Inhibitory free ammonia concentration for acetate degrading organisms" : InhibitoryFreeAmmoniaConcentrationForAcetateDegradingOrganisms = {: value <- 0.0018; group <- "Kinetics" :};
+
+//  decay and disintegration
+
+OBJ kdec_xaa "Decay rate for amino acid degrading organisms" : DecayRateForAminoAcidDegradingOrganisms = {: value <- 0.02; group <- "Kinetics" :};
+OBJ kdec_xac "Decay rate for acetate degrading organisms" : DecayRateForAcetateDegradingOrganisms = {: value <- 0.02; group <- "Kinetics" :};
+OBJ kdec_xc4 "Decay rate for butyrate and valerate degrading organisms" : DecayRateForButyrateAndValerateDegradingOrganisms = {: value <- 0.02; group <- "Kinetics" :};
+OBJ kdec_xfa "Decay rate for long chain fatty acid degrading organisms" : DecayRateForLongChainFattyAcidDegradingOrganisms = {: value <- 0.02; group <- "Kinetics" :};
+OBJ kdec_xh2 "Decay rate for hydrogen degrading organisms" : DecayRateForHydrogenDegradingOrganisms = {: value <- 0.02; group <- "Kinetics" :};
+OBJ kdec_xpro "Decay rate for propionate degrading organisms" : DecayRateForPropionateDegradingOrganisms = {: value <- 0.02; group <- "Kinetics" :};
+OBJ kdec_xsu "Decay rate for monosaccharide degrading organisms" : DecayRateForMonosaccharideDegradingOrganisms = {: value <- 0.02; group <- "Kinetics" :};
+OBJ kdis "Complex particulate disintegration first order rate constant" : ComplexParticulateDisintegrationFirstOrderConstant = {: value <- 0.5; group <- "Kinetics" :};
+
+//  hydrolysis rates
+
+OBJ khyd_ch "Carbohydrate hydrolysis first order rate constant" : CarbohydrateHydrolysisFirstOrderConstant = {: value <- 10; group <- "Kinetics" :};
+OBJ khyd_li "Lipid hydrolysis first order rate constant" : LipidHydrolysisFirstOrderConstant = {: value <- 10; group <- "Kinetics" :};
+OBJ khyd_pr "Protein hydrolysis first order rate constant" : ProteinHydrolysisFirstOrderConstant = {: value <- 10; group <- "Kinetics" :};
+
+//  gas transfer rate
+
+OBJ kla "Gas liquid transfer coefficient" : GasLiquidTransferCoefficientForReactor = {: value <- 200; group <- "Operational" :};
+
+//  uptake rates
+
+OBJ km_aa "Maximum uptake rate amino acid degrading organisms" : MaximumUptakeRateAminoAcidDegradingOrganisms = {: value <- 50; group <- "Kinetics" :};
+OBJ km_ac "Maximum uptake rate for acetate degrading organisms" : MaximumUptakeRateForAcetateDegradingOrganisms = {: value <- 8; group <- "Kinetics" :};
+OBJ km_c4 "Maximum uptake rate for c4 degrading organisms" : MaximumUptakeRateForC4DegradingOrganisms = {: value <- 20; group <- "Kinetics" :};
+OBJ km_fa "Maximum uptake rate for long chain fatty acid degrading organisms" : MaximumUptakeRateForLongChainFattyAcidDegradingOrganisms = {: value <- 6; group <- "Kinetics" :};
+OBJ km_h2 "Maximum uptake rate for hydrogen degrading organisms" : MaximumUptakeRateFForHydrogenDegradingOrganisms = {: value <- 35; group <- "Kinetics" :};
+OBJ km_pro "Maximum uptake rate for propionate degrading organisms" : MaximumUptakeRateForPropionateDegradingOrganisms = {: value <- 13; group <- "Kinetics" :};
+OBJ km_su "Maximum uptake rate for monosaccharide degrading organisms" : MaximumUptakeRateForMonosaccharideDegradingOrganisms = {: value <- 30; group <- "Kinetics" :};
+OBJ Ks_aa "Half saturation constant for amino acid degradation" : HalfSaturationConstantForAminoAcidDegradation = {: value <- 0.3; group <- "Kinetics" :};
+OBJ Ks_ac "Half saturation constant for acetate degradation" : HalfSaturationConstantForAcetateDegradation = {: value <- 0.15; group <- "Kinetics" :};
+OBJ Ks_c4 "Half saturation constant for butyrate and valerate degradation" : HalfSaturationConstantForButyrateAndValerateDegradation = {: value <- 0.2; group <- "Kinetics" :};
+OBJ Ks_fa "Half saturation constant for long chain fatty acids degradation" : HalfSaturationConstantForLongChainFattyAcidsDegradation = {: value <- 0.4; group <- "Kinetics" :};
+OBJ Ks_h2 "Half saturation constant for uptake of hydrogen" : HalfSaturationConstantForUptakeOfHydrogen = {: value <- 7E-006; group <- "Kinetics" :};
+OBJ Ks_IN "Inorganic nitrogen concentration at which growth ceases" : InorganicNitrogenConcentrationAtWhichGrowthCeases = {: value <- 0.0001; group <- "Kinetics" :};
+OBJ Ks_pro "Half saturation constant for propionate degradation" : HalfSaturationConstantForPropionateDegradation = {: value <- 0.1; group <- "Kinetics" :};
+OBJ Ks_su "Half saturation constant for monosaccharide degradation" : HalfSaturationConstantForMonosaccharideDegradation = {: value <- 0.5; group <- "Kinetics" :};
+
+// pressure and general constants
+
+OBJ K_p "gas flow constant": Real = {: value <- 5e4; group <- "System" :};
+OBJ P_atm "Pressure of atmosphere" : BarPressure = {: value <- 1.013; group <- "Operational" :};
+OBJ R "Gas law constant" : GasLawConstant = {: value <- 0.08314; group <- "System" :};
+OBJ T "Temperature" : CelsiusTemperature = {: value <- 35; group <- "Operational" :};
+OBJ help_T (* hidden = "0" *) "Temperature" : KelvinTemperature = {: group <- "temp" :};
+
+// OBJ T_op "Operating Temperature" : KelvinTemperature = {: value <- 308.15; group <- "Operational" :};
+
+//OBJ tres_x "solids retention time in addition to hydraulic retention time_d" : SolidsRetentionTimeInAdditionToHydraulicRetentionTime = {: value <- 0 :};
+
+OBJ V_gas "Volume of gas in the reactor" : Volume = {: value <- 300; group <- "Operational" :};
+OBJ V_liq "Volume of liquid in the reactor" : Volume = {: value <- 3400; group <- "Operational" :};
+OBJ f_X_Out "Fraction of the anaerobic particulate matter that leaves the reactor" : PhysicalQuantityType = {: value <- 1; group <- "Operational" :};
+
+    // Temperature corrections of henry's law constant
+ 
+
+// Stoichiometric matrix
+
+OBJ AnaerobicStoichiometry (* hidden = "1" *)"A matrix structure containing stoichiometry of anaerobic biological processes": Real[NrOfADM1Reactions;][NrOfADM1Components;];
+OBJ AnaerobicGasStoichiometryInLiquid (* hidden = "1" *)"A matrix structure containing stoichiometry of anaerobic biological processes": PhysicalQuantityType[NrOfADM1GasTransfer;][NrOfADM1GasComponentsInliquid;];
+OBJ AnaerobicGasStoichiometryInGas (* hidden = "1" *)"A matrix structure containing stoichiometry of anaerobic biological processes": PhysicalQuantityType[NrOfADM1GasTransfer;][NrOfADM1GasComponents;];
+
+//OBJ KI_nh3_ac_km_ac "Ratio of KI_nh3_ac on km_ac" : Real = {: value <- 0.000225 :};
+//OBJ Ks_ac_km_ac "Ratio of Ks_ac on km_ac" : Real = {: value <- 0.01875 :};
+//OBJ Ks_c4_km_pro "Ratio of Ks_c4 on km_pro" : Real = {: value <- 0.0153846 :};
+//OBJ Ks_fa_km_pro "Ratio of Ks_fa on km_pro" : Real = {: value <- 0.0307692 :};
+//OBJ Ks_pro_km_pro "Ratio of Ks_pro on km_pro" : Real = {: value <- 0.0076923 :};
+
+};
+
+state <-
+{
+//OBJ temp "state to test some stuff" : Real;
+OBJ C_h2 "Hydrogen concentration" : Concentration = {: group <- "Concentration" :} ; 
+OBJ C_An "Vector containing masses for components of ADM1" : ADM1ConcVector = {: group <- "Concentration" :};
+OBJ C_AnIon "Vector containing masses for all ion components of ADM1" : ADM1IonConcVector = {: group <- "Concentration" :};
+OBJ C_AnGas "Vector containing masses for gas phase components of ADM1" : ADM1GasConcVector = {: group <- "Concentration" :};
+
+OBJ KH_ch4 "Henry's law constant (T-dep) for CH4 with temperature correction" : Ratio = {: group <- "System" :};
+OBJ KH_co2 "Henry's law constant (T-dep) for CO2 with temperature correction" : Ratio= {: group <- "System" :};
+OBJ KH_h2 "Henry's law constant (T-dep) for H2 with temperature correction" : Ratio= {: group <- "System" :};
+//EURE 24/01/2012
+OBJ M_An "Vector containing mass for all components of ADM1" : ADM1MassVector = [{: value <- 3400000 :},
+	{: value <- 10 :}, {: value <- 10 :},{: value <- 0.1 :}, {: value <- 0.1 :}, {: value <- 0.1 :}, {: value <- 0.1 :},
+	{: value <- 0.1 :}, {: value <- 0.1 :},{: value <- 0.1 :}, {: value <- 0.1 :}, {: value <- 0.1 :},{: value <- 0.1 :},
+	{: value <- 100 :},{: value <- 100 :}, {: value <- 100 :}, {: value <- 100 :},{: value <- 100 :}, {: value <- 100 :},
+	{: value <- 100 :},{: value <- 100 :}, {: value <- 100 :}, {: value <- 100 :},{: value <- 100 :}, {: value <- 100 :},
+	{: value <- 0.1 :}, {: value <- 100 :}; ] ;
+OBJ M_AnGas "Vector containing mass for all components of ADM1" : ADM1GasMassVector =
+	[{: value <- 10 :},{: value <- 0.01 :},{: value <- 0.01 :}; ]; //S_ch4_gas, S_co2_gas, S_h2_gas
+//
+OBJ AnaerobicKinetics (* hidden = "1" *) "A vector containing kinetics for all anaerobic reactions" : PhysicalQuantityType[NrOfADM1Reactions;];
+OBJ GasKinetics (* hidden = "1" *) "A vector containing kinetics for all anaerobic gas transfere" : PhysicalQuantityType[NrOfADM1GasTransfer;];
+
+// other state variables needed in the calculation
+
+OBJ Q_In (* hidden = "1" *)"Influent flow rate" : FlowRate;
+OBJ balance_COD_S (* hidden = "1" *)"total Cod of soluble substrate_kg COD.m-3" : KgCODConcentration;
+OBJ balance_COD_X (* hidden = "1" *) "total Cod of particulate substrate_kg COD.m-3" : KgCODConcentration;
+
+OBJ I_h2_fa "Hydrogen inhibition for LCFA degradation" : InhibitionFactor = {: group <- "Kinetics" :};
+OBJ I_h2_c4 "Hydrogen inhibition for C4+ degradation" : InhibitionFactor = {: group <- "Kinetics" :};
+OBJ I_h2_pro "Hydrogen inhibition for propionate " : InhibitionFactor = {: group <- "Kinetics" :};
+OBJ I_nh3_ac "NH3 inhibition of acetoclastic methanogenesis" : InhibitionFactor = {: group <- "Kinetics" :};
+OBJ I_NH_limit "Function to limit growth due to lack of inorganic nitrogen" : InhibitionFactor = {: group <- "Kinetics" :};
+
+OBJ pH_ "pH" : pH = {: group <- "Operational" :};
+
+OBJ Ka_in "Inorganic nitrogen acidity constant" : Real = {: group <- "System" :};
+OBJ Ka_ic "Inorganic carbon acidity constant" : Real = {: group <- "System" :};
+OBJ Kw "Water acidity constant" : Real = {: group <- "System" :};
+
+OBJ p_ch4 "Partial pressure of ch4" : BarPressure = {: group <- "Operational" :};
+OBJ p_co2 "Partial pressure of co2" : BarPressure = {: group <- "Operational" :};
+OBJ p_h2 "Partial pressure of h2" : BarPressure = {: group <- "Operational" :};
+OBJ P_headspace "Total gas phase pressure" : BarPressure = {: group <- "Operational" :};
+OBJ p_h2o "Partial pressure of water" : BarPressure = {: group <- "Operational" :};
+
+OBJ I_pH_ac "pH inhibition of acetate degrading organisms" : InhibitionFactor = {: group <- "Kinetics" :};
+OBJ I_pH_bac "pH inhibition of acetogens and acidogens (lower inhibition only used here)" : InhibitionFactor = {: group <- "Kinetics" :};
+OBJ I_pH_h2 "pH inhibition of hydrogen degrading organisms" : InhibitionFactor = {: group <- "Kinetics" :};
+
+OBJ pHLim_ac "state needed in Hill function": Real = {: group <- "Kinetics" :};
+OBJ pHLim_bac "state needed in Hill function": Real= {: group <- "Kinetics" :};
+OBJ pHLim_h2 "state needed in Hill function": Real = {: group <- "Kinetics" :};
+OBJ n_ac "state needed in Hill function": Real = {: group <- "Kinetics" :};
+OBJ n_bac "state needed in Hill function": Real = {: group <- "Kinetics" :};
+OBJ n_h2 "state needed in Hill function": Real = {: group <- "Kinetics" :};
+
+// In, Out and conversion vectors of ADM1
+OBJ q (* hidden = "1" *)"Influent flow rate" : FlowRate;
+OBJ q_gas "Gas flow rate" : FlowRate = {: group <- "Effluent" :};
+OBJ q_gas_norm "Gas flow rate, normalised" : FlowRate = {: group <- "Effluent" :};
+
+OBJ S_co2 "Carbon dioxide" : MolConcentration = {: group <- "Concentration" :};
+OBJ S_nh4_ion "Ammonium ion" : MolConcentration = {: group <- "Concentration" :};
+OBJ S_h_ion "Hydrogen ion" : MolConcentration = {: group <- "Concentration" :};
+
+OBJ charge_balance "left hand-side of charge balance" : Real = {: group <- "Concentration" :};
+
+    OBJ AnaerobicOutFluxPerComponent (* hidden = "1" *) "Vector containing outgoing fluxes for all ADM1 components" : ADM1MassFluxVector;
+    OBJ AnaerobicInFluxPerComponent (* hidden = "1" *) "Vector containing incoming fluxes for all the components of the ADM1" : ADM1MassFluxVector;
+    OBJ AnaerobicConversionTermPerComponent (* hidden = "1" *) "Vector containing conversion terms for all components" : ADM1MassFluxVector;
+
+OBJ AnaerobicGasOutFluxPerComponent (* hidden = "1" *) "Vector containing outgoing fluxes for all ADM1 components" : ADM1GasMassFluxVector;
+    OBJ AnaerobicGasConversionTermPerComponent (* hidden = "1" *) "Vector containing conversionterms for all  components" : ADM1GasMassFluxVector;
+    
+    OBJ AnaerobicOutIonConcentrationPerComponent (* hidden = "1" *) "Vector containing outgoing fluxes for all ADM1 components" : ADM1IonConcentrationVector;
+    OBJ AnaerobicIonConcentrationConversionTermPerComponent (* hidden = "1" *) "Vector containing conversion terms for all components" : ADM1IonConcentrationVector;
+OBJ help_T_op (* hidden = "0" *) "Temperature" : KelvinTemperature = {: group <- "temp" :};
+   };
+
+initial <-
+{
+  //EURE 21/01/2012 Initialisation
+  state.M_An[H2O_An] = 1000 * parameters.V_liq ;
+
+//parameters.Ks_ac = parameters.Ks_ac_km_ac * parameters.km_ac;
+//parameters.KI_nh3_ac = parameters.KI_nh3_ac_km_ac * parameters.km_ac;
+//parameters.Ks_c4 = parameters.Ks_c4_km_pro * parameters.km_pro;
+//parameters.Ks_fa = parameters.Ks_fa_km_pro * parameters.km_pro;
+//parameters.Ks_pro = parameters.Ks_pro_km_pro * parameters.km_pro;
+
+// process 1: decay of amino acid degrading organisms
+    parameters.AnaerobicStoichiometry[decay_aa][X_c] = 1;
+    parameters.AnaerobicStoichiometry[decay_aa][X_aa] = -1;
+    parameters.AnaerobicStoichiometry[decay_aa][S_IC] = parameters.C_biom -parameters.C_Xc;
+    parameters.AnaerobicStoichiometry[decay_aa][S_INN] = parameters.N_biom -parameters.N_Xc;
+
+// process 2: decay of acetate degrading organisms
+    parameters.AnaerobicStoichiometry[decay_ac][X_ac] = -1;
+    parameters.AnaerobicStoichiometry[decay_ac][X_c] = 1;
+    parameters.AnaerobicStoichiometry[decay_ac][S_IC] = parameters.C_biom -parameters.C_Xc;
+    parameters.AnaerobicStoichiometry[decay_ac][S_INN] = parameters.N_biom -parameters.N_Xc;
+
+// process 3: decay of butyrate and valerate degrading organisms
+    parameters.AnaerobicStoichiometry[decay_c4][X_c4] = -1;
+    parameters.AnaerobicStoichiometry[decay_c4][X_c] = 1;
+    parameters.AnaerobicStoichiometry[decay_c4][S_IC] = parameters.C_biom -parameters.C_Xc;
+    parameters.AnaerobicStoichiometry[decay_c4][S_INN] = parameters.N_biom -parameters.N_Xc;
+
+// process 4: decay of LCFA degrading organisms
+    parameters.AnaerobicStoichiometry[decay_fa][X_fa] = -1;
+    parameters.AnaerobicStoichiometry[decay_fa][X_c] = 1;
+    parameters.AnaerobicStoichiometry[decay_fa][S_IC] = parameters.C_biom -parameters.C_Xc;
+    parameters.AnaerobicStoichiometry[decay_fa][S_INN] = parameters.N_biom -parameters.N_Xc;
+
+// process 5: decay of hydrogen degrading organisms
+    parameters.AnaerobicStoichiometry[decay_h2][X_h2] = -1;
+    parameters.AnaerobicStoichiometry[decay_h2][X_c] = 1;
+    parameters.AnaerobicStoichiometry[decay_h2][S_IC] = parameters.C_biom -parameters.C_Xc;
+    parameters.AnaerobicStoichiometry[decay_h2][S_INN] = parameters.N_biom -parameters.N_Xc;
+
+// process 6: decay of propionate degrading organisms
+    parameters.AnaerobicStoichiometry[decay_pro][X_pro] = -1;
+    parameters.AnaerobicStoichiometry[decay_pro][X_c] = 1;
+    parameters.AnaerobicStoichiometry[decay_pro][S_IC] = parameters.C_biom -parameters.C_Xc;
+    parameters.AnaerobicStoichiometry[decay_pro][S_INN] = parameters.N_biom -parameters.N_Xc;
+
+// process 7: decay of monosaccharide degrading organisms
+    parameters.AnaerobicStoichiometry[decay_su][X_su] = -1;
+    parameters.AnaerobicStoichiometry[decay_su][X_c] = 1;
+    parameters.AnaerobicStoichiometry[decay_su][S_IC] = parameters.C_biom -parameters.C_Xc;
+    parameters.AnaerobicStoichiometry[decay_su][S_INN] = parameters.N_biom -parameters.N_Xc;
+
+// process 8: first order disintegration of complex particulates
+    parameters.AnaerobicStoichiometry[dis][X_c] = -1;
+    parameters.AnaerobicStoichiometry[dis][X_ch] = parameters.f_ch_xc;
+    parameters.AnaerobicStoichiometry[dis][X_pr] = parameters.f_pr_xc;
+    parameters.AnaerobicStoichiometry[dis][X_Inert] = parameters.f_XI_xc;
+    parameters.AnaerobicStoichiometry[dis][X_li] = parameters.f_li_xc;
+    parameters.AnaerobicStoichiometry[dis][S_Inert] = parameters.f_SI_xc;  
+    parameters.AnaerobicStoichiometry[dis][S_IC] = parameters.C_Xc - parameters.f_ch_xc * parameters.C_ch - parameters.f_SI_xc * parameters.C_SI - parameters.f_pr_xc * parameters.C_pr -  parameters.f_XI_xc * parameters.C_XI - parameters.f_li_xc * parameters.C_li;
+    parameters.AnaerobicStoichiometry[dis][S_INN] = parameters.N_Xc -parameters.f_XI_xc * parameters.N_XI -parameters.f_SI_xc * parameters.N_SI -parameters.f_pr_xc * parameters.N_aa;
+    
+
+// process 9: first order hydrolysis of carbohydrates
+    parameters.AnaerobicStoichiometry[hyd_ch][S_su] = 1;
+    parameters.AnaerobicStoichiometry[hyd_ch][X_ch] = -1;
+    parameters.AnaerobicStoichiometry[hyd_ch][S_IC] = parameters.C_ch - parameters.C_su;
+    
+// process 10: first order hydrolysis of lipids
+    parameters.AnaerobicStoichiometry[hyd_li][S_su] = 1 -parameters.f_fa_li;
+    parameters.AnaerobicStoichiometry[hyd_li][S_fa] = parameters.f_fa_li;
+    parameters.AnaerobicStoichiometry[hyd_li][X_li] = -1;
+    parameters.AnaerobicStoichiometry[hyd_li][S_IC] = (parameters.f_fa_li - 1) * parameters.C_su - parameters.f_fa_li * parameters.C_fa + parameters.C_li;
+
+// process 11: first order hydrolysis of proteins
+    parameters.AnaerobicStoichiometry[hyd_pr][S_aa] = 1;
+    parameters.AnaerobicStoichiometry[hyd_pr][X_pr] = -1;
+    parameters.AnaerobicStoichiometry[hyd_pr][S_IC] = parameters.C_aa - parameters.C_pr;
+    
+// process 12: uptake of amino acids
+    parameters.AnaerobicStoichiometry[uptake_aa][S_h2] = (1-parameters.Y_aa)*parameters.f_h2_aa;
+    parameters.AnaerobicStoichiometry[uptake_aa][S_IC] = parameters.C_aa - (1-parameters.Y_aa) * parameters.f_ac_aa * parameters.C_ac - (1-parameters.Y_aa) * parameters.f_bu_aa * parameters.C_bu -(1 -parameters.Y_aa) * parameters.f_pro_aa * parameters.C_pro -(1-parameters.Y_aa) * parameters.f_va_aa * parameters.C_va - parameters.Y_aa * parameters.C_biom;
+    parameters.AnaerobicStoichiometry[uptake_aa][S_ac] = (1-parameters.Y_aa) * parameters.f_ac_aa;
+    parameters.AnaerobicStoichiometry[uptake_aa][S_bu] = (1-parameters.Y_aa) * parameters.f_bu_aa;
+    parameters.AnaerobicStoichiometry[uptake_aa][S_aa] = -1;
+    parameters.AnaerobicStoichiometry[uptake_aa][S_pro] = (1-parameters.Y_aa) * parameters.f_pro_aa;
+    parameters.AnaerobicStoichiometry[uptake_aa][S_va] = (1-parameters.Y_aa) * parameters.f_va_aa;
+    parameters.AnaerobicStoichiometry[uptake_aa][S_INN] = parameters.N_aa -parameters.Y_aa * parameters.N_biom;
+    parameters.AnaerobicStoichiometry[uptake_aa][X_aa] = parameters.Y_aa;
+
+// process 13: uptake of acetate
+    parameters.AnaerobicStoichiometry[uptake_ac][S_ac] = -1;
+    parameters.AnaerobicStoichiometry[uptake_ac][X_ac] = parameters.Y_ac;
+    parameters.AnaerobicStoichiometry[uptake_ac][S_INN] = -parameters.N_biom * parameters.Y_ac;
+    parameters.AnaerobicStoichiometry[uptake_ac][S_ch4] =1-parameters.Y_ac;
+    parameters.AnaerobicStoichiometry[uptake_ac][S_IC] = parameters.C_ac -parameters.Y_ac * parameters.C_biom -(1-parameters.Y_ac) * parameters.C_ch4;
+
+// process 14: uptake of butyrate
+    parameters.AnaerobicStoichiometry[uptake_bu][S_h2] = (1 -parameters.Y_c4 )*0.2;
+    parameters.AnaerobicStoichiometry[uptake_bu][S_ac] = (1 -parameters.Y_c4 )*0.8;
+    parameters.AnaerobicStoichiometry[uptake_bu][X_c4] = parameters.Y_c4 ;
+    parameters.AnaerobicStoichiometry[uptake_bu][S_INN] = -parameters.N_biom * parameters.Y_c4;
+    parameters.AnaerobicStoichiometry[uptake_bu][S_bu] = -1;
+    parameters.AnaerobicStoichiometry[uptake_bu][S_IC] = parameters.C_bu - (1 -parameters.Y_c4 )* 0.8 * parameters.C_ac - parameters.Y_c4 * parameters.C_biom;
+
+// process 15: uptake of LCFA
+    parameters.AnaerobicStoichiometry[uptake_fa][S_h2] = (1-parameters.Y_fa)*0.3;
+    parameters.AnaerobicStoichiometry[uptake_fa][S_ac] = (1-parameters.Y_fa)*0.7;
+    parameters.AnaerobicStoichiometry[uptake_fa][X_fa] = parameters.Y_fa;
+    parameters.AnaerobicStoichiometry[uptake_fa][S_INN] = -parameters.N_biom * parameters.Y_fa;
+    parameters.AnaerobicStoichiometry[uptake_fa][S_fa] = -1;
+    parameters.AnaerobicStoichiometry[uptake_fa][S_IC] = parameters.C_fa - (1-parameters.Y_fa) * 0.7 * parameters.C_ac - parameters.Y_fa * parameters.C_biom;
+
+// process 16: uptake of h2
+    parameters.AnaerobicStoichiometry[uptake_h2][S_h2] = -1;
+    parameters.AnaerobicStoichiometry[uptake_h2][X_h2] = parameters.Y_h2;
+    parameters.AnaerobicStoichiometry[uptake_h2][S_INN] = -parameters.N_biom * parameters.Y_h2;
+    parameters.AnaerobicStoichiometry[uptake_h2][S_ch4] = 1 -parameters.Y_h2;
+    parameters.AnaerobicStoichiometry[uptake_h2][S_IC] = -parameters.Y_h2 * parameters.C_biom - (1 -parameters.Y_h2) * parameters.C_ch4;
+ 
+// process 17: uptake of propionate
+    parameters.AnaerobicStoichiometry[uptake_pro][S_h2] = (1-parameters.Y_pro)*0.43;
+    parameters.AnaerobicStoichiometry[uptake_pro][S_ac] = (1-parameters.Y_pro)*0.57;
+    parameters.AnaerobicStoichiometry[uptake_pro][X_pro] = parameters.Y_pro;
+    parameters.AnaerobicStoichiometry[uptake_pro][S_INN] = -parameters.N_biom * parameters.Y_pro;
+    parameters.AnaerobicStoichiometry[uptake_pro][S_pro] = -1;
+    parameters.AnaerobicStoichiometry[uptake_pro][S_IC] = parameters.C_pro -(1 -parameters.Y_pro) * 0.57 * parameters.C_ac -parameters.Y_pro * parameters.C_biom;
+
+// process 18: uptake of monosaccharides
+    parameters.AnaerobicStoichiometry[uptake_su][S_h2] = (1-parameters.Y_su) * parameters.f_h2_su;
+    parameters.AnaerobicStoichiometry[uptake_su][S_IC] = parameters.C_su -(1 - parameters.Y_su) * parameters.f_ac_su * parameters.C_ac -(1 -parameters.Y_su) * parameters.f_pro_su * parameters.C_pro -(1 -parameters.Y_su) * parameters.f_bu_su * parameters.C_bu -parameters.Y_su * parameters.C_biom;
+    parameters.AnaerobicStoichiometry[uptake_su][S_ac] = (1 -parameters.Y_su) * parameters.f_ac_su;
+    parameters.AnaerobicStoichiometry[uptake_su][X_su] = parameters.Y_su;
+    parameters.AnaerobicStoichiometry[uptake_su][S_INN] = -parameters.N_biom * parameters.Y_su;
+    parameters.AnaerobicStoichiometry[uptake_su][S_su] = -1;
+    parameters.AnaerobicStoichiometry[uptake_su][S_bu] = (1-parameters.Y_su) * parameters.f_bu_su;
+    parameters.AnaerobicStoichiometry[uptake_su][S_pro] = (1-parameters.Y_su) * parameters.f_pro_su;
+
+// process 19: uptake of valerate
+    parameters.AnaerobicStoichiometry[uptake_va][S_h2] = (1-parameters.Y_c4)*0.15;
+    parameters.AnaerobicStoichiometry[uptake_va][S_ac] = (1-parameters.Y_c4)*0.31;
+    parameters.AnaerobicStoichiometry[uptake_va][X_c4] = parameters.Y_c4;
+    parameters.AnaerobicStoichiometry[uptake_va][S_INN] = -parameters.N_biom * parameters.Y_c4;
+    parameters.AnaerobicStoichiometry[uptake_va][S_va] = -1;
+    parameters.AnaerobicStoichiometry[uptake_va][S_pro] = (1-parameters.Y_c4)*0.54;
+    parameters.AnaerobicStoichiometry[uptake_va][S_IC] = parameters.C_va - (1-parameters.Y_c4)*0.54 * parameters.C_pro - parameters.Y_c4 * parameters.C_biom - (1-parameters.Y_c4) * 0.31 * parameters.C_ac;
+
+// Processes 20-26 are reserved for updating to the DE implementation if needed.
+
+// process 27: transfer of CO2
+    parameters.AnaerobicGasStoichiometryInLiquid[transfer_co2][S_IC_liq] = -1;
+    parameters.AnaerobicGasStoichiometryInGas[transfer_co2][S_co2_gas] = 1;
+
+// process 28: transfere of H2
+    parameters.AnaerobicGasStoichiometryInLiquid[transfer_h2][S_h2_liq] = -1;
+    parameters.AnaerobicGasStoichiometryInGas[transfer_h2][S_h2_gas] = 1; 
+
+// process 29: transfer of CH4
+    parameters.AnaerobicGasStoichiometryInLiquid[transfer_ch4][S_ch4_liq] = -1;
+    parameters.AnaerobicGasStoichiometryInGas[transfer_ch4][S_ch4_gas] = 1;
+
+// Initialise extra state for hydrogen (for algebraic cacluation)
+//   state.C_h2 = interface.Inflow[S_h2];
+   parameters.help_T = parameters.T + 273.15 ;
+};
+
+independent <-
+   { 
+     OBJ t "Time"  : Time;
+   };
+
+equations <-
+{
+
+   state.help_T_op = interface.T_op + 273.15 ;
+
+// preliminary calculations for the inhibitions
+state.I_h2_fa = 1 / (state.C_h2 / parameters.KI_h2_fa + 1);
+state.I_h2_c4 = 1 / (state.C_h2 / parameters.KI_h2_c4 + 1); 
+state.I_h2_pro = 1 / ( state.C_h2 / parameters.KI_h2_pro + 1 );
+state.I_nh3_ac = 1 / (state.C_AnIon[S_nh3] / parameters.KI_nh3_ac + 1);
+state.I_NH_limit = IF (state.C_An[S_INN] < 0.00000001) THEN 0
+     ELSE 1 / (parameters.Ks_IN / state.C_An[S_INN] + 1);
+/*
+state.I_pH_ac = IF (state.pH_ < parameters.pH_ac_ul)
+  THEN exp(-3 * pow((state.pH_ - parameters.pH_ac_ul) / (parameters.pH_ac_ul -parameters.pH_ac_ll),2)) 
+  ELSE 1 ;
+state.I_pH_bac = IF (state.pH_ < parameters.pH_bac_ul)
+  THEN exp(-3 * pow((state.pH_ - parameters.pH_bac_ul) / (parameters.pH_bac_ul -parameters.pH_bac_ll),2)) 
+  ELSE 1 ;
+state.I_pH_h2 = IF (state.pH_ < parameters.pH_h2_ul)
+  THEN exp(-3 * pow((state.pH_ - parameters.pH_h2_ul) / (parameters.pH_h2_ul -parameters.pH_h2_ll),2)) 
+  ELSE 1 ;
+*/
+
+// Hill functions on SH+ for calculation of inhibition terms
+state.pHLim_ac = pow(10,(-(parameters.pH_ac_ul + parameters.pH_ac_ll)/2.0));
+state.pHLim_bac = pow(10,(-(parameters.pH_bac_ul + parameters.pH_bac_ll)/2.0));
+state.pHLim_h2 = pow(10,(-(parameters.pH_h2_ul + parameters.pH_h2_ll)/2.0));
+state.n_ac = 3.0 / (parameters.pH_ac_ul - parameters.pH_ac_ll);
+state.n_bac = 3.0 / (parameters.pH_bac_ul - parameters.pH_bac_ll);
+state.n_h2 = 3.0 / (parameters.pH_h2_ul - parameters.pH_h2_ll);
+state.I_pH_ac = pow(state.pHLim_ac,state.n_ac)/(pow(state.S_h_ion,state.n_ac)+pow(state.pHLim_ac ,state.n_ac));
+state.I_pH_bac = pow(state.pHLim_bac,state.n_bac)/(pow(state.S_h_ion,state.n_bac)+pow(state.pHLim_bac ,state.n_bac));
+state.I_pH_h2 = pow(state.pHLim_h2,state.n_h2)/(pow(state.S_h_ion,state.n_h2)+pow(state.pHLim_h2 ,state.n_h2));
+//
+// Kinetic equations
+// 1-decay of amino acid degrading organisms
+ state.AnaerobicKinetics[decay_aa] = parameters.kdec_xaa * state.C_An[X_aa];
+// 2-decay of acetate degrading organisms
+ state.AnaerobicKinetics[decay_ac] = parameters.kdec_xac * state.C_An[X_ac];
+// 3-decay of butyrate and valerate degrading organisms
+ state.AnaerobicKinetics[decay_c4] = parameters.kdec_xc4 * state.C_An[X_c4];
+// 4-decay of LCFA degrading organisms
+ state.AnaerobicKinetics[decay_fa] = parameters.kdec_xfa * state.C_An[X_fa];
+// 5-decay of hydrogen degrading organisms
+ state.AnaerobicKinetics[decay_h2] = parameters.kdec_xh2 * state.C_An[X_h2];
+// 6-decay of propionate degrading organisms
+ state.AnaerobicKinetics[decay_pro] = parameters.kdec_xpro * state.C_An[X_pro];
+// 7-decay of monosaccharide degrading organisms
+ state.AnaerobicKinetics[decay_su] = parameters.kdec_xsu * state.C_An[X_su];
+// 8-first order disintegration of complex particulates
+ state.AnaerobicKinetics[dis] = parameters.kdis * state.C_An[X_c];
+// 9-first order hydrolysis of carbohydrates
+ state.AnaerobicKinetics[hyd_ch] = parameters.khyd_ch * state.C_An[X_ch];
+// 10-first order hydrolysis of lipids
+ state.AnaerobicKinetics[hyd_li] = parameters.khyd_li * state.C_An[X_li];
+// 11-first order hydrolysis of proteins
+ state.AnaerobicKinetics[hyd_pr] = parameters.khyd_pr * state.C_An[X_pr];
+// 12-uptake of amino acids
+ state.AnaerobicKinetics[uptake_aa] = parameters.km_aa * state.C_An[X_aa] * state.C_An[S_aa] /(parameters.Ks_aa + state.C_An[S_aa]) * state.I_pH_bac * state.I_NH_limit;
+// 13-uptake of acetate
+ state.AnaerobicKinetics[uptake_ac] = parameters.km_ac * state.C_An[X_ac] * state.C_An[S_ac] / (parameters.Ks_ac + state.C_An[S_ac]) * state.I_pH_ac * state.I_nh3_ac * state.I_NH_limit;
+// 14-uptake of butyrate
+ state.AnaerobicKinetics[uptake_bu] = parameters.km_c4 * state.C_An[X_c4] * state.C_An[S_bu] / (parameters.Ks_c4 + state.C_An[S_bu]) * state.C_An[S_bu] / (state.C_An[S_bu] + state.C_An[S_va] + 0.000001) * state.I_pH_bac * state.I_h2_c4 * state.I_NH_limit;
+// 15-uptake of LCFA
+ state.AnaerobicKinetics[uptake_fa] = parameters.km_fa * state.C_An[X_fa] * state.C_An[S_fa] / (parameters.Ks_fa + state.C_An[S_fa]) * state.I_pH_bac * state.I_h2_fa * state.I_NH_limit;
+// 16-uptake of h2
+ state.AnaerobicKinetics[uptake_h2] = parameters.km_h2 * state.C_An[X_h2] * state.C_h2 / (parameters.Ks_h2 + state.C_h2) * state.I_pH_h2 * state.I_NH_limit;
+// 17-uptake of propionate
+ state.AnaerobicKinetics[uptake_pro] = parameters.km_pro * state.C_An[X_pro] * state.C_An[S_pro] / (parameters.Ks_pro + state.C_An[S_pro]) * state.I_pH_bac * state.I_h2_pro * state.I_NH_limit;
+// 18-uptake of monosaccharides
+ state.AnaerobicKinetics[uptake_su] = parameters.km_su * state.C_An[X_su] * state.C_An[S_su] / (parameters.Ks_su + state.C_An[S_su]) * state.I_pH_bac * state.I_NH_limit;
+// 19-uptake of valerate
+ state.AnaerobicKinetics[uptake_va] = parameters.km_c4 * state.C_An[X_c4] * state.C_An[S_va] / (parameters.Ks_c4 + state.C_An[S_va]) * state.C_An[S_va] / (state.C_An[S_va] + state.C_An[S_bu] + 0.000001) * state.I_pH_bac * state.I_h2_c4 * state.I_NH_limit;
+//Processes 20-26 are reserved for updating to the DE implementation if needed.
+//Calculation of T-dependent Henry constants
+state.KH_co2 = 0.035 * exp(-19410/(parameters.R*100)*(1/parameters.help_T - 1/state.help_T_op));
+state.KH_h2 = 7.8e-4 * exp(-4180/(parameters.R*100)*(1/parameters.help_T - 1/state.help_T_op));
+state.KH_ch4 = 0.0014 * exp(-14240/(parameters.R*100)*(1/parameters.help_T - 1/state.help_T_op));
+// process 27: transfer_co2
+ state.GasKinetics[transfer_co2] =  parameters.kla * ( state.S_co2 - state.KH_co2 * state.C_AnGas[S_co2_gas] * parameters.R * state.help_T_op );
+// process 28: transfer_h2
+ state.GasKinetics[transfer_h2] =  parameters.kla * ( state.C_h2 -  state.KH_h2 * state.C_AnGas[S_h2_gas] * parameters.R * state.help_T_op );
+// process 29: transfer_ch4
+ state.GasKinetics[transfer_ch4] =  parameters.kla * ( state.C_An[S_ch4] -  state.KH_ch4 * state.C_AnGas[S_ch4_gas] * parameters.R * state.help_T_op );
+//Updates for ion and pH calculation using external functions 
+state.Ka_in = pow(10,-9.25)*(exp(51965*(1/parameters.help_T - 1/state.help_T_op)/(100*parameters.R)));   
+state.Ka_ic = pow(10,-6.35)*(exp(7646*(1/parameters.help_T - 1/state.help_T_op)/(100*parameters.R)));
+state.Kw = pow(10,-14)*(exp(55900*(1/parameters.help_T - 1/state.help_T_op)/(100*parameters.R)));
+
+//EURE 21/01/2012 Checks for negative value on external function
+  state.C_AnIon[S_nh3] = IF ((state.C_An[S_INN] - state.S_nh4_ion) <= 0) THEN 0.0
+		ELSE (state.C_An[S_INN] - state.S_nh4_ion) ;
+  state.S_co2 = IF ((state.C_An[S_IC] - state.C_AnIon[S_hco3_ion]) <= 0) THEN 0.0
+		ELSE (state.C_An[S_IC] - state.C_AnIon[S_hco3_ion]) ;
+  state.S_nh4_ion = IF (MSLU_NH_ion(state.Ka_in,state.C_An[S_INN],state.S_h_ion) <=0) THEN 0.0
+  		ELSE MSLU_NH_ion(state.Ka_in,state.C_An[S_INN],state.S_h_ion) ;
+  state.C_AnIon[S_hco3_ion] = IF (MSLU_HCO_ion(state.Ka_ic,state.C_An[S_IC],state.S_h_ion) <=0) THEN 0.0
+  		ELSE MSLU_HCO_ion(state.Ka_ic,state.C_An[S_IC],state.S_h_ion) ;
+  state.C_AnIon[S_ac_ion] = IF (MSLU_ac_ion(parameters.Ka_ac,state.C_An[S_ac],state.S_h_ion) <=0) THEN 0.0
+  		ELSE MSLU_ac_ion(parameters.Ka_ac,state.C_An[S_ac],state.S_h_ion) ;
+  state.C_AnIon[S_pro_ion] = IF (MSLU_pro_ion(parameters.Ka_pro,state.C_An[S_pro],state.S_h_ion) <=0) THEN 0.0
+  		ELSE MSLU_pro_ion(parameters.Ka_pro,state.C_An[S_pro],state.S_h_ion) ;
+  state.C_AnIon[S_bu_ion] = IF (MSLU_bu_ion(parameters.Ka_bu,state.C_An[S_bu],state.S_h_ion) <=0) THEN 0.0
+  		ELSE MSLU_bu_ion(parameters.Ka_bu,state.C_An[S_bu],state.S_h_ion) ;
+  state.C_AnIon[S_va_ion] = IF (MSLU_va_ion(parameters.Ka_va,state.C_An[S_va],state.S_h_ion) <=0) THEN 0.0
+  		ELSE MSLU_va_ion(parameters.Ka_va,state.C_An[S_va],state.S_h_ion) ;
+	
+  state.S_h_ion= MSLUNewtonRaphson_pH(state.Ka_in,state.Ka_ic,parameters.Ka_ac,parameters.Ka_bu,parameters.Ka_va,parameters.Ka_pro,state.Kw,
+        state.C_An[S_INN],state.C_An[S_IC],state.C_An[S_ac],state.C_An[S_bu],state.C_An[S_va],state.C_An[S_pro],state.C_An[S_cat],
+		state.C_An[S_an],previous(state.S_h_ion)) ;
+  state.pH_ = -log10(state.S_h_ion);
+  //charge balance
+  state.charge_balance = state.S_h_ion + state.C_An[S_cat] + state.S_nh4_ion - state.C_An[S_an] -
+  		state.Kw/state.S_h_ion - state.C_AnIon[S_hco3_ion] - state.C_AnIon[S_ac_ion]/64.0 -
+		state.C_AnIon[S_pro_ion]/112.0 - state.C_AnIon[S_bu_ion]/160.0 - state.C_AnIon[S_va_ion]/208.0 ;
+  //
+  // Gas transfer equations
+  // Gas transfer equations in the gas phase
+  state.p_ch4 = IF(state.C_AnGas[S_ch4_gas] <= 0) THEN 0.0
+  		ELSE (state.C_AnGas[S_ch4_gas] * parameters.R * state.help_T_op / 64.0) ;
+  state.p_co2 = IF(state.C_AnGas[S_co2_gas] <= 0) THEN 0.0
+  		ELSE (state.C_AnGas[S_co2_gas] * parameters.R * state.help_T_op) ;
+  state.p_h2 = IF(state.C_AnGas[S_h2_gas] <= 0) THEN 0.0
+  		ELSE (state.C_AnGas[S_h2_gas] * parameters.R * state.help_T_op / 16.0) ;
+  state.p_h2o = 0.0313 * exp(5290*(1.0/parameters.help_T - 1.0/state.help_T_op));
+  state.P_headspace = state.p_co2 + state.p_h2 + state.p_ch4 + state.p_h2o;
+  //state.q =  parameters.R * parameters.help_T / (parameters.P_atm - parameters.p_h2o ) * parameters.V_liq * (state.GasKinetics[transfer_ch4] / 64 + state.GasKinetics[transfer_co2] + state.GasKinetics[transfer_h2] / 16) ; 
+  state.q = IF ((state.P_headspace - parameters.P_atm)*parameters.K_p <= 0.0) THEN 0.0
+  		ELSE (state.P_headspace - parameters.P_atm) * parameters.K_p ;
+  state.q_gas = state.q ;
+  state.q_gas_norm = state.q_gas * state.P_headspace * (1.0 / parameters.P_atm);
+  
+// Anaerobic conversion equations
+
+//in flux
+   state.Q_In = interface.Inflow[H2O_An];
+   
+   {FOREACH Comp_Index IN {S_INN .. S_cat}:
+         state.AnaerobicInFluxPerComponent[Comp_Index] =
+          interface.Inflow[Comp_Index]
+           * state.Q_In;
+    };
+  state.AnaerobicInFluxPerComponent[H2O_An]= state.Q_In * 1000;
+  
+   
+//conversion terms
+
+     state.AnaerobicConversionTermPerComponent[S_INN] =
+             SUMOVER Reaction_Index IN {1 .. NrOfADM1Reactions}:
+              (parameters.AnaerobicStoichiometry[Reaction_Index][S_INN]
+               * state.AnaerobicKinetics[Reaction_Index])
+              * parameters.V_liq;
+      
+      state.AnaerobicConversionTermPerComponent[S_IC] =
+                    parameters.AnaerobicGasStoichiometryInLiquid[transfer_co2][S_IC_liq]
+         * state.GasKinetics[transfer_co2] * parameters.V_liq +
+        ( SUMOVER Reaction_Index IN {1 .. NrOfADM1Reactions}:
+                    (parameters.AnaerobicStoichiometry[Reaction_Index][S_IC]
+                     * state.AnaerobicKinetics[Reaction_Index])
+                    * parameters.V_liq) ;
+   
+    state.AnaerobicConversionTermPerComponent[S_ch4] =
+                parameters.AnaerobicGasStoichiometryInLiquid[transfer_ch4][S_ch4_liq]
+         * state.GasKinetics[transfer_ch4] * parameters.V_liq + 
+        ( SUMOVER Reaction_Index IN {1 .. NrOfADM1Reactions}:
+                 (parameters.AnaerobicStoichiometry[Reaction_Index][S_ch4]
+                  * state.AnaerobicKinetics[Reaction_Index])
+                 * parameters.V_liq );
+       
+/*      Alternative calculation of H2 in liquid phase using Newton Raphson procedure. Therefore this
+        section is commented.
+   
+         state.AnaerobicConversionTermPerComponent[S_h2] =
+                 parameters.AnaerobicGasStoichiometryInLiquid[transfer_h2][S_h2_liq]
+         * state.GasKinetics[transfer_h2] * parameters.V_liq +
+        ( SUMOVER Reaction_Index IN {1 .. NrOfADM1Reactions}:
+                     (parameters.AnaerobicStoichiometry[Reaction_Index][S_h2]
+                      * state.AnaerobicKinetics[Reaction_Index])
+                     * parameters.V_liq) ;};
+*/         
+   { FOREACH Comp_Index IN {S_aa .. S_cat}:
+      state.AnaerobicConversionTermPerComponent[Comp_Index] =
+       SUMOVER Reaction_Index IN {1 .. NrOfADM1Reactions}:
+        (parameters.AnaerobicStoichiometry[Reaction_Index][Comp_Index]
+         * state.AnaerobicKinetics[Reaction_Index])
+        * parameters.V_liq;
+    };
+      
+    // gas fluxes (they are liquid volume specific)
+    
+   {FOREACH Comp_Index IN {S_ch4_gas .. NrOfADM1GasComponents}:
+             state.AnaerobicGasConversionTermPerComponent[Comp_Index] =
+              SUMOVER Reaction_Index IN {1 .. NrOfADM1GasTransfer}:
+               (parameters.AnaerobicGasStoichiometryInGas[Reaction_Index][Comp_Index]
+             * state.GasKinetics[Reaction_Index])* parameters.V_liq;
+    
+    };
+   
+
+//rate equations
+
+  state.C_h2 = MSLUNewtonRaphson_h2(state.Q_In, parameters.V_liq, 
+           interface.Inflow[S_h2], previous(state.C_h2), parameters.Y_su, 
+       parameters.f_h2_su, state.AnaerobicKinetics[uptake_su], parameters.Y_aa, parameters.f_h2_aa,
+             state.AnaerobicKinetics[uptake_aa], parameters.Y_fa, 
+       parameters.km_fa,state.C_An[S_fa],parameters.Ks_fa,state.C_An[X_fa],state.I_pH_bac,state.I_NH_limit, 
+       parameters.KI_h2_fa, parameters.Y_c4,
+       parameters.km_c4,state.C_An[S_va],parameters.Ks_c4,state.C_An[X_c4],state.C_An[S_bu],
+             parameters.KI_h2_c4,parameters.Y_pro, 
+       parameters.km_pro,state.C_An[S_pro],parameters.Ks_pro,state.C_An[X_pro],
+       parameters.KI_h2_pro, parameters.km_h2, parameters.Ks_h2,state.C_An[X_h2],
+       state.I_pH_h2, parameters.kla, state.KH_h2, state.p_h2);
+  
+    {FOREACH Comp_Index IN {S_INN .. S_ch4}:
+      DERIV(state.M_An[Comp_Index],[independent.t]) =
+       state.AnaerobicInFluxPerComponent[Comp_Index]
+       - state.AnaerobicOutFluxPerComponent[Comp_Index]
+       + state.AnaerobicConversionTermPerComponent[Comp_Index];
+    };
+
+    {FOREACH Comp_Index IN {S_aa .. X_su}:
+      DERIV(state.M_An[Comp_Index],[independent.t]) =
+       state.AnaerobicInFluxPerComponent[Comp_Index]
+       - state.AnaerobicOutFluxPerComponent[Comp_Index]
+       + state.AnaerobicConversionTermPerComponent[Comp_Index];
+    };    
+  
+    {FOREACH Comp_Index IN {S_an .. S_cat}:
+      DERIV(state.M_An[Comp_Index],[independent.t]) =
+       state.AnaerobicInFluxPerComponent[Comp_Index]
+       - state.AnaerobicOutFluxPerComponent[Comp_Index];
+    };  
+   
+     DERIV(state.M_An[S_h2],[independent.t]) = 0;
+    
+   {FOREACH Comp_Index IN {1 .. NrOfADM1GasComponents}:
+      DERIV(state.M_AnGas[Comp_Index],[independent.t]) =
+              - state.AnaerobicGasOutFluxPerComponent[Comp_Index]
+       + state.AnaerobicGasConversionTermPerComponent[Comp_Index];
+    };  
+   
+  //
+  //concentrations
+  //
+  state.C_An[H2O_An] = 1000;
+  {FOREACH Comp_Index IN {S_INN .. S_ch4}:
+  		state.C_An[Comp_Index] = state.M_An[Comp_Index] / parameters.V_liq ; };
+  {FOREACH Comp_Index IN {S_aa .. S_cat}:
+  		state.C_An[Comp_Index] = state.M_An[Comp_Index] / parameters.V_liq ; };
+  //state.C_An[S_h2] = state.C_h2;
+  {FOREACH Comp_Index IN {1 .. NrOfADM1GasComponents}:
+  		state.C_AnGas[Comp_Index] = state.M_AnGas[Comp_Index] / parameters.V_gas ; };
+  //
+  //out-fluxes (Constant volume is assumed)
+  {FOREACH Comp_Index IN {S_INN .. S_ch4}:
+  		state.AnaerobicOutFluxPerComponent[Comp_Index] = state.C_An[Comp_Index] * state.Q_In ; };
+  {FOREACH Comp_Index IN {S_aa .. S_va}:
+  		state.AnaerobicOutFluxPerComponent[Comp_Index] = state.C_An[Comp_Index] * state.Q_In ; }; 
+  state.AnaerobicOutFluxPerComponent[S_h2] = state.C_h2 * state.Q_In ;
+  state.AnaerobicOutFluxPerComponent[S_an] = state.C_An[S_an] * state.Q_In ;
+  state.AnaerobicOutFluxPerComponent[S_cat] = state.C_An[S_cat] * state.Q_In ;
+  //
+  {FOREACH Comp_Index IN {1 .. NrOfADM1GasComponents}:
+  		state.AnaerobicGasOutFluxPerComponent[Comp_Index] = state.C_AnGas[Comp_Index] * state.q_gas ; };
+  //
+  // Because of the very low growth rate of anaerobic biomass, only part of the particulates
+  // (fraction f_X_Out) is leaving the system via the outflow, the remaining particulate matter stays in the reactor
+  {FOREACH Comp_Index IN {X_aa .. X_su}:
+  		state.AnaerobicOutFluxPerComponent[Comp_Index] = parameters.f_X_Out * ( state.C_An[Comp_Index] * state.Q_In) ; };
+  {FOREACH Comp_Index IN {S_INN .. S_ch4}:
+  		interface.Outflow[Comp_Index] = state.C_An[Comp_Index] ; };
+  {FOREACH Comp_Index IN {S_aa .. S_cat}:
+  		interface.Outflow[Comp_Index] = state.C_An[Comp_Index] ; };
+  interface.Outflow[S_h2] = state.C_h2; 
+  {FOREACH Comp_Index IN {1 .. NrOfADM1GasComponents}:
+  		interface.Q_Gas_LD[Comp_Index]= state.C_AnGas[Comp_Index] ; };
+  //
+  //
+  interface.Outflow[H2O_An]= state.Q_In; //provided that the volume is constant
+  interface.pH_ADM = state.pH_;
+  interface.T_oper = interface.T_op;
+  interface.p_gas_ch4 = state.p_ch4;
+  interface.p_gas_tot = state.P_headspace;
+  interface.gas_flowrate = state.q_gas_norm;
+  interface.V_liquid = parameters.V_liq;
+  interface.V_tot = parameters.V_liq + parameters.V_gas;
+  //ER2009
+  {FOREACH Comp_Index IN {1 .. NrOfADM1Components}: interface.Conc_An[Comp_Index] = state.C_An[Comp_Index] ; };
+  {FOREACH Comp_Index IN {1 .. NrOfADM1IonComponents}: interface.Conc_AnIon[Comp_Index] = state.C_AnIon[Comp_Index] ; };
+  {FOREACH Comp_Index IN {1 .. NrOfADM1GasComponents}: interface.Conc_AnGas[Comp_Index] = state.C_AnGas[Comp_Index] ; };
+};
+:};
+
+#endif //
+
+#endif // WWTP_BASE_ADM1

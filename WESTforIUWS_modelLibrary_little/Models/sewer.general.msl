@@ -1,0 +1,192 @@
+#ifndef SEWER_GENERAL
+#define SEWER_GENERAL
+
+
+// With this library as a starting point, the modeller 
+// only needs to specify relevant biological components
+// (e.g., H2O, S_S, X_S, ...) as well as Stochiometric
+// and Kinetic conversion information (from IAWQ).
+// Also, any number of terminals (physical flow
+// of matter in/out of a sub-system, but also
+// control and information terminals) may be added to 
+// the model.
+// Once the above are specified, the appropriate model
+// will automatically be expanded. Currently, automatic
+// expansion only takes into account the hydorlogical,
+// chemical, and biological aspects.
+//
+// This library includes non-causal models as well as 
+// an inheritance hierarchy to separate
+// different model aspects and enhance model re-use.
+
+
+ // The following SewComponents TYPE declaration is commented
+ // as it will be specified further on.
+ // As the order of declarations does not matter in MSL,
+ // the actual place of declaration of the SewComponents TYPE 
+ // does not matter. 
+ // We already present a TYPE SewComponents definition here
+ // as it will make the rest of the generic model
+ // easier to understand.
+
+ // In the Components type declaration, the user indicates
+ // which components will be used in his/her models.
+ // A number of assumptions are made:
+ //  1. In one system, ALL the connections between
+ //     sub-models pass exactly those biological components
+ //     indicated in the Components declaration.
+ //  2. In a physical flow, ALL components are explicitly
+ //     considered: H2O, dissoved gasses, solids in suspension, ...
+ //     The usual assumption that the concentration of H2O is 1
+ //     and all the other concentrations are infinite will be put in 
+ //     further. This, to allow modelling of systems where
+ //     the above assumption is not valid.
+
+ // EVERYTHING is deduced from the SewComponents type declaration !
+ // From this declaration, appropriate models will be expanded
+ // automatically.
+ //
+ // As a convention, the component H2O is always written first
+ // as it is the "main" component in a wWtp.
+
+
+ OBJ NrOfSewComponents
+ "  The number of biological components considered in the sewer models "
+ : Integer := Cardinality(SewComponents);
+ /*
+OBJ NrOfParticulateComponents
+ "  The number of biological components considered in the sewer models "
+ : Integer := Cardinality(SewParticulates);
+*/
+
+ // The SewTerminal class is a template for the
+ // quantities which will be passed around the system.
+ // As with the SewComponent type declaration, this declaration
+ // may be given at the very end by the user. The appropriate
+ // model will then be expanded.
+ // Note however that, as long as we're only dealing with
+ // biological components flowing around the system (as
+ // declared in TYPE SewComponents), the SewTerminal CLASS
+ // below is sufficient !
+ // The following assumptions are made:
+ // 1. The SAME (SewTerminal) terminals are used everywhere in
+ //    a configuration.
+ // 2. All terminals of a model have the same cardinality.
+ //    This is enforced thanks to the way we define SewComponents and
+ //     SewTerminal.
+ // 3. The number of components in SewTerminal is the same as the number of 
+ //    components (columns) in the stoichiometry matrix (which will be 
+ //    defined later on). Again, this is enforced thanks to the way we define 
+ //    SewComponents and SewTerminal.
+ //    Note that components which are carried but do not interact
+ //    (i.e., only hydraulics, no chemistry nor biology)
+ //    just have a column of zeroes in the stoichiometry matrix.
+ //    This is easy as by default, when a variable was not given a value,
+ //    the initial value is 0. Thus, if we don't assign anything to 
+ //    elements of the stoichiometry matrix, it is a matrix of zeroes,
+ //    which means no chemical/biological reactions take place.
+
+
+ CLASS SewTerminal
+ //"
+ // The variables which are passed between sewer model building blocks
+ // Currently, we only consider a flux of biochemical material
+ //"
+ = MassFlux[NrOfSewComponents;]; 
+
+
+ // In the future, we will want more than just transport
+ // of biochemical material. Probably we want to include 
+ // transport of energy etc.
+ // BeginIllustration
+ // RECORD
+ // {
+ //  bioFlux: SewMassFluxVector;
+ //  heatFlux: SewEnergyFlux[NrOfSewComponents;]; 
+ //   // per component as each has its
+ //   // specific heat capacity 
+ //  ...
+ // };
+ // EndIllustration
+
+
+ CLASS InSewTerminal SPECIALISES SewTerminal; //used to indicate inflow
+ CLASS OutSewTerminal SPECIALISES SewTerminal; //used to indicate outflow
+
+ CLASS SewConcTerminal 
+  //"
+  // The variables which are passed between sewer model building blocks
+  // here in concentrations
+  //"
+  = Concentration[NrOfSewComponents;]; 
+
+ CLASS InSewConcTerminal SPECIALISES SewConcTerminal; //used to indicate inflow concentrations
+ CLASS OutSewConcTerminal SPECIALISES SewConcTerminal; //used to indicate outflow concentrations
+ 
+ // These classnames will be used by SelectByType() to determine which terminals
+ // are inflow and which are outflow. This is necessary to automatically
+ // generate the volume conservation law for any number (of inflow)
+ // terminals.
+ 
+ CLASS SewTerminalSurfaceFlux
+ = ArealFluxHa[NrOfSewComponents;]; 
+
+ TYPE SewerDataTerminalComponents
+ "Components in sewer compartment data terminal"
+ = ENUM {h_sewer, vh_sewer};
+
+// h_sewer is the height of the sewer from the bed
+// vh_sewer is the horizontal flow velocity
+
+ OBJ NrOfSewerDataTerminalComponents
+ "Components in sewer compartment data terminal"
+ : Integer := Cardinality(SewerDataTerminalComponents);
+
+ CLASS SewerDataTerminal
+ "Data coming out of a sewer compartmentASU"
+ = PhysicalQuantityType[NrOfSewerDataTerminalComponents;];
+
+
+//=====================================================================
+//==================================GLOBAL VARIABLES===================
+//=====================================================================
+
+//
+// Begin of ALL GLOBAL variables
+//
+
+ // Currently, iteration variables are not implicitly
+ // declared as being of the type of the range nor are they
+ // "expanded" as local (to the loop) variables. 
+ // Rather, they have to be declared explicitly.
+
+ OBJ s_comp_index "Temporary iteration variable" : Integer;
+ OBJ p_comp_index "Temporary iteration variable" : Integer;
+ OBJ s_reaction_index "Temporary iteration variable" : Integer;
+ OBJ s_in_comp_index "Temporary iteration variable" : Integer;
+ OBJ s_out_comp_index "Temporary iteration variable" : Integer;
+ OBJ s_terminal "Temporary iteration variable" : SewTerminal;
+ OBJ s_in_terminal "Temporary iteration variable" : SewTerminal;
+ OBJ s_out_terminal "Temporary iteration variable" : SewTerminal;
+ 
+ 
+ OBJ NrOfSewReactions
+ "The number of reactions between biological components considered in the sewer models"
+ : Integer := Cardinality(SewReactions);
+
+ 
+CLASS SewSpecificVolumeVector = SpecificVolume[NrOfSewComponents;];
+CLASS SewConcentrationVector = Concentration[NrOfSewComponents;];
+CLASS SewMassVector = Mass[NrOfSewComponents;];
+CLASS SewMassFluxVector = MassFlux[NrOfSewComponents;];
+/*
+CLASS ParticulateSpecificVolumeVector = SpecificVolume[NrOfParticulateComponents;];
+CLASS ParticulateConcentrationVector = Concentration[NrOfParticulateComponents;];
+CLASS ParticulateMassVector = Mass[NrOfParticulateComponents;];
+CLASS ParticulateMassFluxVector = MassFlux[NrOfSewComponents;];
+*/
+CLASS SewFractionVector = Real[NrOfSewComponents;];
+
+
+// End of ALL GLOBAL variables
+#endif //SEWER_GENERAL

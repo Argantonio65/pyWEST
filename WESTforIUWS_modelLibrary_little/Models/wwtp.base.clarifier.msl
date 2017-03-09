@@ -1,0 +1,195 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 5. juni 2012 16:45:20$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_BASE_CLARIFIER
+#define WWTP_BASE_CLARIFIER
+
+#ifdef StandardCategoryModels
+ CLASS PointSettler
+ "Pointsettler"
+
+// The modelling of a settler by means of a pointsettler is a large 
+// simplification of the actual process. The settler is only a phase 
+// separator, and has no real volume. Hence, the model does not take into 
+// account the retention time in the settler. It is not a dynamical model 
+// but only based on mass balances.       
+// 
+// The effluent particulate concentration is calculated as a fraction of the 
+// influent concentration to the settler. The central equation is : X_Out = f_ns * X_i
+// To calculate the underflow 
+// concentration a mass balance over the settler is solved.           
+
+ EXTENDS WWTPAtomicModelWithoutVolume WITH
+ {:
+  interface <-
+   { 
+    OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+         InWWTPTerminal := {: causality <- "CIN" ; group <- "Influent" :};
+    OBJ Outflow (* terminal = "out_1" *) "Overflow" : 
+         OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent" :};
+    OBJ Underflow (* terminal = "out_2" *) "Underflow" : 
+         OutWWTPTerminal := {: causality <- "COUT" ; group <- "Underflow" :};
+    OBJ Q_Under (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Underflow rate" : 
+    FlowRate := {: causality <- "CIN" ; value <- 10 ; group <- "Operational" :};  
+   OBJ PumpingEnergy (* terminal = "out_3" *)"Pumping energy" : ElectricalEnergy := {: causality <- "COUT"; group <- "Energy" :};
+   };
+
+  parameters <- 
+   { 
+/*
+    OBJ f_ns "Non-settleable fraction of suspended solids" : 
+         Fraction := {: value <- 0.005 ; group <- "Settling" :};
+*/
+    OBJ F_TSS_COD "Fraction TSS/COD" : Fraction := {: value <- 0.75 ; group <- "Conversion factors" :};
+// PUMPING ENERGY
+    OBJ F_Energy_FlowRate "Conversion factor Energy needed/Pump flow rate" : Ratio := {: value <- 0.04 ; group <- "Energy":};
+   };
+
+  state <-
+   {
+    OBJ Q_Out (* is_favorite = "1" *) "Effluent flow rate" : FlowRate := {: group <- "Operational" :};
+    OBJ Q_Under_Actual (* is_favorite = "1" *) "Underflow rate" : FlowRate := {: group <- "Operational" :};
+    OBJ Help_X_In (* hidden = "1" *) "" : MassFlux;
+    OBJ Help_X_Out (* hidden = "1" *) "" : MassFlux;
+    OBJ Help_X_Under (* hidden = "1" *) "" : MassFlux;
+    OBJ f_Out (* hidden = "1" *) "Fraction of the influent flux going to the overflow" : Fraction ;
+    OBJ f_Under (* hidden = "1" *) "Fraction of the influent flux going to the underflow" : Fraction ;
+    OBJ X_In (* is_favorite = "1" *) "Influent suspended solids concentration" : Concentration := {: group <- "Concentration" :};
+    OBJ X_Out (* is_favorite = "1" *) "Effluent suspended solids concentration" : Concentration := {: group <- "Concentration" :};
+    OBJ X_Under (* is_favorite = "1" *) "Underflow suspended solids concentration" : Concentration := {: group <- "Concentration" :};
+// PUMPING ENERGY
+    OBJ Integ_PE (* hidden = "1" *)"Integral Pumping energy" : ElectricalEnergy ;
+    OBJ f_ns_help (* hidden = "1" *) "Non-settleable fraction of suspended solids" : Fraction ;
+   };
+
+  equations <-
+   {
+     // The underflow rate is a parameter, so the effluent flow rate has to
+     // be calculated as a state variable
+  
+     // Soluble components (including water itself) are splitted into the two
+     // streams (effluent and underflow) according to the ratio between
+     // the flow rates.
+
+    state.Q_Under_Actual = IF (state.Q_In <= interface.Q_Under)
+                 THEN state.Q_In
+                 ELSE interface.Q_Under; 
+
+    state.Q_Out = state.Q_In - state.Q_Under_Actual;
+
+    state.f_Out = IF  (state.Q_In <= interface.Q_Under)
+              THEN 0
+              ELSE (state.Q_In - interface.Q_Under) / state.Q_In ;
+    state.f_Under = IF (state.Q_In <= interface.Q_Under)
+                THEN 1
+              ELSE interface.Q_Under/state.Q_In ;
+
+    {FOREACH Comp_Index IN {IndexOfSolvent .. IndexOfLastSolubleComponent}:
+      interface.Outflow[Comp_Index] =
+      - state.InFluxPerComponent[Comp_Index] * state.f_Out ;};
+
+    interface.Underflow[IndexOfSolvent] = IF  (state.Q_In <= interface.Q_Under)
+                   THEN - state.Q_In / 0.000001
+                   ELSE - interface.Q_Under / 0.000001 ;
+
+    {FOREACH Comp_Index IN {IndexOfFirstSolubleComponent .. IndexOfLastSolubleComponent}:
+     interface.Underflow[Comp_Index] = 
+     - state.InFluxPerComponent[Comp_Index]* state.f_Under ;};
+
+     // Particulate components are splitted according to the non settleable
+     // fraction f_ns.
+     // X_Out = f_ns * X_i has to be transformed to an equation using fluxes !!
+     // Outflow = Q_Out * X_Out = a flux 
+     //         = Q_Out * f_ns * X_i
+     //         = Q_Out * f_ns * Inflow / Q_In
+     //         = Inflow * Q_Out / Q_In * f_ns  ==> see equations below
+     // Underflow = Inflow - Outflow
+
+    {FOREACH Comp_Index IN {IndexOfFirstParticulateComponent .. IndexOfLastParticulateComponent}:
+      interface.Outflow[Comp_Index] =
+      - state.InFluxPerComponent[Comp_Index] * state.f_Out * 
+        state.f_ns_help ;};   
+
+    {FOREACH Comp_Index IN {IndexOfFirstParticulateComponent .. IndexOfLastParticulateComponent}:
+     interface.Underflow[Comp_Index] = - (state.InFluxPerComponent[Comp_Index] 
+     + interface.Outflow[Comp_Index]);};
+
+     
+#ifdef CalculateTSSComponent
+    state.Help_X_In = (SUMOVER Comp_Index IN {IndexOfFirstTSSComponent .. IndexOfLastTSSComponent}:
+                     (interface.Inflow[Comp_Index]));
+
+    {state.X_In = IF (state.Q_In == 0)
+          THEN 0
+          ELSE state.Help_X_In / state.Q_In * parameters.F_TSS_COD;
+     };
+
+    state.Help_X_Out = (SUMOVER Comp_Index IN {IndexOfFirstTSSComponent .. IndexOfLastTSSComponent}:
+                     (- interface.Outflow[Comp_Index]));
+
+    {state.X_Out = IF (state.Q_In <= interface.Q_Under)
+           THEN 0
+           ELSE state.Help_X_Out / (state.Q_In - interface.Q_Under) * parameters.F_TSS_COD;
+     };
+
+     state.Help_X_Under = (SUMOVER Comp_Index IN {IndexOfFirstTSSComponent .. IndexOfLastTSSComponent}:(- interface.Underflow[Comp_Index]));
+
+    {state.X_Under = 
+        IF (state.Q_In <= interface.Q_Under)
+      THEN
+          IF (state.Q_In == 0)
+          THEN 0
+          ELSE
+               state.Help_X_Under / state.Q_In * parameters.F_TSS_COD
+      ELSE 
+          IF (interface.Q_Under == 0)
+          THEN 0
+          ELSE
+               state.Help_X_Under / interface.Q_Under * parameters.F_TSS_COD ;
+     };
+#endif // CalculateTSSComponent
+
+#ifdef UseTSSComponent
+    state.X_In =  IF (state.Q_In == 0)
+            THEN 0
+          ELSE interface.Inflow[IndexOfTSSComponent] / state.Q_In;
+
+    state.X_Out =  IF (state.Q_In <= interface.Q_Under)
+           THEN 0
+           ELSE (- interface.Outflow[IndexOfTSSComponent] / (state.Q_In - interface.Q_Under) );
+
+    state.X_Under = IF (state.Q_In <= interface.Q_Under) 
+              THEN
+                IF (state.Q_In == 0)
+                  THEN 0
+                ELSE - interface.Underflow[IndexOfTSSComponent] / (state.Q_In)
+            ELSE 
+                IF (interface.Q_Under == 0)
+                  THEN 0
+                ELSE - interface.Underflow[IndexOfTSSComponent] / (interface.Q_Under);
+#endif // UseTSSComponent
+
+// PUMPING ENERGY
+  DERIV(state.Integ_PE,[independent.t])=  state.Q_Under_Actual;
+  interface.PumpingEnergy = parameters.F_Energy_FlowRate * state.Integ_PE ;
+
+   };
+ :};
+
+#endif // StandardCategoryModels
+
+#endif // WWTP_BASE_CLARIFIER
+

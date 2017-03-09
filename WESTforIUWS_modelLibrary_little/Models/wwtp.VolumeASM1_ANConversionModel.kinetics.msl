@@ -1,0 +1,46 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$ EURE
+ * $Date: 29. juni 2012 15:54:05$
+ *
+ ******************************************************************************/
+
+
+#ifdef ASM1_AN
+    state.X_TSS = (state.C[X_H] + state.C[X_NH] +  state.C[X_NO] + state.C[X_AN] + state.C[X_I] + state.C[X_S] ) * parameters.F_TSS_COD;
+    state.S_O_Saturation = 14.65 - 0.41 * state.Temp_Actual + 0.00799 * pow(state.Temp_Actual,2) - 0.0000778 * pow(state.Temp_Actual,3) ;
+
+	state.Ke_NH4 = exp(-6344/(273+state.Temp_Actual));
+	state.Ke_HNO2 = exp(-2300/(273+state.Temp_Actual));
+	state.k_h_Temp = parameters.k_h * exp(parameters.theta_k_h * (state.Temp_Actual - parameters.Temp_Ref)) ;
+	state.mu_H_Temp = parameters.mu_H * exp(parameters.theta_mu_H * (state.Temp_Actual - parameters.Temp_Ref));
+	state.b_H_Temp = parameters.b_H * exp(parameters.theta_b_H * (state.Temp_Actual - parameters.Temp_Ref)) ;
+	state.mu_NH_Temp = parameters.mu_NH * exp(parameters.theta_mu_NH * (state.Temp_Actual - parameters.Temp_Ref));
+	state.mu_NO_Temp = parameters.mu_NO * exp(parameters.theta_mu_NO * (state.Temp_Actual - parameters.Temp_Ref)) ;
+	state.mu_AN_Temp = parameters.mu_AN * exp(parameters.theta_mu_AN * (state.Temp_Actual - parameters.Temp_Ref));
+	state.b_NH_Temp = parameters.b_NH * exp(parameters.theta_b_NH * (state.Temp_Actual - parameters.Temp_Ref));
+	state.b_AN_Temp = parameters.b_AN * exp(parameters.theta_b_AN * (state.Temp_Actual - parameters.Temp_Ref));
+	state.b_NO_Temp = parameters.b_NO * exp(parameters.theta_b_NO * (state.Temp_Actual - parameters.Temp_Ref)) ;
+
+	state.Kinetics[Hydrolysis] = state.k_h_Temp * (state.C[X_S] / state.C[X_H]) / (parameters.K_X + (state.C[X_S] / state.C[X_H])) * state.C[X_H];
+	state.Kinetics[AerGrowthXH] = state.mu_H_Temp * (state.C[S_S] / (parameters.K_SH + state.C[S_S])) * (state.C[S_O] / (parameters.K_OH + state.C[S_O])) * state.C[X_H];
+	state.Kinetics[AerEndoXH] = state.b_H_Temp * state.C[X_H];
+	state.Kinetics[AnGrowthXHonNO3] = state.mu_H_Temp * parameters.n_NO3 * (parameters.K_OH / (parameters.K_OH + state.C[S_O])) * (state.C[S_NO3] / (parameters.K_NO3_H + state.C[S_NO3])) * (state.C[S_NO3] / (state.C[S_NO2] + state.C[S_NO3])) * (state.C[S_S] / (parameters.K_SH + state.C[S_S])) * state.C[X_H];
+	state.Kinetics[AnGrowthXHonNO2] = state.mu_H_Temp * parameters.n_NO2 * (parameters.K_OH / (parameters.K_OH + state.C[S_O])) * (state.C[S_NO2] / (parameters.K_NO2_H + state.C[S_NO2])) * (state.C[S_NO2] / (state.C[S_NO2] + state.C[S_NO3])) * (state.C[S_S] / (parameters.K_SH + state.C[S_S])) * state.C[X_H];
+	state.Kinetics[AerGrowthXNH] = state.mu_NH_Temp * (state.C[S_NH] / (state.C[S_NH] + parameters.K_NH3_NH * (1 + (pow(10, - parameters.pH_tank) / state.Ke_NH4)))) * (state.C[S_O] / (parameters.K_O_NH + state.C[S_O])) * state.C[X_NH];
+	state.Kinetics[AerEndoXNH] = state.b_NH_Temp * state.C[X_NH];
+	state.Kinetics[AerGrowthXNO] = state.mu_NO_Temp * (state.C[S_NO2] / (state.C[S_NO2] + parameters.K_HNO2_NO * (1 + (state.Ke_HNO2 / pow(10, - parameters.pH_tank))))) * (state.C[S_O] / (parameters.K_O_NO + state.C[S_O])) * state.C[X_NO];
+	state.Kinetics[AerEndoXNO] = state.b_NO_Temp * state.C[X_NO];
+	state.Kinetics[AnaerGrowthXAN] = state.mu_AN_Temp *  (state.C[S_NO2]/(parameters.K_NO2_AN+state.C[S_NO2] + state.C[S_NO2] * state.C[S_NO2]/parameters.K_NO2_AN_I)) * (state.C[S_NH]/(parameters.K_NH_AN+state.C[S_NH])) * (parameters.K_O_AN /(parameters.K_O_AN+state.C[S_O]))* state.C[X_AN];
+	state.Kinetics[AerEndoXAN] = state.b_AN_Temp * state.C[X_AN];
+	state.Kinetics[Aeration] = state.Kla_Actual * pow(parameters.theta_kla,state.Temp_Actual - parameters.Temp_Ref  ) * (state.S_O_Saturation - state.C[S_O]);
+#endif // ASM1_AN

@@ -1,0 +1,625 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 30. marts 2012 15:07:03$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_BASE_PRIMARY_CLARIFIER_LESSARDBECK
+#define WWTP_BASE_PRIMARY_CLARIFIER_LESSARDBECK
+
+#if (defined ASM1Temp)
+ CLASS LessardBeck
+ (* icon = "primary_clarifier" *)
+ "The model of Lessard and Beck for primary clarifiers"
+
+// Model based on the article written by Lessard & Beck (1988); 
+// The model can predict the dilution and buffering of influent concentrations and the reduction of COD by removal of 
+// particulate fractions and conversion of particulate COD to soluble COD by hydrolysis.
+// 
+// The settling process is dependent on sewage features : i.e. storm sewage settles better
+// than normal sewage.  
+// 
+// Bioconversion, i.e. hydrolysis in the settler, is also taken into account 
+// Hydrolysis is modelled as first-order kinetics (simplification of Sollfrank & Gujer (1991)).
+// Because of the bioconversion model the particulate fractions can not be lumped.
+// Scouring of sludge is taken into account (Alarie et al., 1980; Takamatsu et al., 1974)
+// 
+// The hydraulics are modelled by a 5 layer model. Dilution of all fractions in each layer is calculated.
+// The inlet for the primary clarifier is fixed in layer 3.
+// 
+// Literature :
+// o  Lessard P.  & Beck M.B. (1988), Dynamic Simulation of Primary Sedimentation, J. Environ. Eng., 114, 753.
+// o  Sollfrank U. & Gujer W. (1991), Characterisation of domestic wastewater for mathematical modelling of the 
+// activated sludge process, Wat. Sci. Tech. 23, 1057 - 1066.
+// o  Alarie R.L., McBean E.A. & Farquhar G.J. (1980), Simulation Modeling of Primary Clarifiers, J. Environ. Eng., 
+// April 1980, 293 - 309.
+// o  Takamatsu T., Naito M., Shiba S. & Ueda Y. (1974), Effects of deposit resuspension on settling basin,  J. Environ. 
+// Eng., August 1974, 883 - 903.
+
+ EXTENDS WWTPAtomicModelWithoutVolume WITH
+ {:
+   comments <- "A model for a primary settler by Lessard and Beck";
+   interface <-
+   { 
+    OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+         InWWTPTerminal := {: causality <- "CIN" ; group <- "Influent" :};
+    OBJ Outflow (* terminal = "out_1" *) "Overflow" : 
+         OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent" :};
+    OBJ Underflow (* terminal = "out_2" *) "Underflow" : 
+         OutWWTPTerminal := {: causality <- "COUT" ; group <- "Underflow" :};
+    OBJ Q_Under (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Underflow rate" : 
+    FlowRate := {: causality <- "CIN" ; value <- 10 ; group <- "Operational" :};  
+   OBJ PumpingEnergy (* terminal = "out_3" *)"Pumping energy" : ElectricalEnergy := {: causality <- "COUT"; group <- "Energy" :};
+   };
+
+  parameters <- 
+   {
+    OBJ F_TSS_COD "Fraction TSS/COD" : Fraction := {: value <- 0.75 ; group <- "Conversion factors":};
+    OBJ alfa "Correlation parameter for the calculation of scouring" : PhysicalQuantityType := {: value <- 3.6 ; group <- "Settling" :};
+    OBJ beta "Correlation parameter for the calculation of scouring" : PhysicalQuantityType := {: value <- 59 ; group <- "Settling" :};
+    OBJ gamma "Correlation parameter for the calculation of scouring" : PhysicalQuantityType := {: value <- 1.17 ; group <- "Settling" :};
+    OBJ lambda "Correlation parameter for the calculation of scouring" : PhysicalQuantityType := {: value <- 8.05 ; group <- "Settling":};
+    OBJ H (* is_favorite = "1" *) "Height" : Length := {: value <- 3 ; group <- "Dimension" :};
+    OBJ v_PC "Settling velocity" : Velocity := {: value <- 1 ; group <- "Settling":};
+    OBJ k_a "Ammonification rate" : AmmonificationRate:= {: value <- 0.003 ; group <- "Kinetic":};
+    OBJ k_h "Specific Hydrolysis rate" : MaxSpecificHydrolysisRate:= {: value <- 0.083 ; group <- "Kinetic":};
+    OBJ pi (* hidden = "1" *) "" : Real := {: value <- 3.1415927 :};
+    // Volume as a parameter == not based on any mass balance
+    OBJ V_Clar (* is_favorite = "1" *) "Volume of the clarifier" : Volume := {: value <- 1000 ; group <- "Dimension" :};
+// PUMPING ENERGY
+    OBJ F_Energy_FlowRate "Conversion factor Energy needed/Pump flow rate" : Ratio := {: value <- 0.04 ; group <- "Energy":};
+   };
+
+  state <-
+   {
+    OBJ Help_X_Out (* hidden = "1" *) "" : MassFlux;    
+    OBJ Help_X_Under (* hidden = "1" *) "" : MassFlux;
+    OBJ Scour (* hidden = "1" *) "Scouring term" : Real;
+    OBJ Setterm (* hidden = "1" *) "Settling term" : Real;
+    OBJ A (* is_favorite = "1" *) "Surface" : Area := {: group <- "Dimension" :};
+    OBJ R "Radius" : Length := {: group <- "Dimension" :};
+    OBJ V_Layer (* hidden = "1" *) "Volume of the layers" : Volume;
+    OBJ Q_Out_Div_V_Layer (* hidden = "1" *) "Q_Out/V_Layer" : PhysicalQuantityType;
+    OBJ Q_Under_Div_V_Layer (* hidden = "1" *) "Q_Under/V_Layer" : PhysicalQuantityType;
+    OBJ Hydrolysis_X_S_Layer1 (* hidden = "1" *) "help variable for hydrolysis of X_S to S_S in layer 1" : Real;
+    OBJ Hydrolysis_X_ND_Layer1 (* hidden = "1" *) "help variable for hydrolysis of X_ND to S_ND in layer 1" : Real;
+    OBJ Ammonification_Layer1 (* hidden = "1" *) "help variable for ammonification of S_ND to S_NH in layer 1" : Real;
+    OBJ Hydrolysis_X_S_Layer2 (* hidden = "1" *) "help variable for hydrolysis of X_S to S_S in layer 2" : Real;
+    OBJ  Hydrolysis_X_ND_Layer2 (* hidden = "1" *) "help variable for hydrolysis of X_ND to S_ND in layer 2" : Real;
+    OBJ  Ammonification_Layer2 (* hidden = "1" *) "help variable for ammonification of S_ND to S_NH in layer 2" : Real;
+    OBJ Hydrolysis_X_S_Layer3 (* hidden = "1" *) "help variable for hydrolysis of X_S to S_S in layer 3" : Real;
+    OBJ  Hydrolysis_X_ND_Layer3 (* hidden = "1" *) "help variable for hydrolysis of X_ND to S_ND in layer 3" : Real;
+    OBJ  Ammonification_Layer3 (* hidden = "1" *) "help variable for ammonification of S_ND to S_NH in layer 3" : Real;
+    OBJ Hydrolysis_X_S_Layer4 (* hidden = "1" *) "help variable for hydrolysis of X_S to S_S in layer 4" : Real;
+    OBJ  Hydrolysis_X_ND_Layer4 (* hidden = "1" *) "help variable for hydrolysis of X_ND to S_ND in layer 4" : Real;
+    OBJ  Ammonification_Layer4 (* hidden = "1" *) "help variable for ammonification of S_ND to S_NH in layer 4" : Real;
+    OBJ Hydrolysis_X_S_Layer5 (* hidden = "1" *) "help variable for hydrolysis of X_S to S_S in layer 5" : Real;
+    OBJ  Hydrolysis_X_ND_Layer5 (* hidden = "1" *) "help variable for hydrolysis of X_ND to S_ND in layer 5" : Real;
+    OBJ  Ammonification_Layer5 (* hidden = "1" *) "help variable for ammonification of S_ND to S_NH in layer 5" : Real;
+    OBJ Q_Out (* is_favorite = "1" *) "Effluent flow rate" : FlowRate := {: group <- "Operational" :};
+    OBJ Q_Under_Actual (* is_favorite = "1" *) "Underflow rate" : FlowRate := {: group <- "Operational" :};
+    OBJ S_I_Layer "Vector containing S_I concentration for all the layers" : L_and_B_ConcentrationVector := {: group <- "Concentration" :};
+    OBJ S_ND_Layer " Vector containing S_ND concentration for all the layers " : L_and_B_ConcentrationVector := {: group <- "Concentration" :};
+    OBJ S_NH_Layer " Vector containing S_NH concentration for all the layers " : L_and_B_ConcentrationVector := {: group <- "Concentration" :};
+    OBJ S_NO_Layer " Vector containing S_NO concentration for all the layers " : L_and_B_ConcentrationVector := {: group <- "Concentration" :};
+    OBJ S_O_Layer " Vector containing S_O concentration for all the layers " : L_and_B_ConcentrationVector := {: group <- "Concentration" :};
+    OBJ S_S_Layer " Vector containing S_S concentration for all the layers " : L_and_B_ConcentrationVector := {: group <- "Concentration" :};
+    OBJ S_ALK_Layer " Vector containing S_ALK concentration for all the layers " : L_and_B_ConcentrationVector := {: group <- "Concentration" :};
+    OBJ X_BA_Layer " Vector containing X_BA concentration for all the layers " : L_and_B_ConcentrationVector := {: group <- "Concentration" :};
+    OBJ X_BH_Layer " Vector containing X_BH concentration for all the layers " : L_and_B_ConcentrationVector := {: group <- "Concentration" :};
+    OBJ X_I_Layer " Vector containing X_I concentration for all the layers " : L_and_B_ConcentrationVector := {: group <- "Concentration" :};
+    OBJ X_P_Layer " Vector containing X_P concentration for all the layers " : L_and_B_ConcentrationVector := {: group <- "Concentration" :};
+    OBJ X_ND_Layer " Vector containing X_ND concentration for all the layers " : L_and_B_ConcentrationVector := {: group <- "Concentration" :};
+    OBJ X_S_Layer " Vector containing X_S concentration for all the layers " : L_and_B_ConcentrationVector := {: group <- "Concentration" :};
+    OBJ Help_X_In (* hidden = "1" *) "" : MassFlux;
+    OBJ X_In (* is_favorite = "1" *) "Influent suspended solids concentration" : Concentration  := {: group <- "Concentration" :};
+    OBJ X_Out (* is_favorite = "1" *) "Effluent suspended solids concentration" : Concentration  := {: group <- "Concentration" :}; 
+    OBJ X_Under (* is_favorite = "1" *) "Underflow suspended solids concentration" : Concentration  := {: group <- "Concentration" :};   
+// PUMPING ENERGY
+//    OBJ PumpingEnergy "Pumping energy" : ElectricalEnergy := {: group <- "Energy" :};
+    OBJ Integ_PE (* hidden = "1" *)"Integral Pumping energy" : ElectricalEnergy ;
+   };
+
+  initial <-
+   {
+    state.V_Layer = parameters.V_Clar / 5;
+    state.A = parameters.V_Clar / parameters.H;
+    state.R = sqrt(state.A / parameters.pi);
+    state.Q_Under_Div_V_Layer = interface.Q_Under / state.V_Layer;
+   };
+
+  equations <-
+   {
+    state.Q_Out = IF (state.Q_In <= interface.Q_Under)
+      THEN 0
+      ELSE state.Q_In - interface.Q_Under;
+
+    state.Q_Under_Actual = IF (state.Q_In <= interface.Q_Under)
+           THEN state.Q_In
+           ELSE interface.Q_Under; 
+
+    interface.Outflow[IndexOfSolvent] = - state.Q_Out
+               / 0.000001 ;
+    interface.Underflow[IndexOfSolvent] = 
+    IF (state.Q_In <= interface.Q_Under)
+    THEN - state.Q_In / 0.000001
+    ELSE - interface.Q_Under / 0.000001 ;
+
+// g= 9.81 m/s2 = 7.32e10 m/d2
+
+    state.Scour = parameters.gamma * exp(-parameters.lambda / parameters.alfa /
+      (exp ((parameters.beta * state.Q_Out / (2.0 * parameters.pi * parameters.H * state.R * sqrt(7.32e10 * parameters.H))))));
+    state.Q_Out_Div_V_Layer = state.Q_Out / state.V_Layer;
+
+    state.Setterm = (1 - state.Scour) * parameters.v_PC * state.A / state.V_Layer;
+
+//    
+// first layer
+//
+
+    
+    state.Hydrolysis_X_S_Layer1 = IF (state.X_S_Layer[1] > 0)
+                    THEN parameters.k_h * state.X_S_Layer[1]
+                    ELSE 0;
+
+    state.Hydrolysis_X_ND_Layer1 = IF ((state.X_S_Layer[1] * state.X_ND_Layer[1]) > 0)
+                    THEN state.Hydrolysis_X_S_Layer1 * (state.X_ND_Layer[1] / state.X_S_Layer[1])
+                    ELSE 0;
+
+    state.Ammonification_Layer1 = IF ((state.S_ND_Layer[1] * state.X_BH_Layer[1]) > 0)
+                    THEN parameters.k_a * state.S_ND_Layer[1] * state.X_BH_Layer[1]
+                    ELSE 0;
+
+    {DERIV(state.S_I_Layer[1],[independent.t]) = 
+      state.Q_Out_Div_V_Layer * (state.S_I_Layer[2] - state.S_I_Layer[1]);
+    };
+
+    {DERIV(state.S_O_Layer[1],[independent.t]) = 
+      state.Q_Out_Div_V_Layer * (state.S_O_Layer[2] - state.S_O_Layer[1]);
+    };
+
+    {DERIV(state.S_S_Layer[1],[independent.t]) = 
+      state.Q_Out_Div_V_Layer * (state.S_S_Layer[2] - state.S_S_Layer[1]) + state.Hydrolysis_X_S_Layer1;
+    };
+
+    {DERIV(state.S_ALK_Layer[1],[independent.t]) = 
+      state.Q_Out_Div_V_Layer * (state.S_ALK_Layer[2] - state.S_ALK_Layer[1]);
+    };
+
+    {DERIV(state.S_NH_Layer[1],[independent.t]) = 
+      state.Q_Out_Div_V_Layer * (state.S_NH_Layer[2] - state.S_NH_Layer[1]) + state.Ammonification_Layer1;
+    };
+
+    {DERIV(state.S_ND_Layer[1],[independent.t]) = 
+      state.Q_Out_Div_V_Layer * (state.S_ND_Layer[2] - state.S_ND_Layer[1])
+      - state.Ammonification_Layer1 + state.Hydrolysis_X_ND_Layer1;
+    };
+
+    {DERIV(state.S_NO_Layer[1],[independent.t]) = 
+      state.Q_Out_Div_V_Layer * (state.S_NO_Layer[2] - state.S_NO_Layer[1]);
+    };
+
+    {DERIV(state.X_BA_Layer[1],[independent.t]) =
+      state.Q_Out_Div_V_Layer * (state.X_BA_Layer[2] - state.X_BA_Layer[1]) 
+           - state.Setterm * state.X_BA_Layer[1];
+    };
+
+    {DERIV(state.X_BH_Layer[1],[independent.t]) =
+      state.Q_Out_Div_V_Layer * (state.X_BH_Layer[2] - state.X_BH_Layer[1])
+           - state.Setterm * state.X_BH_Layer[1];
+    };
+
+    {DERIV(state.X_I_Layer[1],[independent.t]) =
+      state.Q_Out_Div_V_Layer * (state.X_I_Layer[2] - state.X_I_Layer[1])
+           - state.Setterm * state.X_I_Layer[1];
+    };
+
+    {DERIV(state.X_P_Layer[1],[independent.t]) =
+      state.Q_Out_Div_V_Layer * (state.X_P_Layer[2] - state.X_P_Layer[1])
+           - state.Setterm * state.X_P_Layer[1];
+    };
+
+    {DERIV(state.X_S_Layer[1],[independent.t]) =
+      state.Q_Out_Div_V_Layer * (state.X_S_Layer[2] - state.X_S_Layer[1])
+           - state.Setterm * state.X_S_Layer[1] - state.Hydrolysis_X_S_Layer1;
+    };
+
+    {DERIV(state.X_ND_Layer[1],[independent.t]) =
+      state.Q_Out_Div_V_Layer * (state.X_ND_Layer[2] - state.X_ND_Layer[1])
+           - state.Setterm * state.X_ND_Layer[1] - state.Hydrolysis_X_ND_Layer1;
+    };
+
+//
+// second layer
+//
+
+    
+    state.Hydrolysis_X_S_Layer2 = IF (state.X_S_Layer[2] > 0)
+                    THEN parameters.k_h * state.X_S_Layer[2]
+                    ELSE 0;
+
+    state.Hydrolysis_X_ND_Layer2 = IF ((state.X_S_Layer[2] * state.X_ND_Layer[2]) > 0)
+                    THEN state.Hydrolysis_X_S_Layer2 * (state.X_ND_Layer[2] / state.X_S_Layer[2])
+                    ELSE 0;
+
+    state.Ammonification_Layer2 = IF ((state.S_ND_Layer[2] * state.X_BH_Layer[2]) > 0)
+                    THEN parameters.k_a * state.S_ND_Layer[2] * state.X_BH_Layer[2]
+                    ELSE 0;
+
+    {DERIV(state.S_I_Layer[2],[independent.t]) = 
+      state.Q_Out_Div_V_Layer * (state.S_I_Layer[3] - state.S_I_Layer[2]);
+    };
+
+    {DERIV(state.S_O_Layer[2],[independent.t]) = 
+      state.Q_Out_Div_V_Layer * (state.S_O_Layer[3] - state.S_O_Layer[2]);
+    };
+
+    {DERIV(state.S_S_Layer[2],[independent.t]) = 
+      state.Q_Out_Div_V_Layer * (state.S_S_Layer[3] - state.S_S_Layer[2]) + state.Hydrolysis_X_S_Layer2;
+    };
+
+    {DERIV(state.S_ALK_Layer[2],[independent.t]) = 
+      state.Q_Out_Div_V_Layer * (state.S_ALK_Layer[3] - state.S_ALK_Layer[2]);
+    };
+
+    {DERIV(state.S_NH_Layer[2],[independent.t]) = 
+      state.Q_Out_Div_V_Layer * (state.S_NH_Layer[3] - state.S_NH_Layer[2]) + state.Ammonification_Layer2;
+    };
+
+    {DERIV(state.S_ND_Layer[2],[independent.t]) = 
+      state.Q_Out_Div_V_Layer * (state.S_ND_Layer[3] - state.S_ND_Layer[2])
+      - state.Ammonification_Layer2 + state.Hydrolysis_X_ND_Layer2;
+    };
+
+    {DERIV(state.S_NO_Layer[2],[independent.t]) = 
+      state.Q_Out_Div_V_Layer * (state.S_NO_Layer[3] - state.S_NO_Layer[2]);
+    };
+
+    {DERIV(state.X_BA_Layer[2],[independent.t]) =
+      state.Q_Out_Div_V_Layer * (state.X_BA_Layer[3] - state.X_BA_Layer[2])
+           - state.Setterm * state.X_BA_Layer[2] + state.Setterm * state.X_BA_Layer[1];
+    };
+
+    {DERIV(state.X_BH_Layer[2],[independent.t]) =
+      state.Q_Out_Div_V_Layer * (state.X_BH_Layer[3] - state.X_BH_Layer[2])
+           - state.Setterm * state.X_BH_Layer[2] + state.Setterm * state.X_BH_Layer[1];
+    };
+
+    {DERIV(state.X_I_Layer[2],[independent.t]) =
+      state.Q_Out_Div_V_Layer * (state.X_I_Layer[3] - state.X_I_Layer[2])
+           - state.Setterm * state.X_I_Layer[2] + state.Setterm * state.X_I_Layer[1];
+    };
+
+    {DERIV(state.X_P_Layer[2],[independent.t]) =
+      state.Q_Out_Div_V_Layer * (state.X_P_Layer[3] - state.X_P_Layer[2])
+           - state.Setterm * state.X_P_Layer[2] + state.Setterm * state.X_P_Layer[1];
+    };
+
+    {DERIV(state.X_S_Layer[2],[independent.t]) =
+      state.Q_Out_Div_V_Layer * (state.X_S_Layer[3] - state.X_S_Layer[2])
+           - state.Setterm * state.X_S_Layer[2] + state.Setterm * state.X_S_Layer[1] - state.Hydrolysis_X_S_Layer2;
+    };
+
+    {DERIV(state.X_ND_Layer[2],[independent.t]) =
+      state.Q_Out_Div_V_Layer * (state.X_ND_Layer[3] - state.X_ND_Layer[2])
+           - state.Setterm * state.X_ND_Layer[2] + state.Setterm * state.X_ND_Layer[1] - state.Hydrolysis_X_ND_Layer2;
+    };
+
+//
+// third layer
+//
+
+    
+    state.Hydrolysis_X_S_Layer3 = IF (state.X_S_Layer[3] > 0)
+                    THEN parameters.k_h * state.X_S_Layer[3]
+                    ELSE 0;
+
+    state.Hydrolysis_X_ND_Layer3 = IF ((state.X_S_Layer[3] * state.X_ND_Layer[3]) > 0)
+                    THEN state.Hydrolysis_X_S_Layer3 * (state.X_ND_Layer[3] / state.X_S_Layer[3])
+                    ELSE 0;
+
+    state.Ammonification_Layer3 = IF ((state.S_ND_Layer[3] * state.X_BH_Layer[3]) > 0)
+                    THEN parameters.k_a * state.S_ND_Layer[3] * state.X_BH_Layer[3]
+                    ELSE 0;
+
+    {DERIV(state.S_I_Layer[3],[independent.t]) = 
+      1/state.V_Layer * (interface.Inflow[S_I] - state.Q_In * state.S_I_Layer[3]);
+    };
+
+    {DERIV(state.S_O_Layer[3],[independent.t]) = 
+      1/state.V_Layer * (interface.Inflow[S_O] - state.Q_In * state.S_O_Layer[3]);
+    };
+
+    {DERIV(state.S_S_Layer[3],[independent.t]) = 
+      1/state.V_Layer * (interface.Inflow[S_S] - state.Q_In * state.S_S_Layer[3]) + state.Hydrolysis_X_S_Layer3;
+    };
+
+    {DERIV(state.S_ALK_Layer[3],[independent.t]) = 
+      1/state.V_Layer * (interface.Inflow[S_ALK] - state.Q_In * state.S_ALK_Layer[3]);
+    };
+
+    {DERIV(state.S_NH_Layer[3],[independent.t]) = 
+      1/state.V_Layer * (interface.Inflow[S_NH] - state.Q_In * state.S_NH_Layer[3]) + state.Ammonification_Layer3;
+    };
+
+    {DERIV(state.S_ND_Layer[3],[independent.t]) = 
+      1/state.V_Layer * (interface.Inflow[S_ND] - state.Q_In * state.S_ND_Layer[3]) - state.Ammonification_Layer3 + state.Hydrolysis_X_ND_Layer3;
+    };
+
+    {DERIV(state.S_NO_Layer[3],[independent.t]) = 
+      1/state.V_Layer * (interface.Inflow[S_NO] - state.Q_In * state.S_NO_Layer[3]);
+    };
+
+    {DERIV(state.X_BA_Layer[3],[independent.t]) =
+       1/state.V_Layer * (interface.Inflow[X_BA] - state.Q_In * state.X_BA_Layer[3])
+           - state.Setterm * state.X_BA_Layer[3] + state.Setterm * state.X_BA_Layer[2];
+    };
+
+    {DERIV(state.X_BH_Layer[3],[independent.t]) =
+       1/state.V_Layer * (interface.Inflow[X_BH] - state.Q_In * state.X_BH_Layer[3])
+           - state.Setterm * state.X_BH_Layer[3] + state.Setterm * state.X_BH_Layer[2];
+    };
+
+    {DERIV(state.X_I_Layer[3],[independent.t]) =
+       1/state.V_Layer * (interface.Inflow[X_I] - state.Q_In * state.X_I_Layer[3])
+           - state.Setterm * state.X_I_Layer[3] + state.Setterm * state.X_I_Layer[2];
+    };
+
+    {DERIV(state.X_P_Layer[3],[independent.t]) =
+      1/state.V_Layer * (interface.Inflow[X_P] - state.Q_In * state.X_P_Layer[3])
+           - state.Setterm * state.X_P_Layer[3] + state.Setterm * state.X_P_Layer[2];
+    };
+    {DERIV(state.X_S_Layer[3],[independent.t]) =
+       1/state.V_Layer * (interface.Inflow[X_S] - state.Q_In * state.X_S_Layer[3])
+           - state.Setterm * state.X_S_Layer[3] + state.Setterm * state.X_S_Layer[2] - state.Hydrolysis_X_S_Layer3;
+    };
+
+    {DERIV(state.X_ND_Layer[3],[independent.t]) =
+       1/state.V_Layer * (interface.Inflow[X_ND] - state.Q_In * state.X_ND_Layer[3])
+           - state.Setterm * state.X_ND_Layer[3] + state.Setterm * state.X_ND_Layer[2] - state.Hydrolysis_X_ND_Layer3;
+    };
+
+//
+// fourth layer
+//
+
+    
+    state.Hydrolysis_X_S_Layer4 = IF (state.X_S_Layer[4] > 0)
+                    THEN parameters.k_h * state.X_S_Layer[4]
+                    ELSE 0;
+
+    state.Hydrolysis_X_ND_Layer4 = IF ((state.X_S_Layer[4] * state.X_ND_Layer[4]) > 0)
+                    THEN state.Hydrolysis_X_S_Layer4 * (state.X_ND_Layer[4] / state.X_S_Layer[4])
+                    ELSE 0;
+
+    state.Ammonification_Layer4 = IF ((state.S_ND_Layer[4] * state.X_BH_Layer[4]) > 0)
+                    THEN parameters.k_a * state.S_ND_Layer[4] * state.X_BH_Layer[4]
+                    ELSE 0;
+
+    {DERIV(state.S_I_Layer[4],[independent.t]) = 
+      state.Q_Under_Div_V_Layer * (state.S_I_Layer[3] - state.S_I_Layer[4]);
+    };
+
+    {DERIV(state.S_O_Layer[4],[independent.t]) = 
+      state.Q_Under_Div_V_Layer * (state.S_O_Layer[3] - state.S_O_Layer[4]);
+    };
+
+    {DERIV(state.S_S_Layer[4],[independent.t]) = 
+      state.Q_Under_Div_V_Layer * (state.S_S_Layer[3] - state.S_S_Layer[4]) + state.Hydrolysis_X_S_Layer4;
+    };
+
+    {DERIV(state.S_ALK_Layer[4],[independent.t]) = 
+      state.Q_Under_Div_V_Layer * (state.S_ALK_Layer[3] - state.S_ALK_Layer[4]);
+    };
+
+    {DERIV(state.S_NH_Layer[4],[independent.t]) = 
+      state.Q_Under_Div_V_Layer * (state.S_NH_Layer[3] - state.S_NH_Layer[4]) + state.Ammonification_Layer4;
+    };
+
+    {DERIV(state.S_ND_Layer[4],[independent.t]) = 
+      state.Q_Under_Div_V_Layer * (state.S_ND_Layer[3] - state.S_ND_Layer[4])
+      - state.Ammonification_Layer4 + state.Hydrolysis_X_ND_Layer4;
+    };
+
+    {DERIV(state.S_NO_Layer[4],[independent.t]) = 
+      state.Q_Under_Div_V_Layer * (state.S_NO_Layer[3] - state.S_NO_Layer[4]);
+    };
+
+    {DERIV(state.X_BA_Layer[4],[independent.t]) =
+       state.Q_Under_Div_V_Layer * (state.X_BA_Layer[3] - state.X_BA_Layer[4])
+           - state.Setterm * state.X_BA_Layer[4] + state.Setterm * state.X_BA_Layer[3];
+    };
+
+    {DERIV(state.X_BH_Layer[4],[independent.t]) =
+       state.Q_Under_Div_V_Layer * (state.X_BH_Layer[3] - state.X_BH_Layer[4])
+           - state.Setterm * state.X_BH_Layer[4] + state.Setterm * state.X_BH_Layer[3];
+    };
+
+    {DERIV(state.X_I_Layer[4],[independent.t]) =
+       state.Q_Under_Div_V_Layer * (state.X_I_Layer[3] - state.X_I_Layer[4])
+           - state.Setterm * state.X_I_Layer[4] + state.Setterm * state.X_I_Layer[3];
+    };
+
+    {DERIV(state.X_P_Layer[4],[independent.t]) =
+      state.Q_Under_Div_V_Layer * (state.X_P_Layer[3] - state.X_P_Layer[4])
+           - state.Setterm * state.X_P_Layer[4] + state.Setterm * state.X_P_Layer[3];
+    };
+
+    {DERIV(state.X_S_Layer[4],[independent.t]) =
+       state.Q_Under_Div_V_Layer * (state.X_S_Layer[3] - state.X_S_Layer[4])
+           - state.Setterm * state.X_S_Layer[4] + state.Setterm * state.X_S_Layer[3] - state.Hydrolysis_X_S_Layer4;
+    };
+
+    {DERIV(state.X_ND_Layer[4],[independent.t]) =
+       state.Q_Under_Div_V_Layer * (state.X_ND_Layer[3] - state.X_ND_Layer[4])
+           - state.Setterm * state.X_ND_Layer[4] + state.Setterm * state.X_ND_Layer[3] - state.Hydrolysis_X_ND_Layer4;
+    };
+
+//
+// fifth layer
+//
+
+    
+    state.Hydrolysis_X_S_Layer5 = IF (state.X_S_Layer[5] > 0)
+                    THEN parameters.k_h * state.X_S_Layer[5]
+                    ELSE 0;
+
+    state.Hydrolysis_X_ND_Layer5 = IF ((state.X_S_Layer[5] * state.X_ND_Layer[5]) > 0)
+                    THEN state.Hydrolysis_X_S_Layer5 * (state.X_ND_Layer[5] / state.X_S_Layer[5])
+                    ELSE 0;
+
+    state.Ammonification_Layer5 = IF ((state.S_ND_Layer[5] * state.X_BH_Layer[5]) > 0)
+                    THEN parameters.k_a * state.S_ND_Layer[5] * state.X_BH_Layer[5]
+                    ELSE 0;
+
+    {DERIV(state.S_I_Layer[5],[independent.t]) = 
+      state.Q_Under_Div_V_Layer * (state.S_I_Layer[4] - state.S_I_Layer[5]);
+    };
+
+    {DERIV(state.S_O_Layer[5],[independent.t]) = 
+      state.Q_Under_Div_V_Layer * (state.S_O_Layer[4] - state.S_O_Layer[5]);
+    };
+
+    {DERIV(state.S_S_Layer[5],[independent.t]) = 
+      state.Q_Under_Div_V_Layer * (state.S_S_Layer[4] - state.S_S_Layer[5]) + state.Hydrolysis_X_S_Layer5;
+    };
+
+    {DERIV(state.S_ALK_Layer[5],[independent.t]) = 
+      state.Q_Under_Div_V_Layer * (state.S_ALK_Layer[4] - state.S_ALK_Layer[5]);
+    };
+
+    {DERIV(state.S_NH_Layer[5],[independent.t]) = 
+      state.Q_Under_Div_V_Layer * (state.S_NH_Layer[4] - state.S_NH_Layer[5]) + state.Ammonification_Layer5;
+    };
+
+    {DERIV(state.S_ND_Layer[5],[independent.t]) = 
+      state.Q_Under_Div_V_Layer * (state.S_ND_Layer[4] - state.S_ND_Layer[5])
+      - state.Ammonification_Layer5 + state.Hydrolysis_X_ND_Layer5;
+    };
+
+    {DERIV(state.S_NO_Layer[5],[independent.t]) = 
+      state.Q_Under_Div_V_Layer * (state.S_NO_Layer[4] - state.S_NO_Layer[5]);
+    };
+
+    {DERIV(state.X_BA_Layer[5],[independent.t]) =
+       state.Q_Under_Div_V_Layer * (state.X_BA_Layer[4] - state.X_BA_Layer[5])
+           + state.Setterm * state.X_BA_Layer[4];
+    };
+
+    {DERIV(state.X_BH_Layer[5],[independent.t]) =
+       state.Q_Under_Div_V_Layer * (state.X_BH_Layer[4] - state.X_BH_Layer[5])
+           + state.Setterm * state.X_BH_Layer[4];
+    };
+
+    {DERIV(state.X_I_Layer[5],[independent.t]) =
+       state.Q_Under_Div_V_Layer * (state.X_I_Layer[4] - state.X_I_Layer[5])
+           + state.Setterm * state.X_I_Layer[4];
+    };
+
+    {DERIV(state.X_P_Layer[5],[independent.t]) =
+      state.Q_Under_Div_V_Layer * (state.X_P_Layer[4] - state.X_P_Layer[5])
+           + state.Setterm * state.X_P_Layer[4];
+    };
+
+    {DERIV(state.X_S_Layer[5],[independent.t]) =
+       state.Q_Under_Div_V_Layer * (state.X_S_Layer[4] - state.X_S_Layer[5])
+           + state.Setterm * state.X_S_Layer[4] - state.Hydrolysis_X_S_Layer5;
+    };
+
+    {DERIV(state.X_ND_Layer[5],[independent.t]) =
+       state.Q_Under_Div_V_Layer * (state.X_ND_Layer[4] - state.X_ND_Layer[5])
+           + state.Setterm * state.X_ND_Layer[4] - state.Hydrolysis_X_ND_Layer5;
+    };
+
+//
+// assigning underflows
+//
+
+    interface.Underflow[S_I] = - state.S_I_Layer[5] * interface.Q_Under;
+    interface.Underflow[S_O] = - state.S_O_Layer[5] * interface.Q_Under;
+    interface.Underflow[S_S] = - state.S_S_Layer[5] * interface.Q_Under;
+    interface.Underflow[S_ALK] = - state.S_ALK_Layer[5] * interface.Q_Under;
+    interface.Underflow[S_NH] = - state.S_NH_Layer[5] * interface.Q_Under;
+    interface.Underflow[S_ND] = - state.S_ND_Layer[5] * interface.Q_Under;
+    interface.Underflow[S_NO] = - state.S_NO_Layer[5] * interface.Q_Under;
+    interface.Underflow[X_BA] = - state.X_BA_Layer[5] * interface.Q_Under;
+    interface.Underflow[X_BH] = - state.X_BH_Layer[5] * interface.Q_Under;
+    interface.Underflow[X_I] = - state.X_I_Layer[5] * interface.Q_Under;
+    interface.Underflow[X_P] = - state.X_P_Layer[5] * interface.Q_Under;
+    interface.Underflow[X_S] = - state.X_S_Layer[5] * interface.Q_Under;
+    interface.Underflow[X_ND] = - state.X_ND_Layer[5] * interface.Q_Under;
+
+//
+// assigning overflows
+//
+
+    interface.Outflow[S_I] = - state.S_I_Layer[1] * state.Q_Out;
+    interface.Outflow[S_O] = - state.S_O_Layer[1] * state.Q_Out;
+    interface.Outflow[S_S] = - state.S_S_Layer[1] * state.Q_Out;
+    interface.Outflow[S_ALK] = - state.S_ALK_Layer[1] * state.Q_Out;
+    interface.Outflow[S_NH] = - state.S_NH_Layer[1] * state.Q_Out;
+    interface.Outflow[S_ND] = - state.S_ND_Layer[1] * state.Q_Out;
+    interface.Outflow[S_NO] = - state.S_NO_Layer[1] * state.Q_Out;
+    interface.Outflow[X_BA] = - state.X_BA_Layer[1] * state.Q_Out;
+    interface.Outflow[X_BH] = - state.X_BH_Layer[1] * state.Q_Out;
+    interface.Outflow[X_I] = - state.X_I_Layer[1] * state.Q_Out;
+    interface.Outflow[X_P] = - state.X_P_Layer[1] * state.Q_Out;
+    interface.Outflow[X_S] = - state.X_S_Layer[1] * state.Q_Out;
+    interface.Outflow[X_ND] = - state.X_ND_Layer[1] * state.Q_Out;
+
+//
+// calculating X_Out and X_Under
+//
+    state.Help_X_In = (SUMOVER Comp_Index IN {IndexOfFirstTSSComponent .. IndexOfLastTSSComponent}:
+                     (interface.Inflow[Comp_Index]));
+
+    {state.X_In = IF (state.Q_In == 0)
+      THEN 0
+      ELSE state.Help_X_In / state.Q_In * parameters.F_TSS_COD;
+     };
+
+     state.Help_X_Out = (SUMOVER Comp_Index IN {IndexOfFirstTSSComponent .. IndexOfLastTSSComponent}:(- interface.Outflow[Comp_Index]));
+
+    {
+     state.X_Out = IF (state.Q_In <= interface.Q_Under)
+       THEN 0
+       ELSE state.Help_X_Out *  parameters.F_TSS_COD / (state.Q_In - interface.Q_Under );
+
+     };
+
+     state.Help_X_Under = (SUMOVER Comp_Index IN {IndexOfFirstTSSComponent .. IndexOfLastTSSComponent}:(- interface.Underflow[Comp_Index]));
+
+    {state.X_Under = 
+        IF (state.Q_In <= interface.Q_Under)
+    THEN
+      IF (state.Q_In == 0)
+      THEN 0
+      ELSE
+               state.Help_X_Under / state.Q_In * parameters.F_TSS_COD
+    ELSE 
+      IF (interface.Q_Under == 0)
+      THEN 0
+      ELSE
+               state.Help_X_Under / interface.Q_Under * parameters.F_TSS_COD ;
+     };
+
+// PUMPING ENERGY
+  DERIV(state.Integ_PE,[independent.t])=  state.Q_Under_Actual;
+  interface.PumpingEnergy = parameters.F_Energy_FlowRate * state.Integ_PE ;
+	 
+   };
+ :};
+
+#endif //ASM1Temp
+
+#endif // WWTP_BASE_PRIMARY_CLARIFIER_LESSARDBECK

@@ -1,0 +1,245 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 29. juni 2012 15:52:27$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_BASE_CFCD
+#define WWTP_BASE_CFCD
+
+CLASS CFCDModel
+EXTENDS SBRASMConversionModel WITH
+  {:
+  
+  interface <-
+  {
+    OBJ Underflow (* terminal = "out_3" *) "effluent waste" : OutWWTPTerminal := {:causality <- COUT; group <- "Underflow" :};
+    OBJ T_Launch (* terminal = "in_2"; manip = "1" *) "Time constant to schedule the start up of one CFCD in a multi-CFCD system configuration " : Time := {: causality <- "CIN" ; value <- 0.0; group <- "Operational" :};
+    OBJ T2 (* terminal = "in_2"; manip = "1" *) "Period for the settling phase" : Time := {: causality <- "CIN" ; value <- 0.1; group <- "Operational" :};
+#if (defined ASM1Temp || defined ASM2dModTemp || defined ASM3Temp || defined ASM3P_EAWAG || defined ASM1_AN || defined ASMG1)
+   OBJ Temp (* terminal = "in_2"; manip = "1" *)  "Temperature of the activated sludge"
+  : CelsiusTemperature  := {: causality <- "CIN" ; value <- 15 ; group <- "Operational" :}; 
+#endif
+  };
+    
+  parameters <- 
+  {
+  };
+  
+  state <-
+  {
+    // CYCLI
+      OBJ T "Length of total cycle" : Time := {: group <- "Operational" :} ;
+      OBJ T1 "Period for the reaction phase" : Time := {: group <- "Operational" :};  
+      OBJ t_Begin (* hidden = "1" *) " Time at the beginning of the current cycle" : Time ;
+    // INCOMING AND OUTGOING FLOW RATES
+      OBJ Q_Out_Help (* hidden = "1" *) "Effluent flow rate help variable" : FlowRate ;
+    };
+
+  initial <- 
+  {
+   }; 
+  
+  equations <- 
+  {
+// CYCLI
+   state.T = state.T1 + interface.T2 ;
+
+   state.t_Begin = IF (independent.t < interface.T_Launch)
+             THEN interface.T_Launch
+             ELSE interface.T_Launch + floor((independent.t-interface.T_Launch)/state.T) * state.T ;
+
+#if (defined ASM1Temp || defined ASM2dModTemp || defined ASM3Temp || defined ASM3P_EAWAG || defined ASM1_AN || defined ASMG1)
+    state.Temp_Actual = interface.Temp;
+#endif
+  };  
+    :};
+
+#ifdef StandardCategoryModels
+CLASS CFCDPointsettler
+EXTENDS CFCDModel WITH
+ {:
+  interface <-
+   {
+   OBJ AerationEnergy (* terminal = "out_2" *)"Aeration energy" : ElectricalEnergy := {: causality <- "COUT"; group <- "Energy" :};
+   OBJ MixingEnergy (* terminal = "out_2" *)"Mixing energy" : ElectricalEnergy := {: causality <- "COUT"; group <- "Energy" :};
+   OBJ PumpingEnergy (* terminal = "out_2" *)"Pumping energy" : ElectricalEnergy := {: causality <- "COUT"; group <- "Energy" :};
+    };
+
+  parameters <-
+   {
+
+// CYCLI
+    
+// FILLING AND REACTION
+    
+// OVERFLOW
+    OBJ V_Max "Maximum volume of the tank" : Volume := {: value <- 2000; group <- "Dimension" :};
+    OBJ N "Number of weirs on a tank" : PhysicalQuantityType :=
+         {: value <- 100 ;
+        group <- "Hydraulic" ;
+            interval <- {:lowerBound <- 0; upperBound <- PLUS_INF; :}
+         :} ;
+    OBJ alfa "Parameter, function of the weir type or width" : PhysicalQuantityType := {: value <- 1; group <- "Hydraulic" :};
+    OBJ beta "Parameter, depends on the weir design" : PhysicalQuantityType := {: value <- 1; group <- "Hydraulic" :};
+    OBJ A "Surface area of the tank" : Area := {: value <- 400; group <- "Dimension" :};
+// SETTLING
+    OBJ f_ns "Non-settleable fraction of suspended solids" :
+         Fraction := {: value <- 0.005; group <- "Settling" :};
+    OBJ F_Th "Thickening factor of the suspended solids" : Real := {: value <- 2; group <- "Settling" :};
+// DRAW
+    
+// IDLE
+   
+// TYPICAL MODEL PARAMETERS
+
+// AERATION ENERGY (through KLa)
+  OBJ OTR_Energy  "Oxygen transfer rate per energy input" : TransferRateEnergy := {: value <- 1800 ; group <- "Aeration" :}; 
+    OBJ Period "Period over which the costs are calculated" : Time := {: value <- 1 ; group <- "Miscellaneous":};
+// MIXING ENERGY
+  OBJ ME_unit "Energy requirement per unit of volume for mixing in a AS tank" : Real := {: value <- 0.005; group <- "Mixing energy":};
+  OBJ Kla_Min "Lowest kLa value that ensures adequate mixing" : OxygenTransferCoefficient :={: value <- 20.0; group <- "Mixing energy":};
+    OBJ Mixing_When_Aerated "Mixing activity during aeration" : Real := {: value <- 0 ; group <- "Mixing energy":};
+// PUMPING ENERGY
+    OBJ F_Energy_FlowRate "Conversion factor Energy needed/Pump flow rate" : Ratio := {: value <- 0.04 ; group <- "Energy":};
+   };
+
+  state <-
+   {
+
+// CYCLI Setting the start time of the cycle
+
+// INCOMING AND OUTGOING FLUXES
+
+// INCOMING AND OUTGOING FLOW RATES
+
+// TOTAL MASS
+  
+// SETTLING
+
+// WASTE
+    OBJ Q_Under_Help_Waste (* hidden = "1" *) "Waste flow rate help variable for the idle phase" : FlowRate ;
+
+// AERATION ENERGY (through KLa)
+    OBJ Integ_AE (* hidden = "1" *)"Integral aeration energy" : ElectricalEnergy ;
+// MIXING ENERGY
+    OBJ Integ_ME (* hidden = "1" *)"Integral mixing energy" : ElectricalEnergy ;
+  OBJ ME_Instant (* hidden = "1" *)"Instantaneous mixing energy" : Real:= {: group <- "Mixing":};
+// PUMPING ENERGY
+    OBJ Integ_PE (* hidden = "1" *)"Integral Pumping energy" : ElectricalEnergy ;
+   };
+
+  initial <-
+   {
+    };
+
+  equations <-
+   {
+// CYCLI
+    
+
+// OUTGOING FLOW RATES
+   
+    state.Q_Out_Help = IF (state.V > parameters.V_Max)
+                       THEN parameters.N * parameters.alfa
+           * pow((state.V - parameters.V_Max)/parameters.A, parameters.beta)
+                       ELSE 0;
+
+    state.Q_Under_Help_Waste = IF (state.V > 0)
+                             THEN parameters.Q_Waste
+                             ELSE 0;
+
+    state.Q_Out = state.Q_Out_Help;
+
+    state.Q_Under = state.Q_Under_Help_Waste;
+
+// TOTAL MASS
+// During the Launch period the system is settling.
+    {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+       DERIV(state.M[Comp_Index],[independent.t]) =
+      IF (independent.t < interface.T_Launch)
+    THEN state.FluxPerComponent[Comp_Index]
+    ELSE
+        IF (independent.t - state.t_Begin < state.T1)
+        THEN state.FluxPerComponent[Comp_Index] + state.ConversionTermPerComponent[Comp_Index]
+        ELSE state.FluxPerComponent[Comp_Index];
+     };
+
+// SETTLING
+
+// CALCULATION OF OUTPUT INTERFACES
+
+    interface.Outflow1[IndexOfSolvent] = - state.Q_Out / 0.000001;
+
+    { FOREACH Comp_Index IN {IndexOfFirstSolubleComponent .. IndexOfLastSolubleComponent}:
+       interface.Outflow1[Comp_Index] =  - state.C[Comp_Index] * state.Q_Out;
+     };
+
+    { FOREACH Comp_Index IN {IndexOfFirstParticulateComponent .. IndexOfLastParticulateComponent}:
+       interface.Outflow1[Comp_Index] =
+      IF (independent.t  < interface.T_Launch)
+        THEN - state.C[Comp_Index] * state.Q_Out * parameters.f_ns
+        ELSE
+          IF (independent.t - state.t_Begin < state.T1)
+          THEN - state.C[Comp_Index] * state.Q_Out
+          ELSE - state.C[Comp_Index] * state.Q_Out * parameters.f_ns;
+     };
+
+    interface.Underflow[IndexOfSolvent] = - state.Q_Under / 0.000001;
+
+    { FOREACH Comp_Index IN {IndexOfFirstSolubleComponent .. IndexOfLastSolubleComponent}:
+       interface.Underflow[Comp_Index] =  - state.C[Comp_Index] *  state.Q_Under ;
+     };
+
+     { FOREACH Comp_Index IN {IndexOfFirstParticulateComponent .. IndexOfLastParticulateComponent}:
+       interface.Underflow[Comp_Index] = 
+      IF (independent.t  < interface.T_Launch)
+        THEN - state.C[Comp_Index] * state.Q_Under * parameters.F_Th * (1-parameters.f_ns)
+        ELSE
+          IF (independent.t - state.t_Begin < state.T1)
+          THEN - state.C[Comp_Index] * state.Q_Under
+          ELSE - state.C[Comp_Index] * state.Q_Under * parameters.F_Th * (1-parameters.f_ns);    
+     };
+
+// AERATION ENERGY
+  DERIV(state.Integ_AE,[independent.t])= state.Kla_Actual * state.V ;
+  interface.AerationEnergy = state.S_O_Saturation / (parameters.Period * parameters.OTR_Energy) * state.Integ_AE ;
+// MIXING ENERGY
+  state.ME_Instant = IF ((state.Kla_Actual < parameters.Kla_Min) || (state.Kla_Actual == 0))
+            THEN parameters.ME_unit * state.V
+          ELSE 
+            IF (parameters.Mixing_When_Aerated)
+            THEN parameters.ME_unit * state.V
+            ELSE 0;   
+
+  DERIV(state.Integ_ME,[independent.t])= state.ME_Instant;
+  interface.MixingEnergy = state.Integ_ME ;
+// PUMPING ENERGY
+  DERIV(state.Integ_PE,[independent.t])=  state.Q_Under;
+  interface.PumpingEnergy = parameters.F_Energy_FlowRate * state.Integ_PE ;
+   };
+ :};
+#endif // StandardCategoryModels
+
+#include "CFCD/wwtp.base.CFCD.cfcdpointsettler1phasereact.msl"
+#include "CFCD/wwtp.base.CFCD.cfcdpointsettler2phasereact.msl"
+#include "CFCD/wwtp.base.CFCD.cfcdpointsettler3phasereact.msl"
+#include "CFCD/wwtp.base.CFCD.cfcdpointsettler4phasereact.msl"
+#include "CFCD/wwtp.base.CFCD.cfcdpointsettler5phasereact.msl"
+#include "CFCD/wwtp.base.CFCD.cfcdpointsettler6phasereact.msl"
+#include "CFCD/wwtp.base.CFCD.cfcdpointsettler7phasereact.msl"
+#include "CFCD/wwtp.base.CFCD.cfcdpointsettler8phasereact.msl"
+
+
+
+#endif // WWTP_BASE_CFCD

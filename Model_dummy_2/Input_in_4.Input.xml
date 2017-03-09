@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Tornado>
+<Input Name="Input_in_4" Version="1.0">
+<Props>
+<Prop Name="TornadoVersion" Value="2016 "/>
+<Prop Name="Author" Value="TUD278183\localadmin"/>
+<Prop Name="Date" Value="Tue Mar 07 17:08:53 2017"/>
+<Prop Name="Desc" Value=""/>
+<Prop Name="FileName" Value="C:\Users\localadmin.TUD278183\Desktop\UP_WEST_package\Model_dummy_1\Input_in_4.Input.xml|.Tornado"/>
+<Prop Name="DisplayName" Value=""/>
+<Prop Name="EnableSync" Value="true"/>
+<Prop Name="Name" Value=""/>
+<Prop Name="CategoryName" Value=""/>
+<Prop Name="Terminal" Value=""/>
+<Prop Name="ColSep" Value="&#9;"/>
+<Prop Name="DecSep" Value="."/>
+<Prop Name="ThousandSep" Value=","/>
+<Prop Name="Precision" Value="15"/>
+</Props>
+<Vars>
+<Var Name="InterfaceVar3">
+<Props>
+<Prop Name="Name" Value="Temperature_water"/>
+</Props>
+</Var>
+</Vars>
+<BufferComposers>
+<BufferComposer Name="Dynamic">
+<BufferComposer Name="Dynamic" Version="1.0">
+<Props>
+<Prop Name="TornadoVersion" Value=""/>
+<Prop Name="Author" Value=""/>
+<Prop Name="Date" Value=""/>
+<Prop Name="Desc" Value=""/>
+<Prop Name="FileName" Value=""/>
+<Prop Name="DisplayName" Value=""/>
+<Prop Name="UnitTime" Value="d"/>
+<Prop Name="StartTime" Value="0"/>
+<Prop Name="StopTime" Value="365.9583333"/>
+<Prop Name="TimePolicy" Value="TimeBuffer"/>
+<Prop Name="EnableMean" Value="false"/>
+<Prop Name="EnableMeanWeighted" Value="false"/>
+<Prop Name="Interpolated" Value="true"/>
+<Prop Name="NameWeight" Value=""/>
+<Prop Name="NoTimes" Value="100"/>
+<Prop Name="Interval" Value="0"/>
+<Prop Name="Times" Value=""/>
+<Prop Name="TimeBufferName" Value="Buffer01"/>
+</Props>
+<Buffers>
+<Buffer Name="Buffer01">
+<Props>
+<Prop Name="FileName" Value="..\Input\Temperature_water.txt"/>
+<Prop Name="FileType" Value="Text"/>
+<Prop Name="ColSep" Value="&#9;"/>
+<Prop Name="DecSep" Value="."/>
+<Prop Name="ThousandSep" Value=","/>
+<Prop Name="ExcelSheetName" Value=""/>
+<Prop Name="ExcelHasNames" Value="true"/>
+<Prop Name="ExcelHasUnits" Value="true"/>
+<Prop Name="ExcelRange" Value=""/>
+</Props>
+</Buffer>
+</Buffers>
+<Quantities>
+<Quantity Name="Temperature_water">
+<Props>
+<Prop Name="BufferName" Value="Buffer01"/>
+<Prop Name="ColumnNo" Value="1"/>
+<Prop Name="Interpolated" Value="false"/>
+<Prop Name="Extrapolated" Value="false"/>
+<Prop Name="Unit" Value="degC"/>
+</Props>
+</Quantity>
+</Quantities>
+</BufferComposer>
+<Props/>
+</BufferComposer>
+<BufferComposer Name="Steady State">
+<BufferComposer Name="Steady State" Version="1.0">
+<Props>
+<Prop Name="TornadoVersion" Value=""/>
+<Prop Name="Author" Value=""/>
+<Prop Name="Date" Value=""/>
+<Prop Name="Desc" Value=""/>
+<Prop Name="FileName" Value=""/>
+<Prop Name="DisplayName" Value=""/>
+<Prop Name="UnitTime" Value="d"/>
+<Prop Name="StartTime" Value="0"/>
+<Prop Name="StopTime" Value="365.9583333"/>
+<Prop Name="TimePolicy" Value="TimeBuffer"/>
+<Prop Name="EnableMean" Value="true"/>
+<Prop Name="EnableMeanWeighted" Value="false"/>
+<Prop Name="Interpolated" Value="true"/>
+<Prop Name="NameWeight" Value=""/>
+<Prop Name="NoTimes" Value="100"/>
+<Prop Name="Interval" Value="0"/>
+<Prop Name="Times" Value=""/>
+<Prop Name="TimeBufferName" Value="Buffer01"/>
+</Props>
+<Buffers>
+<Buffer Name="Buffer01">
+<Props>
+<Prop Name="FileName" Value="C:\Users\localadmin.TUD278183\Desktop\UP_WEST_package\Input\Temperature_water.txt"/>
+<Prop Name="FileType" Value="Text"/>
+<Prop Name="ColSep" Value="&#9;"/>
+<Prop Name="DecSep" Value="."/>
+<Prop Name="ThousandSep" Value=","/>
+<Prop Name="ExcelSheetName" Value=""/>
+<Prop Name="ExcelHasNames" Value="true"/>
+<Prop Name="ExcelHasUnits" Value="true"/>
+<Prop Name="ExcelRange" Value=""/>
+</Props>
+</Buffer>
+</Buffers>
+<Quantities>
+<Quantity Name="Temperature_water">
+<Props>
+<Prop Name="BufferName" Value="Buffer01"/>
+<Prop Name="ColumnNo" Value="1"/>
+<Prop Name="Interpolated" Value="false"/>
+<Prop Name="Extrapolated" Value="false"/>
+<Prop Name="Unit" Value="degC"/>
+</Props>
+</Quantity>
+</Quantities>
+</BufferComposer>
+<Props/>
+</BufferComposer>
+</BufferComposers>
+</Input>
+</Tornado>

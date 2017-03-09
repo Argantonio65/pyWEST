@@ -1,0 +1,34 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 23. marts 2012 12:41:26$
+ *
+ ******************************************************************************/
+
+#ifndef N_TANKS_FIXVOLUMEASUFIVETANK
+#define N_TANKS_FIXVOLUMEASUFIVETANK
+
+CLASS  FixVolumeASUFiveTank
+(* icon = "activated_sludge_unit" *)
+SPECIALISES FixVolumeFiveTank:=
+{:
+ comments <- "A coupled model for five activated sludge units in series";
+
+ coupling <-
+ {
+  // sub-model coupling
+  connect(sub_models.ASU5.interface.Outflow, interface.Outflow),
+ };
+:};
+
+#endif // N_TANKS_FIXVOLUMEASUFIVETANK
+

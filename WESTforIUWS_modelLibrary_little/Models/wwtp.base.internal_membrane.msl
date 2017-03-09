@@ -1,0 +1,518 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 23. april 2012 08:05:07$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_BASE_INTERNAL_MEMBRANE
+#define WWTP_BASE_INTERNAL_MEMBRANE
+
+#if (defined ASM1Temp || defined ASM3Temp || defined ASM3P_EAWAG)
+
+ CLASS WWTPAtomicModelWithMembraneVolume EXTENDS WWTPAtomicModelWithVolume WITH
+ {:
+
+  interface <-
+  {
+  OBJ Inflow (* terminal = "in_1" *) "Inflow" : InWWTPTerminal := {: causality <- "CIN" ; group <- "Influent" :};
+  OBJ Outflow (* terminal = "out_1" *)"Outflow" : OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent" :};
+  OBJ OutflowConcentrate (* terminal = "out_3" *) "Concentrate flow rate" : OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent" :};
+  OBJ A_0 (* terminal = "in_2"; manip = "1" *) "Initial membrane surface area" : 
+      Area := {: causality <- "CIN" ; value <- 1000 ; group <- "Operational" :};
+  };
+
+  parameters <-
+  {
+  OBJ f_nr "Non-retainable fraction of suspended solids" : Fraction := {: value <- 0.000 ; group <- "Settling" :};
+  };
+
+  state <-
+  {
+  OBJ Q_Out_Membrane_Help (* hidden = "1" *) "Permeate flowrate" : FlowRate := {: group <- "Operational" :};
+  OBJ Q_Out "Effluent flow rate" : FlowRate := {: group <- "Operational" :};
+  OBJ Q_Out_Membrane "Effluent flow rate through the membrane" : FlowRate := {: group <- "Operational" :};
+  OBJ Q_Concentrate "Concentrate flow rate" : FlowRate := {: group <- "Operational" :};
+  };
+  
+  initial <-
+  {
+  };
+ 
+  equations <-
+  {
+  state.Q_In = 0.000001 * interface.Inflow[IndexOfSolvent];
+
+  // The total volume is the sum of the volumes of each of the components. The volume of each component
+  // is determined by multiplying its mass by its specific volume.
+  state.V = SUMOVER Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+        (0.000001*state.M[Comp_Index]);
+
+  // The concentration of each component is just the mass of that component divided by the total volume
+  {FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+         state.C[Comp_Index] = IF (state.V == 0.0)
+          THEN 0.0
+        ELSE state.M[Comp_Index]/state.V ; };
+
+  interface.OutflowConcentrate[IndexOfSolvent] = - state.Q_Concentrate / 0.000001 ;
+  
+  {FOREACH Comp_Index IN {IndexOfFirstSolubleComponent .. IndexOfLastSolubleComponent}:
+         interface.OutflowConcentrate[Comp_Index] = - state.C[Comp_Index] * state.Q_Concentrate ;};
+
+  {FOREACH Comp_Index IN {IndexOfFirstParticulateComponent .. NrOfComponents}:
+         interface.OutflowConcentrate[Comp_Index] = - state.C[Comp_Index] * state.Q_Concentrate * (1- parameters.f_nr) ; };
+  };
+
+ :};
+
+ CLASS IdealMembraneVolumeClass EXTENDS WWTPAtomicModelWithMembraneVolume WITH
+ {:
+  interface <-  
+  {
+  OBJ T1 (* terminal = "in_2"; manip = "1" *) "Relaxation1 period" :   
+      Time := {: causality <- "CIN" ; value <- 0.00008101851852 ; group <- "Operational" :};
+  OBJ T2 (* terminal = "in_2"; manip = "1" *) "Filtration period" : 
+      Time := {: causality <- "CIN" ; value <- 0.005208333 ; group <- "Operational" :};
+  OBJ T3 (* terminal = "in_2"; manip = "1" *) "Relaxation2 period" : 
+      Time := {: causality <- "CIN" ; value <- 0.0 ; group <- "Operational" :};
+  OBJ T4 (* terminal = "in_2"; manip = "1" *) "Backwashing period" : 
+      Time := {: causality <- "CIN" ; value <- 0.000208333 ; group <- "Operational" :};
+  // Filtration fluxes (J1-)
+  OBJ J11 (* terminal = "in_2"; manip = "1" *) "Filtration flux in relaxation1 period" : 
+      Velocity := {: causality <- "CIN" ; value <- 0.0 ; group <- "Operational" :};
+  OBJ J12 (* terminal = "in_2"; manip = "1" *) "Filtration flux in filtration period" : 
+      Velocity := {: causality <- "CIN" ; value <- 0.7632 ; group <- "Operational" :};   
+  OBJ J13 (* terminal = "in_2"; manip = "1" *) "Filtration flux in relaxation2 period" : 
+      Velocity := {: causality <- "CIN" ; value <- 0.0 ; group <- "Operational" :};
+  OBJ J14 (* terminal = "in_2"; manip = "1" *) "Filtration flux in backwashing period" : 
+      Velocity := {: causality <- "CIN" ; value <- 0.0 ; group <- "Operational" :};
+  OBJ u14 (* terminal = "in_2"; manip = "1" *) "Backwash flux in backwashing period" : 
+      Velocity := {: causality <- "CIN" ; value <- 0.7632 ; group <- "Operational" :};
+
+  };
+  parameters <-
+  {
+  };
+
+  state <-  
+  {
+  OBJ J1 "Average Filtration flux" : Velocity := {: group <- "Operational" :};   
+  };
+  initial <-
+  {
+  };
+  
+  equations <-
+  {
+  state.J1 =
+      (interface.J11 * interface.T1 + interface.J12 * interface.T2 + interface.J13 * interface.T3 + (interface.J14 - interface.u14) * interface.T4 )
+    / (interface.T1 + interface.T2 + interface.T3 + interface.T4);
+
+  state.Q_Out_Membrane_Help = state.J1 * interface.A_0 ;    // Filtration period
+  state.Q_Out = state.Q_Out_Membrane;
+  
+  interface.Outflow[IndexOfSolvent] = - state.Q_Out_Membrane / 0.000001;
+  {FOREACH Comp_Index IN {IndexOfFirstSolubleComponent .. IndexOfLastSolubleComponent}:
+         interface.Outflow[Comp_Index] = - state.C[Comp_Index] * state.Q_Out_Membrane; };
+
+  {FOREACH Comp_Index IN {IndexOfFirstParticulateComponent .. NrOfComponents}:
+         interface.Outflow[Comp_Index] = - state.C[Comp_Index] * state.Q_Out_Membrane * parameters.f_nr; };
+  };
+
+ :};
+
+
+#include "internal_membrane/wwtp.base.internal_membrane.membraneideal.msl" 
+
+ CLASS InternalIdealMembraneVolumeModel EXTENDS IdealMembraneVolumeClass WITH
+ {:
+
+  interface <-
+  {
+  OBJ Overflow (* terminal = "out_4" *)"Outflow" : OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent" :};
+  OBJ Q_Pump (* terminal = "in_2"; manip = "1" *) "Concentrate flow rate" : 
+      FlowRate := {: causality <- "CIN" ; group <- "Operational" :} ;
+  };
+
+  parameters <-
+  {
+  OBJ V_Min "Minimum allowed tank volume " : Volume := {: value <- 1900; group <- "Dimension" :};
+  OBJ V_Tank "Tank volume " : Volume := {: value <- 1900; group <- "Dimension" :};
+  };
+
+  state <-
+  {
+  OBJ Q_Over "Overflow rate" : FlowRate := {: group <- "Operational" :};
+  };
+
+  equations <-
+  {
+  state.Q_Out_Membrane = IF (state.V > parameters.V_Min)
+                 THEN state.Q_Out_Membrane_Help
+             ELSE 0.0 ;
+
+  state.Q_Concentrate = IF (state.V > parameters.V_Min)
+      THEN interface.Q_Pump
+    ELSE 0.0 ;
+
+  state.Q_Over = IF (state.V > parameters.V_Tank)
+      THEN
+      IF (state.Q_In  >= (state.Q_Out_Membrane + state.Q_Concentrate))
+         THEN state.Q_In - state.Q_Out_Membrane - state.Q_Concentrate
+         ELSE 0.0
+    ELSE 0.0 ;
+
+  interface.Overflow[IndexOfSolvent] = - state.Q_Over / 0.000001;
+  
+  {FOREACH Comp_Index IN {IndexOfFirstSolubleComponent .. NrOfComponents}:
+      interface.Overflow[Comp_Index] = - state.C[Comp_Index] * state.Q_Over ;};
+  };
+
+ :};
+ 
+ 
+ 
+ CLASS InternalIdealMembraneVolumeConversionModel EXTENDS InternalIdealMembraneVolumeModel WITH
+ {:
+ #include "wwtp.VolumeConversionModel.body.msl"
+ :};
+
+ // Below is an ASMConversionModel
+
+ CLASS InternalIdealMembraneVolumeASMConversionModel EXTENDS InternalIdealMembraneVolumeConversionModel WITH
+ {:
+ #include "wwtp.VolumeASMConversionModel.body.msl"
+ :};
+
+ CLASS InternalIdealMembraneVolumeClass
+ EXTENDS InternalIdealMembraneVolumeASMConversionModel WITH
+ {:
+  
+  interface <-
+  {
+  OBJ X_Out (* terminal = "out_2" *) "TSS in the outflow" : Concentration := {: causality <- "COUT" ; group <- "Permeate" :};
+  OBJ X_Concentrate (* terminal = "out_2" *) "TSS in the concentrate" : Concentration := {: causality <- "COUT" ; group <- "Concentrate" :};
+  };
+
+  equations <-
+  {
+  #ifdef CalculateTSSComponent
+  interface.X_Out = (SUMOVER Comp_Index IN {IndexOfFirstTSSComponent .. IndexOfLastTSSComponent}:
+             (- interface.Outflow[Comp_Index]) / state.Q_Out_Membrane * parameters.F_TSS_COD);
+  interface.X_Concentrate = (SUMOVER Comp_Index IN {IndexOfFirstTSSComponent .. IndexOfLastTSSComponent}:
+           (- interface.OutflowConcentrate[Comp_Index]) / state.Q_Concentrate * parameters.F_TSS_COD);
+  #endif // CalculateTSSComponent
+  // ASM2-type category
+  #ifdef UseTSSComponent
+  interface.X_Out = (- interface.Outflow[IndexOfTSSComponent]) / state.Q_Out_Membrane ;
+  interface.X_Concentrate = (- interface.OutflowConcentrate[IndexOfTSSComponent]) / state.Q_Concentrate ;
+  #endif // UseTSSComponent 
+  };
+
+:};
+
+#include "mbr/wwtp.base.mbr.mbrideal.msl"
+
+ CLASS FoulingMembraneVolumeClass EXTENDS WWTPAtomicModelWithMembraneVolume WITH
+ {:
+
+  interface <-
+  {
+  OBJ Inflow_Backwash (* terminal = "in_3" *) "Backwash" : InWWTPTerminal := {: causality <- "CIN" ; group <- "Influent" :};
+  // sensor terminals
+  OBJ Q_Backwash_Control (* terminal = "out_2" *) "Backwash trigger" : 
+   Real := {: causality <- "COUT" ; group <- "Control action" :};
+  OBJ P_TMP (* terminal = "out_2" *) "TMP" : 
+      PressureDifference := {: causality <- "COUT" ; group <- "Effluent" :};
+  OBJ T1 (* terminal = "in_2"; manip = "1" *) "Relaxation1 period" : 
+      Time := {: causality <- "CIN" ; value <- 0.00008101851852 ; group <- "Operational" :};
+  OBJ T2 (* terminal = "in_2"; manip = "1" *) "Filtration period" : 
+      Time := {: causality <- "CIN" ; value <- 0.005208333 ; group <- "Operational" :};
+  OBJ T3 (* terminal = "in_2"; manip = "1" *) "Relaxation2 period" : 
+      Time := {: causality <- "CIN" ; value <- 0.0 ; group <- "Operational" :};
+  OBJ T4 (* terminal = "in_2"; manip = "1" *) "Backwashing period" : Time := {: causality <- "CIN" ; value <- 0.000208333 ; group <- "Operational" :};
+  // Filtration fluxes (J1-)
+  OBJ J11 (* terminal = "in_2"; manip = "1" *) "Filtration flux in relaxation1 period" :    
+      Velocity := {: causality <- "CIN" ; value <- 0.0 ; group <- "Operational" :};
+  OBJ J12 (* terminal = "in_2"; manip = "1" *) "Filtration flux in filtration period" : 
+      Velocity := {: causality <- "CIN" ; value <- 0.7632 ; group <- "Operational" :};   
+  OBJ J13 (* terminal = "in_2"; manip = "1" *) "Filtration flux in relaxation2 period" : 
+      Velocity := {: causality <- "CIN" ; value <- 0.0 ; group <- "Operational" :};
+  OBJ J14 (* terminal = "in_2"; manip = "1" *) "Filtration flux in backwashing period" : 
+      Velocity := {: causality <- "CIN" ; value <- 0.0 ; group <- "Operational" :};
+  // Backwash fluxes (u1-)
+  OBJ u14 (* terminal = "in_2"; manip = "1" *) "Backwash flux in backwashing period" : 
+      Velocity := {: causality <- "CIN" ; value <- 0.7632 ; group <- "Operational" :};
+  OBJ C_SMP (* terminal = "in_2"; manip = "1" *) "Concentration of Colloidal material" : 
+      Concentration  := {: causality <- "CIN" ; value <- 100.0 ; group <- "Operational" :} ;
+  };
+
+  parameters <-
+  {
+  OBJ J_crit "Critical filtration flux" : Velocity := {: value <- 2.3 ; group <- "Operational" :};
+  OBJ eta_20 "Viscosity of the permeate at 20 degrees" : DynamicViscosity := {: value <- 1.16E-8 ; group <- "Operational" :};
+  OBJ E_alfa "Factor for temperature correction of viscosity" : Real := {: value <- 1.94 ; group <- "Operational" :}; 
+  OBJ E_beta "Factor for temperature correction of viscosity" : Real := {: value <- 4.80 ; group <- "Operational" :}; 
+  OBJ E_gamma "Factor for temperature correction of viscosity" : Real := {: value <- 6.74 ; group <- "Operational" :}; 
+  //
+  OBJ R_m "Membrane resistance" : FiltrationResistance := {: value <- 4.1E+11 ; group <- "Operational" :};
+  OBJ R_alfa "Specific cake resistance [m/g]"  : SpecificLength := {: value <- 3.6E+12 ; group <- "Operational" :}; 
+  OBJ R_beta "Semi-empirical exponent for solid deposition"  : Real := {: value <- 3.5 ; group <- "Operational" :}; 
+  OBJ sigma_X_TSS "Irreversibly blocked membrane area per unit of TSS" : Real := {: value <- 0.0003 ; group <- "Operational" :};
+  //
+  };
+
+  state <-
+  {
+  OBJ T "Complete cycle" : Time := {: group <- "Operational" :};
+  OBJ t_rel (* hidden = "1" *) "Time relative to the beginning of each cycle" : Time ;
+  OBJ Q_Backwash "Backwashing flowrate" : FlowRate := {: group <- "Operational" :};
+  OBJ Q_Out_Backwash "Excess flow of the backwash going to the outflow" : FlowRate := {: group <- "Operational" :};
+  OBJ Q_Backwash_Help (* hidden = "1" *) "Backwash flow based on the flux" : FlowRate := {: group <- "Operational" :};
+  OBJ Q_Backwash_Available "Available flow for backwash" : FlowRate := {: group <- "Operational" :};
+  OBJ f_Out_Backwash (* hidden = "1" *) "fraction of the backwash flow going to the outflow" : Fraction := {: group <- "Operational" :};
+  OBJ K_Temp (* hidden = "1" *) "Operating temperature" : KelvinTemperature ;
+  OBJ eta_T "Viscosity of the permeate" : DynamicViscosity := {: group <- "Operational" :};
+  //
+  OBJ R_c "(reversible) Cake resistance" : FiltrationResistance := {: group <- "Operational" :};
+  OBJ R_irr "Irreversible resistance" : FiltrationResistance := {: group <- "Operational" :};
+  OBJ R_tot "Total filtration resistance" : FiltrationResistance := {: group <- "Operational" :};
+  OBJ A "Membrane surface area" : Area := {: group <- "Operational" :};
+  OBJ A_Blocked "Blocked membrane surface area" : Area := {: group <- "Operational" :};
+  OBJ Solids (* hidden = "1" *) "Solids concentration in the stream" : Concentration := {: group <- "Operational" :};
+  //
+  OBJ TMP "Trans-membrane pressure" : PressureDifference := {: group <- "Operational" :};
+  OBJ J_act "Actual filtration flux" : Velocity := {: group <- "Operational" :};
+  OBJ J_app "Apparent filtration flux" : Velocity := {: group <- "Operational" :};
+  //
+  OBJ C_cake "Concentration of total solids in the cake" : Concentration := {: group <- "Concentration" :};
+  OBJ M_cake "Mass of the cake" : Mass := {: group <- "Mass" :};
+  // 
+  OBJ M_cake_Help (* hidden = "1" *) "Computed mass of the cake" : Mass := {: group <- "Mass" :};
+  OBJ M_cake_cumul "Mass of the cake at the end of each cycle" : Mass := {: group <- "Mass" :};
+  };
+
+  initial <-
+  {
+  state.M_cake_cumul = 0.0 ;  
+  };
+  
+  equations <-
+  {
+  state.T = interface.T1 + interface.T2 + interface.T3 + interface.T4 ;
+  
+  state.t_rel = IF (independent.t < state.T)
+      THEN independent.t
+    ELSE independent.t - state.T * (floor(independent.t/state.T)) ;
+
+  state.Q_Out_Membrane_Help = IF (state.t_rel < interface.T1)
+      THEN interface.J11 * interface.A_0            // Relaxation period-1
+    ELSE
+      IF (state.t_rel < (interface.T1 + interface.T2))
+            THEN interface.J12 * interface.A_0        // Filtration period
+          ELSE
+            IF (state.t_rel < (interface.T1 + interface.T2 + interface.T3))
+                  THEN interface.J13 * interface.A_0      // Relaxation period-2
+                ELSE interface.J14 * interface.A_0 ;    // Backwashing period
+
+  state.Q_Backwash_Help = IF (state.t_rel < interface.T1)
+      THEN 0.0            // Relaxation period-1
+    ELSE
+      IF (state.t_rel < (interface.T1 + interface.T2))
+            THEN 0.0        // Filtration period
+          ELSE
+            IF (state.t_rel < (interface.T1 + interface.T2 + interface.T3))
+                  THEN 0.0      // Relaxation period-2
+                      ELSE interface.u14 * interface.A_0 ;    // Backwashing period
+
+  state.Q_Backwash_Available = IF (interface.Inflow_Backwash[IndexOfSolvent] <= 0.0)
+      THEN 0.0
+    ELSE 0.000001 * interface.Inflow_Backwash[IndexOfSolvent];
+  
+  state.Q_Backwash = IF (state.Q_Backwash_Available <= state.Q_Backwash_Help)
+      THEN state.Q_Backwash_Available
+    ELSE state.Q_Backwash_Help;
+
+  //if there is too much water in the backwash flow it is send to the outflow              
+  state.Q_Out_Backwash = state.Q_Backwash_Available - state.Q_Backwash ;
+  //fraction of the backwash flow going to the outflow (i.e. not used for the backwash)
+  state.f_Out_Backwash = IF (state.Q_Backwash_Available == 0.0)
+      THEN 0.0
+    ELSE state.Q_Out_Backwash / state.Q_Backwash_Available; 
+
+  state.Q_Out = state.Q_Out_Membrane + state.Q_Out_Backwash;
+  
+//  state.K_Temp = interface.Temp + 273 ;
+
+  // ... ... 1) ACTUAL PERMEATE TEMPERATURE-DEPENDENT VISCOSITY
+  // ... White FM (1986). Fluid mechanics. McGraw-Hill Inc., New York.
+  state.eta_T = parameters.eta_20 * exp(- parameters.E_alfa - parameters.E_beta * (293/state.K_Temp)
+      + parameters.E_gamma * pow(293/state.K_Temp, 2) ) ;
+  //
+  // ... ... 2) CALCULATE RESISTANCE TERMS
+  // ... 2.2) The actively filtering surface area decreases, due to solids accumulating
+  // on and within the surface (clogging).
+  DERIV(state.A_Blocked, [independent.t]) = parameters.sigma_X_TSS * interface.C_SMP * state.Q_Out_Membrane ;
+  state.A = interface.A_0 - state.A_Blocked;
+  //
+  // ... 2.2.1) R_irr increases with decreasing A.
+  state.R_irr = parameters.R_m * (interface.A_0/state.A - 1) ;
+  //
+  // ... 2.3) The actual flux is greater than the apparent flux, because A decreases.
+  state.J_act = state.Q_Out_Membrane / state.A ;
+  state.J_app = IF (state.t_rel < interface.T1)
+      THEN 0.0                                  // Relaxation period-1
+    ELSE
+      IF (state.t_rel < (interface.T1 + interface.T2))
+            THEN state.Q_Out_Membrane / interface.A_0           // Filtration period
+          ELSE
+            IF (state.t_rel < (interface.T1 + interface.T2 + interface.T3))
+                  THEN 0.0                          // Relaxation period-2
+                ELSE - state.Q_Backwash / interface.A_0 ;   // Backwashing period
+  //
+  // ... 2.4) R_c (and solids making up the cake)
+  state.C_cake = state.Solids * pow((state.J_act/parameters.J_crit), parameters.R_beta) ;
+  DERIV(state.M_cake_Help,[independent.t]) = state.C_cake * state.Q_Out_Membrane ;
+  state.M_cake_cumul = IF (state.t_rel <= (interface.T1+interface.T2+interface.T3))
+      THEN previous(state.M_cake_cumul)
+    ELSE state.M_cake_Help ;
+  state.M_cake = fabs(state.M_cake_cumul - state.M_cake_Help) ;
+  //
+  state.R_c = parameters.R_alfa * state.M_cake / interface.A_0 ;
+  //
+  // ... 2.5) R_tot
+  state.R_tot = parameters.R_m + state.R_irr + state.R_c ;
+  //
+  // ... ... 3) CALCULATE THE TRANS-MEMBRANE PRESSURE
+  state.TMP = state.eta_T * state.J_app * state.R_tot ;
+  //
+  interface.Outflow[IndexOfSolvent] = - (state.Q_Out_Membrane + state.Q_Out_Backwash) / 0.000001 ;
+  
+  {FOREACH Comp_Index IN {IndexOfFirstSolubleComponent .. IndexOfLastSolubleComponent}:
+         interface.Outflow[Comp_Index] = - (state.C[Comp_Index] * state.Q_Out_Membrane + state.f_Out_Backwash * interface.Inflow_Backwash[Comp_Index]); };
+
+  {FOREACH Comp_Index IN {IndexOfFirstParticulateComponent .. NrOfComponents}:
+         interface.Outflow[Comp_Index] = - (state.C[Comp_Index] * state.Q_Out_Membrane * parameters.f_nr + state.f_Out_Backwash * interface.Inflow_Backwash[Comp_Index]); };
+
+  // implementation of the TMP sensor
+  interface.P_TMP = state.TMP ;
+  interface.Q_Backwash_Control = state.Q_Backwash_Help ;
+  };
+
+ :};
+
+ 
+#include "internal_membrane/wwtp.base.internal_membrane.membranewithfouling.msl"
+
+ // ConversionModel stands for all models where the ConversionTermPerComponent 
+ // takes on the form of Stoichiometry * Kinetics * V
+ // For each component, the reaction term is the sum
+ // of products of corresponding (one for each reaction)
+ // factors from the Stochiometry and the Kinetics matrices.
+ CLASS InternalFoulingMembraneVolumeModel EXTENDS FoulingMembraneVolumeClass WITH
+ {:
+
+  interface <-
+  {
+  OBJ Overflow (* terminal = "out_4" *)"Outflow" : OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent" :};
+  OBJ Q_Pump (* terminal = "in_2"; manip = "1" *) "Concentrate flow rate" : 
+      FlowRate := {: causality <- "CIN" ; group <- "Operational" :} ;
+  };
+
+  parameters <-
+  {
+  OBJ V_Min "Minimum allowed tank volume " : Volume := {: value <- 1900; group <- "Dimension" :};
+  OBJ V_Tank "Tank volume " : Volume := {: value <- 1900; group <- "Dimension" :};
+  };
+
+  state <-
+  {
+  OBJ Q_Over "Overflow rate" : FlowRate := {: group <- "Operational" :};
+  };
+
+  equations <-
+  {
+  state.Q_Out_Membrane = IF (state.V > parameters.V_Min)
+      THEN state.Q_Out_Membrane_Help
+    ELSE 0.0 ;
+
+  state.Q_Concentrate = IF (state.V > parameters.V_Min)
+      THEN interface.Q_Pump
+    ELSE 0.0 ;
+
+  state.Q_Over = IF (state.V > parameters.V_Tank)
+      THEN
+      IF ((state.Q_In + state.Q_Backwash) >= (state.Q_Out_Membrane + state.Q_Concentrate))
+         THEN state.Q_In + state.Q_Backwash - state.Q_Out_Membrane - state.Q_Concentrate
+         ELSE 0.0
+    ELSE 0.0 ;
+
+  interface.Overflow[IndexOfSolvent] = - state.Q_Over / 0.000001 ;
+
+  {FOREACH Comp_Index IN {IndexOfFirstSolubleComponent .. NrOfComponents}:
+      interface.Overflow[Comp_Index] = - state.C[Comp_Index] * state.Q_Over ; };
+
+  };
+
+ :};
+ 
+
+ 
+ CLASS InternalFoulingMembraneVolumeConversionModel EXTENDS InternalFoulingMembraneVolumeModel WITH
+ {:
+ #include "wwtp.VolumeConversionModel.body.msl"
+ :};
+ 
+ // Below is an ASMConversionModel
+
+ CLASS InternalFoulingMembraneVolumeASMConversionModel EXTENDS InternalFoulingMembraneVolumeConversionModel WITH
+ {:
+ #include "wwtp.VolumeASMConversionModel.body.msl"
+ :};
+
+ CLASS InternalFoulingMembraneVolumeClass EXTENDS InternalFoulingMembraneVolumeASMConversionModel WITH
+ {:
+  
+  interface <-
+  {
+  OBJ X_Out (* terminal = "out_2" *) "TSS in the outflow" : Concentration := {: causality <- "COUT" ; group <- "Permeate" :};
+  OBJ X_Concentrate (* terminal = "out_2" *) "TSS in the concentrate" : Concentration := {: causality <- "COUT" ; group <- "Concentrate" :};
+  };
+  
+  equations <-
+  {
+  #ifdef CalculateTSSComponent
+    state.Solids = (SUMOVER Comp_Index IN {IndexOfFirstTSSComponent .. IndexOfLastTSSComponent}: state.C[Comp_Index] * parameters.F_TSS_COD );
+  #endif
+  #ifdef UseTSSComponent
+   state.Solids = state.C[IndexOfTSSComponent];
+  #endif
+  #ifdef CalculateTSSComponent
+   interface.X_Out = (SUMOVER Comp_Index IN {IndexOfFirstTSSComponent .. IndexOfLastTSSComponent}:
+             (- interface.Outflow[Comp_Index]) / (state.Q_Out_Membrane + state.Q_Out_Backwash) * parameters.F_TSS_COD);
+   interface.X_Concentrate = (SUMOVER Comp_Index IN {IndexOfFirstTSSComponent .. IndexOfLastTSSComponent}:
+               (- interface.OutflowConcentrate[Comp_Index]) / state.Q_Concentrate * parameters.F_TSS_COD);
+  #endif // CalculateTSSComponent
+  // ASM2-type category
+  #ifdef UseTSSComponent
+   interface.X_Out = (- interface.Outflow[IndexOfTSSComponent]) / (state.Q_Out_Membrane + state.Q_Out_Backwash);
+   interface.X_Concentrate = (- interface.OutflowConcentrate[IndexOfTSSComponent]) / state.Q_Concentrate;
+  #endif // UseTSSComponent 
+  };
+
+ :};
+
+#include "MBR/wwtp.base.mbr.mbrwithfouling.msl"
+
+#endif // StandardCategoryModels
+
+#endif    // WWTP_BASE_INTERNAL_MEMBRANE

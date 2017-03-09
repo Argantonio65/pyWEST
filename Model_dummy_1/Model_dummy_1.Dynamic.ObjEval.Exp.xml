@@ -1,0 +1,570 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Tornado>
+<Exp Name="" Version="1.0" Type="ObjEval">
+<Props>
+<Prop Name="TornadoVersion" Value="2016 "/>
+<Prop Name="Author" Value="TUD278183\localadmin"/>
+<Prop Name="Date" Value="Wed Mar 08 17:12:10 2017"/>
+<Prop Name="Desc" Value=""/>
+<Prop Name="FileName" Value="C:\Users\localadmin.TUD278183\Desktop\pyWEST\Model_dummy_1\Model_dummy_1.Dynamic.ObjEval.Exp.xml|.Tornado"/>
+<Prop Name="DisplayName" Value=""/>
+<Prop Name="UnitSystem" Value="Model-based"/>
+</Props>
+<ObjEval>
+<Obj>
+<Exp Name="" Version="1.0" Type="Simul">
+<Props>
+<Prop Name="TornadoVersion" Value=""/>
+<Prop Name="Author" Value=""/>
+<Prop Name="Date" Value=""/>
+<Prop Name="Desc" Value=""/>
+<Prop Name="FileName" Value="C:\Users\localadmin.TUD278183\Desktop\pyWEST\Model_dummy_1\Model_dummy_1.Dynamic.ObjEval.Exp.xml|.Tornado.Exp.ObjEval.Obj"/>
+<Prop Name="DisplayName" Value=""/>
+<Prop Name="UnitSystem" Value="Model-based"/>
+</Props>
+<Simul>
+<Model Name="_Model_dummy_1_" Cached="false" CheckBounds="false" StopWhenBoundsViolation="false" StopWhenSteadyState="false" SteadyStateTol="1e-006">
+<Quantities>
+<Quantity Name=".t" DisplayUnit="d"/>
+<Quantity Name=".Rural_baseflow" Value="0.000421016"/>
+<Quantity Name=".Temperature_water" Value="18.7"/>
+<Quantity Name=".River_2.n" Value="0.04"/>
+<Quantity Name=".River_2.Vol_min" Value="0.5"/>
+<Quantity Name=".River_2.KBODs" Value="0.4"/>
+<Quantity Name=".River_2.Vs1" Value="0.7"/>
+<Quantity Name=".River_2.Vs2" Value="9"/>
+<Quantity Name=".River_2.VKL" Value="2"/>
+<Quantity Name=".River_2.MB" Value="10"/>
+<Quantity Name=".River_2.T_par" Value="50000"/>
+<Quantity Name=".River_2.Inflow1(rH2O)" Value="43310684155.9823"/>
+<Quantity Name=".River_2.Inflow1(rO2)" Value="332601.285711914"/>
+<Quantity Name=".River_2.Inflow1(rBOD1)" Value="125715.664792593"/>
+<Quantity Name=".River_2.Inflow1(rBOD2)" Value="42248.0904054654"/>
+<Quantity Name=".River_2.Inflow1(rNH4)" Value="2133.47119604247"/>
+<Quantity Name=".River_2.Inflow1(rBOD1p)" Value="318.679274570351"/>
+<Quantity Name=".River_2.Inflow1(rBOD2p)" Value="81.6521957883788"/>
+<Quantity Name=".River_2.T" Value="18.7"/>
+<Quantity Name=".River_2.Q" DisplayUnit="m3/s"/>
+<Quantity Name=".River_2.vel_water" DisplayUnit="m/s"/>
+<Quantity Name=".River_2.M(rH2O)" Value="7546867851.94252"/>
+<Quantity Name=".River_2.M(rO2)" Value="49874.9038718471"/>
+<Quantity Name=".River_2.M(rBOD1)" Value="21689.1558042825"/>
+<Quantity Name=".River_2.M(rBOD2)" Value="7365.45997721493"/>
+<Quantity Name=".River_2.M(rNH4)" Value="369.870548960808"/>
+<Quantity Name=".River_2.M(rBOD1p)" Value="16.2566459637322"/>
+<Quantity Name=".River_2.M(rBOD2p)" Value="3.84941908675175"/>
+<Quantity Name=".River_2.M(rBODs)" Value="113736.183392007"/>
+<Quantity Name=".River_3.n" Value="0.04"/>
+<Quantity Name=".River_3.Vol_min" Value="0.5"/>
+<Quantity Name=".River_3.KBODs" Value="0.4"/>
+<Quantity Name=".River_3.Vs1" Value="0.7"/>
+<Quantity Name=".River_3.Vs2" Value="9"/>
+<Quantity Name=".River_3.VKL" Value="2"/>
+<Quantity Name=".River_3.MB" Value="10"/>
+<Quantity Name=".River_3.T_par" Value="50000"/>
+<Quantity Name=".River_3.Inflow1(rH2O)" Value="44463999130.0314"/>
+<Quantity Name=".River_3.Inflow1(rO2)" Value="334815.937800885"/>
+<Quantity Name=".River_3.Inflow1(rBOD1)" Value="124998.717056345"/>
+<Quantity Name=".River_3.Inflow1(rBOD2)" Value="42340.7245061821"/>
+<Quantity Name=".River_3.Inflow1(rNH4)" Value="2158.85606788746"/>
+<Quantity Name=".River_3.Inflow1(rBOD1p)" Value="244.076093544633"/>
+<Quantity Name=".River_3.Inflow1(rBOD2p)" Value="16.2071462659838"/>
+<Quantity Name=".River_3.T" Value="18.7"/>
+<Quantity Name=".River_3.Q" DisplayUnit="m3/s"/>
+<Quantity Name=".River_3.vel_water" DisplayUnit="m/s"/>
+<Quantity Name=".River_3.M(rH2O)" Value="7597732830.48932"/>
+<Quantity Name=".River_3.M(rO2)" Value="48993.091470832"/>
+<Quantity Name=".River_3.M(rBOD1)" Value="21731.423911393"/>
+<Quantity Name=".River_3.M(rBOD2)" Value="7804.92792544806"/>
+<Quantity Name=".River_3.M(rNH4)" Value="368.882507972148"/>
+<Quantity Name=".River_3.M(rBOD1p)" Value="7.73048488382941"/>
+<Quantity Name=".River_3.M(rBOD2p)" Value="0.886034167979885"/>
+<Quantity Name=".River_3.M(rBODs)" Value="39358.0031573069"/>
+<Quantity Name=".River_4.n" Value="0.04"/>
+<Quantity Name=".River_4.Vol_min" Value="0.5"/>
+<Quantity Name=".River_4.KBODs" Value="0.4"/>
+<Quantity Name=".River_4.Vs1" Value="0.7"/>
+<Quantity Name=".River_4.Vs2" Value="9"/>
+<Quantity Name=".River_4.VKL" Value="2"/>
+<Quantity Name=".River_4.MB" Value="10"/>
+<Quantity Name=".River_4.T_par" Value="50000"/>
+<Quantity Name=".River_4.Inflow1(rH2O)" Value="45513249241.3879"/>
+<Quantity Name=".River_4.Inflow1(rO2)" Value="339381.033617168"/>
+<Quantity Name=".River_4.Inflow1(rBOD1)" Value="124017.94704156"/>
+<Quantity Name=".River_4.Inflow1(rBOD2)" Value="42333.7405686973"/>
+<Quantity Name=".River_4.Inflow1(rNH4)" Value="2178.89514669944"/>
+<Quantity Name=".River_4.Inflow1(rBOD1p)" Value="188.206965019126"/>
+<Quantity Name=".River_4.Inflow1(rBOD2p)" Value="3.30633703784639"/>
+<Quantity Name=".River_4.T" Value="18.7"/>
+<Quantity Name=".River_4.Q" DisplayUnit="m3/s"/>
+<Quantity Name=".River_4.vel_water" DisplayUnit="m/s"/>
+<Quantity Name=".River_4.M(rH2O)" Value="7639070683.26776"/>
+<Quantity Name=".River_4.M(rO2)" Value="50151.836621171"/>
+<Quantity Name=".River_4.M(rBOD1)" Value="22658.7579517391"/>
+<Quantity Name=".River_4.M(rBOD2)" Value="9512.75137287512"/>
+<Quantity Name=".River_4.M(rNH4)" Value="367.459479610201"/>
+<Quantity Name=".River_4.M(rBOD1p)" Value="3.77007616258624"/>
+<Quantity Name=".River_4.M(rBOD2p)" Value="0.206461265071833"/>
+<Quantity Name=".River_4.M(rBODs)" Value="12890.4917518315"/>
+<Quantity Name=".River_5.n" Value="0.04"/>
+<Quantity Name=".River_5.Vol_min" Value="0.5"/>
+<Quantity Name=".River_5.KBODs" Value="0.4"/>
+<Quantity Name=".River_5.Vs1" Value="0.7"/>
+<Quantity Name=".River_5.Vs2" Value="9"/>
+<Quantity Name=".River_5.VKL" Value="2"/>
+<Quantity Name=".River_5.MB" Value="10"/>
+<Quantity Name=".River_5.T_par" Value="50000"/>
+<Quantity Name=".River_5.Inflow1(rH2O)" Value="46260358216.2135"/>
+<Quantity Name=".River_5.Inflow1(rO2)" Value="343358.865698722"/>
+<Quantity Name=".River_5.Inflow1(rBOD1)" Value="122216.803643332"/>
+<Quantity Name=".River_5.Inflow1(rBOD2)" Value="42038.7908522548"/>
+<Quantity Name=".River_5.Inflow1(rNH4)" Value="2183.98135294031"/>
+<Quantity Name=".River_5.Inflow1(rBOD1p)" Value="144.480296686476"/>
+<Quantity Name=".River_5.Inflow1(rBOD2p)" Value="0.687215199382374"/>
+<Quantity Name=".River_5.T" Value="18.7"/>
+<Quantity Name=".River_5.Q" DisplayUnit="m3/s"/>
+<Quantity Name=".River_5.vel_water" DisplayUnit="m/s"/>
+<Quantity Name=".River_5.M(rH2O)" Value="7649582594.69574"/>
+<Quantity Name=".River_5.M(rO2)" Value="51330.7658602913"/>
+<Quantity Name=".River_5.M(rBOD1)" Value="25118.6423965899"/>
+<Quantity Name=".River_5.M(rBOD2)" Value="13474.1518222259"/>
+<Quantity Name=".River_5.M(rNH4)" Value="364.529412827544"/>
+<Quantity Name=".River_5.M(rBOD1p)" Value="1.96436415090362"/>
+<Quantity Name=".River_5.M(rBOD2p)" Value="0.0484358021372415"/>
+<Quantity Name=".River_5.M(rBODs)" Value="4542.61576372051"/>
+<Quantity Name=".Urban_InputEmulator.FactorEffluent" Value="10"/>
+<Quantity Name=".Urban_InputEmulator.U_BOD_in" Value="70"/>
+<Quantity Name=".Urban_InputEmulator.U_COD_in" Value="190"/>
+<Quantity Name=".Urban_InputEmulator.U_O2_in" Value="2"/>
+<Quantity Name=".River_1.n" Value="0.04"/>
+<Quantity Name=".River_1.Vol_min" Value="0.5"/>
+<Quantity Name=".River_1.KBODs" Value="0.4"/>
+<Quantity Name=".River_1.Vs1" Value="0.7"/>
+<Quantity Name=".River_1.Vs2" Value="9"/>
+<Quantity Name=".River_1.VKL" Value="2"/>
+<Quantity Name=".River_1.MB" Value="10"/>
+<Quantity Name=".River_1.T_par" Value="50000"/>
+<Quantity Name=".River_1.Inflow1(rH2O)" Value="42101600000"/>
+<Quantity Name=".River_1.Inflow1(rO2)" Value="336812.8"/>
+<Quantity Name=".River_1.Inflow1(rBOD1)" Value="126304.8"/>
+<Quantity Name=".River_1.Inflow1(rBOD2)" Value="42101.6"/>
+<Quantity Name=".River_1.Inflow1(rNH4)" Value="2105.08"/>
+<Quantity Name=".River_1.Inflow1(rBOD1p)" Value="421.016"/>
+<Quantity Name=".River_1.Inflow1(rBOD2p)" Value="421.016"/>
+<Quantity Name=".River_1.Inflow1(rBODs)" Value="421.016"/>
+<Quantity Name=".River_1.T" Value="18.7"/>
+<Quantity Name=".River_1.Q" DisplayUnit="m3/s"/>
+<Quantity Name=".River_1.vel_water" DisplayUnit="m/s"/>
+<Quantity Name=".River_1.M(rH2O)" Value="7508913890.8851"/>
+<Quantity Name=".River_1.M(rO2)" Value="58652.6136860679"/>
+<Quantity Name=".River_1.M(rBOD1)" Value="22010.6994563657"/>
+<Quantity Name=".River_1.M(rBOD2)" Value="7379.16454650424"/>
+<Quantity Name=".River_1.M(rNH4)" Value="371.593185955757"/>
+<Quantity Name=".River_1.M(rBOD1p)" Value="34.7346466797892"/>
+<Quantity Name=".River_1.M(rBOD2p)" Value="16.9238381104407"/>
+<Quantity Name=".River_1.M(rBODs)" Value="1513.65911334671"/>
+<Quantity Name=".Rural_inflow.surface" Value="100000000" DisplayUnit="ha"/>
+<Quantity Name=".Rural_inflow.O2_in" Value="8"/>
+<Quantity Name=".Rural_inflow.rainfall" Value="0.000421016"/>
+</Quantities>
+</Model>
+<Inputs Enabled="true">
+<Input Name="*Calc*">
+<CalcVars Enabled="true">
+</CalcVars>
+</Input>
+<Input Name="Input_in_1.Dynamic.in">
+<File Name="Input_in_1.Dynamic.in.txt" Enabled="true">
+<Props>
+<Prop Name="Interpolated" Value="false"/>
+<Prop Name="Extrapolated" Value="false"/>
+<Prop Name="InterpolationType" Value="Linear"/>
+<Prop Name="NoPoints" Value="1"/>
+<Prop Name="EnableRepetition" Value="false"/>
+<Prop Name="RepetitionIntervalStartTime" Value="0"/>
+<Prop Name="RepetitionIntervalStopTime" Value="0"/>
+<Prop Name="RepetitionStartTime" Value="0"/>
+<Prop Name="ColSep" Value="&#9;"/>
+<Prop Name="DecSep" Value="."/>
+<Prop Name="ThousandSep" Value=","/>
+</Props>
+<Quantities>
+<Quantity Name=".Rural_baseflow">
+<Props>
+<Prop Name="Name" Value="Rural_baseflow"/>
+</Props>
+</Quantity>
+</Quantities>
+</File>
+</Input>
+<Input Name="Input_in_2.Dynamic.in">
+<File Name="Input_in_2.Dynamic.in.txt" Enabled="true">
+<Props>
+<Prop Name="Interpolated" Value="true"/>
+<Prop Name="Extrapolated" Value="false"/>
+<Prop Name="InterpolationType" Value="Linear"/>
+<Prop Name="NoPoints" Value="1"/>
+<Prop Name="EnableRepetition" Value="false"/>
+<Prop Name="RepetitionIntervalStartTime" Value="0"/>
+<Prop Name="RepetitionIntervalStopTime" Value="0"/>
+<Prop Name="RepetitionStartTime" Value="0"/>
+<Prop Name="ColSep" Value="&#9;"/>
+<Prop Name="DecSep" Value="."/>
+<Prop Name="ThousandSep" Value=","/>
+</Props>
+<Quantities>
+<Quantity Name=".Urban_CSO_flow">
+<Props>
+<Prop Name="Name" Value="Urban_CSO_flow"/>
+</Props>
+</Quantity>
+</Quantities>
+</File>
+</Input>
+<Input Name="Input_in_3.Dynamic.in">
+<File Name="Input_in_3.Dynamic.in.txt" Enabled="true">
+<Props>
+<Prop Name="Interpolated" Value="true"/>
+<Prop Name="Extrapolated" Value="false"/>
+<Prop Name="InterpolationType" Value="Linear"/>
+<Prop Name="NoPoints" Value="1"/>
+<Prop Name="EnableRepetition" Value="false"/>
+<Prop Name="RepetitionIntervalStartTime" Value="0"/>
+<Prop Name="RepetitionIntervalStopTime" Value="0"/>
+<Prop Name="RepetitionStartTime" Value="0"/>
+<Prop Name="ColSep" Value="&#9;"/>
+<Prop Name="DecSep" Value="."/>
+<Prop Name="ThousandSep" Value=","/>
+</Props>
+<Quantities>
+<Quantity Name=".Solar_Radiation">
+<Props>
+<Prop Name="Name" Value="Solar_Radiation"/>
+</Props>
+</Quantity>
+</Quantities>
+</File>
+</Input>
+<Input Name="Input_in_4.Dynamic.in">
+<File Name="Input_in_4.Dynamic.in.txt" Enabled="true">
+<Props>
+<Prop Name="Interpolated" Value="true"/>
+<Prop Name="Extrapolated" Value="false"/>
+<Prop Name="InterpolationType" Value="Linear"/>
+<Prop Name="NoPoints" Value="1"/>
+<Prop Name="EnableRepetition" Value="false"/>
+<Prop Name="RepetitionIntervalStartTime" Value="0"/>
+<Prop Name="RepetitionIntervalStopTime" Value="0"/>
+<Prop Name="RepetitionStartTime" Value="0"/>
+<Prop Name="ColSep" Value="&#9;"/>
+<Prop Name="DecSep" Value="."/>
+<Prop Name="ThousandSep" Value=","/>
+</Props>
+<Quantities>
+<Quantity Name=".Temperature_water">
+<Props>
+<Prop Name="Name" Value="Temperature_water"/>
+</Props>
+</Quantity>
+</Quantities>
+</File>
+</Input>
+</Inputs>
+<Outputs Enabled="true">
+<Output Name="*Calc*">
+<CalcVars Enabled="true">
+</CalcVars>
+</Output>
+<Output Name="*Field*">
+<Ext Name="*Field*" Enabled="true">
+<Props>
+<Prop Name="EnableCommInt" Value="true"/>
+<Prop Name="CommNoValues" Value="100"/>
+<Prop Name="CommInt" Value="0.5"/>
+<Prop Name="CommIntType" Value="Linear"/>
+<Prop Name="Times" Value=""/>
+<Prop Name="Interpolated" Value="true"/>
+<Prop Name="UseDisplayUnits" Value="true"/>
+<Prop Name="StartTime" Value="-INF"/>
+<Prop Name="StopTime" Value="+INF"/>
+</Props>
+<Quantities>
+</Quantities>
+</Ext>
+</Output>
+<Output Name="*Gauge*">
+<Ext Name="*Gauge*" Enabled="true">
+<Props>
+<Prop Name="EnableCommInt" Value="true"/>
+<Prop Name="CommNoValues" Value="100"/>
+<Prop Name="CommInt" Value="0.01"/>
+<Prop Name="CommIntType" Value="Linear"/>
+<Prop Name="Times" Value=""/>
+<Prop Name="Interpolated" Value="true"/>
+<Prop Name="UseDisplayUnits" Value="true"/>
+<Prop Name="StartTime" Value="-INF"/>
+<Prop Name="StopTime" Value="+INF"/>
+</Props>
+<Quantities>
+</Quantities>
+</Ext>
+</Output>
+<Output Name="*Plot*">
+<Ext Name="*Plot*" Enabled="true">
+<Props>
+<Prop Name="EnableCommInt" Value="true"/>
+<Prop Name="CommNoValues" Value="100"/>
+<Prop Name="CommInt" Value="0.5"/>
+<Prop Name="CommIntType" Value="Linear"/>
+<Prop Name="Times" Value=""/>
+<Prop Name="Interpolated" Value="true"/>
+<Prop Name="UseDisplayUnits" Value="true"/>
+<Prop Name="StartTime" Value="-INF"/>
+<Prop Name="StopTime" Value="+INF"/>
+</Props>
+<Quantities>
+<Quantity Name=".River_1.Q">
+<Props/></Quantity>
+<Quantity Name=".River_5.C(rBOD1)">
+<Props/></Quantity>
+<Quantity Name=".River_5.C(rBODs)">
+<Props/></Quantity>
+<Quantity Name=".River_5.DO">
+<Props/></Quantity>
+<Quantity Name=".River_5.Q">
+<Props/></Quantity>
+</Quantities>
+</Ext>
+</Output>
+<Output Name="*Table*">
+<Ext Name="*Table*" Enabled="true">
+<Props>
+<Prop Name="EnableCommInt" Value="true"/>
+<Prop Name="CommNoValues" Value="100"/>
+<Prop Name="CommInt" Value="0.5"/>
+<Prop Name="CommIntType" Value="Linear"/>
+<Prop Name="Times" Value=""/>
+<Prop Name="Interpolated" Value="true"/>
+<Prop Name="UseDisplayUnits" Value="true"/>
+<Prop Name="StartTime" Value="-INF"/>
+<Prop Name="StopTime" Value="+INF"/>
+</Props>
+<Quantities>
+</Quantities>
+</Ext>
+</Output>
+<Output Name="File">
+<File Name="Model_dummy_1.River_quantity_Dynamic.Simul.out.txt" Enabled="true">
+<Props>
+<Prop Name="EnableCommInt" Value="true"/>
+<Prop Name="CommNoValues" Value="100"/>
+<Prop Name="CommInt" Value="0.01"/>
+<Prop Name="CommIntType" Value="Linear"/>
+<Prop Name="Times" Value=""/>
+<Prop Name="Interpolated" Value="true"/>
+<Prop Name="UseDisplayUnits" Value="true"/>
+<Prop Name="StartTime" Value="-INF"/>
+<Prop Name="StopTime" Value="+INF"/>
+<Prop Name="ColSep" Value="&#9;"/>
+<Prop Name="DecSep" Value="."/>
+<Prop Name="Precision" Value="8"/>
+</Props>
+<Quantities>
+<Quantity Name=".River_1.Q">
+<Props/></Quantity>
+<Quantity Name=".River_1.d">
+<Props/></Quantity>
+<Quantity Name=".River_1.vel_water">
+<Props/></Quantity>
+<Quantity Name=".River_2.Q">
+<Props/></Quantity>
+<Quantity Name=".River_2.d">
+<Props/></Quantity>
+<Quantity Name=".River_2.vel_water">
+<Props/></Quantity>
+<Quantity Name=".River_3.Q">
+<Props/></Quantity>
+<Quantity Name=".River_3.d">
+<Props/></Quantity>
+<Quantity Name=".River_3.vel_water">
+<Props/></Quantity>
+<Quantity Name=".River_4.Q">
+<Props/></Quantity>
+<Quantity Name=".River_4.d">
+<Props/></Quantity>
+<Quantity Name=".River_4.vel_water">
+<Props/></Quantity>
+<Quantity Name=".River_5.Q">
+<Props/></Quantity>
+<Quantity Name=".River_5.d">
+<Props/></Quantity>
+<Quantity Name=".River_5.vel_water">
+<Props/></Quantity>
+</Quantities>
+</File>
+</Output>
+<Output Name="File_1">
+<File Name="Model_dummy_1.Dynamic_water_quality.Simul.1.out.txt" Enabled="true">
+<Props>
+<Prop Name="EnableCommInt" Value="true"/>
+<Prop Name="CommNoValues" Value="100"/>
+<Prop Name="CommInt" Value="0.01"/>
+<Prop Name="CommIntType" Value="Linear"/>
+<Prop Name="Times" Value=""/>
+<Prop Name="Interpolated" Value="true"/>
+<Prop Name="UseDisplayUnits" Value="true"/>
+<Prop Name="StartTime" Value="-INF"/>
+<Prop Name="StopTime" Value="+INF"/>
+<Prop Name="ColSep" Value="&#9;"/>
+<Prop Name="DecSep" Value="."/>
+<Prop Name="Precision" Value="8"/>
+</Props>
+<Quantities>
+<Quantity Name=".River_1.C(rBOD1)">
+<Props/></Quantity>
+<Quantity Name=".River_1.C(rBOD1p)">
+<Props/></Quantity>
+<Quantity Name=".River_1.C(rBOD2)">
+<Props/></Quantity>
+<Quantity Name=".River_1.C(rBOD2p)">
+<Props/></Quantity>
+<Quantity Name=".River_1.C(rBODs)">
+<Props/></Quantity>
+<Quantity Name=".River_1.DO">
+<Props/></Quantity>
+<Quantity Name=".River_2.C(rBOD1)">
+<Props/></Quantity>
+<Quantity Name=".River_2.C(rBOD1p)">
+<Props/></Quantity>
+<Quantity Name=".River_2.C(rBOD2)">
+<Props/></Quantity>
+<Quantity Name=".River_2.C(rBOD2p)">
+<Props/></Quantity>
+<Quantity Name=".River_2.C(rBODs)">
+<Props/></Quantity>
+<Quantity Name=".River_2.DO">
+<Props/></Quantity>
+<Quantity Name=".River_3.C(rBOD1)">
+<Props/></Quantity>
+<Quantity Name=".River_3.C(rBOD1p)">
+<Props/></Quantity>
+<Quantity Name=".River_3.C(rBOD2)">
+<Props/></Quantity>
+<Quantity Name=".River_3.C(rBOD2p)">
+<Props/></Quantity>
+<Quantity Name=".River_3.C(rBODs)">
+<Props/></Quantity>
+<Quantity Name=".River_3.DO">
+<Props/></Quantity>
+<Quantity Name=".River_4.C(rBOD1)">
+<Props/></Quantity>
+<Quantity Name=".River_4.C(rBOD1p)">
+<Props/></Quantity>
+<Quantity Name=".River_4.C(rBOD2)">
+<Props/></Quantity>
+<Quantity Name=".River_4.C(rBOD2p)">
+<Props/></Quantity>
+<Quantity Name=".River_4.C(rBODs)">
+<Props/></Quantity>
+<Quantity Name=".River_4.DO">
+<Props/></Quantity>
+<Quantity Name=".River_5.C(rBOD1)">
+<Props/></Quantity>
+<Quantity Name=".River_5.C(rBOD1p)">
+<Props/></Quantity>
+<Quantity Name=".River_5.C(rBOD2)">
+<Props/></Quantity>
+<Quantity Name=".River_5.C(rBOD2p)">
+<Props/></Quantity>
+<Quantity Name=".River_5.C(rBODs)">
+<Props/></Quantity>
+<Quantity Name=".River_5.DO">
+<Props/></Quantity>
+<Quantity Name=".Urban_InputEmulator.Outflow(rBOD1)">
+<Props/></Quantity>
+<Quantity Name=".Urban_InputEmulator.Outflow(rBOD1p)">
+<Props/></Quantity>
+<Quantity Name=".Urban_InputEmulator.Outflow(rBOD2)">
+<Props/></Quantity>
+<Quantity Name=".Urban_InputEmulator.Outflow(rBOD2p)">
+<Props/></Quantity>
+</Quantities>
+</File>
+</Output>
+</Outputs>
+<Time>
+<Props>
+<Prop Name="StartTime" Value="130"/>
+<Prop Name="StopTime" Value="220"/>
+<Prop Name="Times" Value=""/>
+<Prop Name="EnableRealTime" Value="false"/>
+<Prop Name="Factor" Value="1"/>
+</Props>
+</Time>
+<Solve>
+<Integ Method="CVODE">
+<Props>
+<Prop Name="MaxNoSteps" Value="0"/>
+<Prop Name="AbsoluteTolerance" Value="1e-005"/>
+<Prop Name="RelativeTolerance" Value="1e-005"/>
+<Prop Name="LinearMultistepMethod" Value="Adams"/>
+<Prop Name="IterationMethod" Value="Newton"/>
+<Prop Name="LinearSolver" Value="SPGMR"/>
+<Prop Name="CVBandUpperBandwidth" Value="0"/>
+<Prop Name="CVBandLowerBandwidth" Value="0"/>
+<Prop Name="CVSPGMRGSType" Value="ModifiedGS"/>
+</Props>
+</Integ>
+<Root Method="Hybrid">
+<Props>
+<Prop Name="Tolerance" Value="1e-006"/>
+</Props>
+</Root>
+</Solve>
+</Simul>
+</Exp>
+<Props>
+<Prop Name="InputFileName" Value=""/>
+<Prop Name="OutputFileName" Value="Model_dummy_1.ObjEval.Simul.{}.out.txt"/>
+<Prop Name="EnableRetrieval" Value="false"/>
+<Prop Name="EnableStorage" Value="false"/>
+<Prop Name="EnableCommInt" Value="true"/>
+<Prop Name="CommNoValues" Value="100"/>
+<Prop Name="CommInt" Value="0"/>
+<Prop Name="Interpolated" Value="true"/>
+<Prop Name="ColSep" Value="&#9;"/>
+<Prop Name="DecSep" Value="."/>
+<Prop Name="ThousandSep" Value=","/>
+<Prop Name="Precision" Value="8"/>
+<Prop Name="EnableNoComputeInitials" Value="false"/>
+<Prop Name="EnableNoComputeStates" Value="false"/>
+<Prop Name="EnableNoComputeOutputs" Value="false"/>
+<Prop Name="EnableNoComputeFinals" Value="false"/>
+<Prop Name="EnableExceptions" Value="true"/>
+<Prop Name="EnableErrorWhenSimulationIncomplete" Value="true"/>
+<Prop Name="EnableInterval" Value="false"/>
+<Prop Name="StartTime" Value="-INF"/>
+<Prop Name="StopTime" Value="+INF"/>
+<Prop Name="EnableSteadyStateExp" Value="false"/>
+<Prop Name="SteadyStateExpFileName" Value="Model_dummy_1.Steady State.ObjEval.Exp.xml|.Tornado.Exp.ObjEval.Obj.Exp"/>
+<Prop Name="EnableSteadyStateCopyParams" Value="true"/>
+</Props>
+<Quantities>
+</Quantities>
+</Obj>
+<Inputs Enabled="true">
+</Inputs>
+<Outputs Enabled="true">
+<Output Name="*File*">
+<File Name="Model_dummy_1.Dynamic.ObjEval.out.txt" Enabled="true">
+<Props>
+<Prop Name="ColSep" Value="&#9;"/>
+<Prop Name="DecSep" Value="."/>
+<Prop Name="Precision" Value="8"/>
+</Props>
+</File>
+</Output>
+</Outputs>
+</ObjEval>
+</Exp>
+</Tornado>

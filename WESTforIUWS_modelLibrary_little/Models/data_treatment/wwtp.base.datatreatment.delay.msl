@@ -1,0 +1,59 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$ EURE
+ * $Date: 19. april 2012 10:17:55$
+ *
+ ******************************************************************************/
+ 
+//  The model has been implemented as defined in Rieger et al. (2003). Further information can be also found in Alex et al. (2009)
+//  References:
+//  Rieger L., Alex J., Winkler S., Boehler M., Thomann M. and Siegrist H. (2003). Progress in sensor technology - progress in process control? Part I: Sensor property investigation and classification. Water Sci. Technol., 47(2), 103-112.
+//  Alex, J., Rieger, L., Corominas, L. and Winkler, S. (2009). Models of Sensors and Actuators. Scientific Technical Report of the IWA Task Group on Benchmarking control strategies. IWA publishing, London, UK.
+
+#ifndef WWTP_BASE_DATATREATMENT_DELAY
+#define WWTP_BASE_DATATREATMENT_DELAY
+
+CLASS Delay
+  (* icon = "data_treatment" *)
+  "Data Treatment"
+  EXTENDS DataTreatment WITH 
+  {:
+    comments <- "A model for adding delay to a signal";
+    parameters <-
+    {
+		OBJ t_Delay "Delay time" : Time := {: value <- 0 ; group <- "System" :};
+    };
+    state <-
+    {
+		OBJ temp (* hidden = "1" *) "dummy variable for initialisation" : Real ;
+		OBJ ID (* hidden = "1" *) "dummy variable for buffer ID" : Integer ;
+		OBJ Signal_Delay (* hidden = "1" *) "dummy variable for signal that is retrieved from buffer": Real ;
+		OBJ Delta_t  "Time to get a value from the buffer" : Time:= {: group <- "System" :};
+    };
+    initial <-
+    {
+		//buffer creation
+		state.ID = MSLUBufferCreate(state.Signal_Delay, 0);
+    };
+    equations <-
+    {
+		// get the signal and store it in buffer along with the current time
+		// calculate the time at which the concentration is needed (t - t_delay) and get the desired value
+		// WBufferPut is included in this statement to force the correct sequence of the equations after parsing
+		state.temp = MSLUBufferPut(state.ID, independent.t, state.signal);
+		state.Delta_t = independent.t - parameters.t_Delay;
+		state.Signal_Delay = MSLUBufferGet(state.ID,state.Delta_t);
+		interface.y_M = state.Signal_Delay ;   
+    };
+  :};
+  
+#endif // WWTP_BASE_DATATREATMENT_DELAY

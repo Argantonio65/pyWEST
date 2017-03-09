@@ -1,0 +1,56 @@
+// ------------------------------------------------------------------------
+//  MOSTforWATER - Ghent University, BIOMATH
+//  Implementation: Code generator Petersen's Matrix
+//  Description: MSL-USER/WWTP/VolumeASM2dModTempConversionModel kinetics
+// ------------------------------------------------------------------------
+
+#ifdef ASM2dModTemp
+	state.S_O_Saturation = 14.65 - 0.41 * state.Temp_Actual + 0.00799 * state.Temp_Actual * state.Temp_Actual - 0.0000778 * state.Temp_Actual * state.Temp_Actual * state.Temp_Actual;
+	state.k_h_Temp = parameters.k_h * pow(parameters.theta_k_h,state.Temp_Actual - parameters.Temp_Ref);
+	state.K_X_Temp = parameters.K_X * pow(parameters.theta_K_X,state.Temp_Actual - parameters.Temp_Ref);
+	state.mu_H_Temp = parameters.mu_H * pow(parameters.theta_mu_H,state.Temp_Actual - parameters.Temp_Ref);
+	state.Q_fe_Temp = parameters.Q_fe * pow(parameters.theta_Q_fe,state.Temp_Actual - parameters.Temp_Ref);
+	state.b_H_Temp = parameters.b_H * pow(parameters.theta_b_H,state.Temp_Actual - parameters.Temp_Ref);
+	state.Q_PHA_Temp = parameters.Q_PHA * pow(parameters.theta_Q_PHA,state.Temp_Actual - parameters.Temp_Ref);
+	state.Q_PP_Temp = parameters.Q_PP * pow(parameters.theta_Q_PP,state.Temp_Actual - parameters.Temp_Ref);
+	state.mu_PAO_Temp = parameters.mu_PAO * pow(parameters.theta_mu_PAO,state.Temp_Actual - parameters.Temp_Ref);
+	state.b_PAO_Temp = parameters.b_PAO * pow(parameters.theta_b_PAO,state.Temp_Actual - parameters.Temp_Ref);
+	state.b_PP_Temp = parameters.b_PP * pow(parameters.theta_b_PP,state.Temp_Actual - parameters.Temp_Ref);
+	state.b_PHA_Temp = parameters.b_PHA * pow(parameters.theta_b_PHA,state.Temp_Actual - parameters.Temp_Ref);
+	state.mu_AUT_Temp = parameters.mu_AUT * pow(parameters.theta_mu_AUT,state.Temp_Actual - parameters.Temp_Ref);
+	state.b_AUT_Temp = parameters.b_AUT * pow(parameters.theta_b_AUT,state.Temp_Actual - parameters.Temp_Ref);
+	state.S_O_MonodTerm = state.C[S_O] / (parameters.K_O + state.C[S_O]);
+	state.S_NO_MonodTerm = state.C[S_NO] / (parameters.K_NO + state.C[S_NO]);
+	state.S_NH_MonodTerm = state.C[S_NH] / (parameters.K_NH + state.C[S_NH]);
+	state.S_PO_MonodTerm = state.C[S_PO] / (parameters.K_P + state.C[S_PO]);
+	state.S_ALK_MonodTerm = state.C[S_ALK] / (parameters.K_ALK + state.C[S_ALK]);
+	state.S_A_MonodTerm = state.C[S_A] / (parameters.K_A + state.C[S_A]);
+	state.S_F_MonodTerm = state.C[S_F] / (parameters.K_F + state.C[S_F]);
+	state.X_PHA_MonodTerm = (state.C[X_PHA] / state.C[X_PAO]) / (parameters.K_PHA + state.C[X_PHA] / state.C[X_PAO]);
+	state.X_S_MonodTerm = (state.C[X_S] / state.C[X_H]) / (state.K_X_Temp + state.C[X_S] / state.C[X_H]);
+	state.S_O_InhibitionTerm = parameters.K_O / (parameters.K_O + state.C[S_O]);
+	state.S_NO_InhibitionTerm = parameters.K_NO / (parameters.K_NO + state.C[S_NO]);
+
+	state.Kinetics[AerHydrol] = state.k_h_Temp * state.S_O_MonodTerm * state.X_S_MonodTerm * state.C[X_H];
+	state.Kinetics[AnHydrol] = state.k_h_Temp * parameters.n_NO_Hyd * state.S_O_InhibitionTerm * state.S_NO_MonodTerm * state.X_S_MonodTerm * state.C[X_H];
+	state.Kinetics[AnaerHydrol] = state.k_h_Temp * parameters.n_fe * state.S_O_InhibitionTerm * state.S_NO_InhibitionTerm * state.X_S_MonodTerm * state.C[X_H];
+	state.Kinetics[AerGrowthOnSf] = state.mu_H_Temp * state.S_O_MonodTerm * state.S_F_MonodTerm * (state.C[S_F] / (state.C[S_F] + state.C[S_A])) * state.S_NH_MonodTerm * state.S_PO_MonodTerm * state.S_ALK_MonodTerm * state.C[X_H];
+	state.Kinetics[AerGrowthOnSa] = state.mu_H_Temp * state.S_O_MonodTerm * state.S_A_MonodTerm * (state.C[S_A] / (state.C[S_F] + state.C[S_A])) * state.S_NH_MonodTerm * state.S_PO_MonodTerm * state.S_ALK_MonodTerm * state.C[X_H];
+	state.Kinetics[AnGrowthOnSfDenitrif] = state.mu_H_Temp * parameters.n_NO_Het * state.S_O_InhibitionTerm * state.S_F_MonodTerm * (state.C[S_F] / (state.C[S_F] + state.C[S_A])) * state.S_NH_MonodTerm * state.S_NO_MonodTerm * state.S_PO_MonodTerm * state.S_ALK_MonodTerm * state.C[X_H];
+	state.Kinetics[AnGrowthOnSaDenitrif] = state.mu_H_Temp * parameters.n_NO_Het * state.S_O_InhibitionTerm * state.S_A_MonodTerm * (state.C[S_A] / (state.C[S_F] + state.C[S_A])) * state.S_NH_MonodTerm * state.S_NO_MonodTerm * state.S_PO_MonodTerm * state.S_ALK_MonodTerm * state.C[X_H];
+	state.Kinetics[Fermentation] = state.Q_fe_Temp * state.S_O_InhibitionTerm * state.S_NO_InhibitionTerm * (state.C[S_F] / (parameters.K_fe + state.C[S_F])) * state.S_ALK_MonodTerm * state.C[X_H];
+	state.Kinetics[LysisOfHetero] = state.b_H_Temp * (state.S_O_MonodTerm + parameters.n_NO_Het_d * state.S_O_InhibitionTerm * state.S_NO_MonodTerm) * state.C[X_H];
+	state.Kinetics[StorageOfXPHA] = state.Q_PHA_Temp * state.S_A_MonodTerm * state.S_ALK_MonodTerm * (state.C[X_PP]) / (parameters.K_PP + state.C[X_PP] / state.C[X_PAO]) * state.S_O_InhibitionTerm * state.S_NO_InhibitionTerm;
+	state.Kinetics[AerStorageOfXPP] = state.Q_PP_Temp * state.S_O_MonodTerm * state.C[S_PO] / (state.C[S_PO] + parameters.K_PS) * state.S_ALK_MonodTerm * state.X_PHA_MonodTerm * (parameters.K_MAX - state.C[X_PP] / state.C[X_PAO]) / (parameters.K_IPP + parameters.K_MAX - state.C[X_PP] / state.C[X_PAO]) * state.C[X_PAO];
+	state.Kinetics[AnStorageOfXPP] = state.Kinetics[AerStorageOfXPP] * parameters.n_NO_PAO * (parameters.K_O / state.C[S_O]) * state.S_NO_MonodTerm;
+	state.Kinetics[AerGrowthOnXPHA] = state.mu_PAO_Temp * state.S_O_MonodTerm * state.S_NH_MonodTerm * state.S_ALK_MonodTerm * state.S_PO_MonodTerm * state.X_PHA_MonodTerm * state.C[X_PAO];
+	state.Kinetics[AnGrowthOnXPHADenitrif] = state.Kinetics[AerGrowthOnXPHA] * parameters.n_NO_PAO * (parameters.K_O / state.C[S_O]) * state.S_NO_MonodTerm;
+	state.Kinetics[LysisOfXPAO] = state.b_PAO_Temp * (state.S_O_MonodTerm + parameters.n_NO_P_d * state.S_O_InhibitionTerm * state.S_NO_MonodTerm) * state.C[X_PAO] * state.S_ALK_MonodTerm;
+	state.Kinetics[LysisOfXPP] = state.b_PP_Temp * (state.S_O_MonodTerm + parameters.n_NO_P_d * state.S_O_InhibitionTerm * state.S_NO_MonodTerm) * state.C[X_PP] * state.S_ALK_MonodTerm;
+	state.Kinetics[LysisOfXPHA] = state.b_PHA_Temp * (state.S_O_MonodTerm + parameters.n_NO_P_d * state.S_O_InhibitionTerm * state.S_NO_MonodTerm) * state.C[X_PHA] * state.S_ALK_MonodTerm;
+	state.Kinetics[GrowthOfAuto] = state.mu_AUT_Temp * state.C[S_O] / (state.C[S_O] + parameters.K_O_AUT) * state.C[S_NH] / (state.C[S_NH] + parameters.K_NH_AUT) * state.S_PO_MonodTerm * state.C[S_ALK] / (state.C[S_ALK] + parameters.K_ALK_AUT) * state.C[X_AUT];
+	state.Kinetics[LysisOfAuto] = state.b_AUT_Temp * (state.S_O_MonodTerm + parameters.n_NO_AUT_d * state.S_O_InhibitionTerm * state.S_NO_MonodTerm) * state.C[X_AUT];
+	state.Kinetics[Precipitation] = parameters.k_PRE * state.C[S_PO] * state.C[X_MEOH];
+	state.Kinetics[Redissolution] = parameters.k_RED * state.C[X_MEP] * (state.C[S_ALK] / (parameters.K_ALK_AUT + state.C[S_ALK]));
+	state.Kinetics[Aeration]  = state.Kla_Actual * (state.S_O_Saturation - state.C[S_O]);
+#endif // ASM2dModTemp

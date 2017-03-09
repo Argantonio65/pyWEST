@@ -1,0 +1,77 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 5. september 2011 16:01:15$
+ *
+ ******************************************************************************/
+
+// Define the equations for the sensor output for the ASM3 models
+  
+  interface.DO = state.C[S_O];
+  
+  interface.NH4 = state.C[S_NH];
+  
+  interface.NO3 = state.C[S_NO];
+  
+  interface.TSS = state.C[X_TSS]; 
+      
+  interface.OnlineCOD = ( state.C[S_S] + state.C[S_I] 
+        + state.C[X_H] + state.C[X_A] + state.C[X_S] 
+          + state.C[X_I] + state.C[X_STO]); 
+          
+  
+  interface.OfflineBOD = parameters.F_BOD_COD * (state.C[S_S] + state.C[X_S] + state.C[X_STO]
+      + (1 - parameters.f_X_I) * (state.C[X_H] + state.C[X_A])) ;
+             
+             
+  interface.OnlineTN =  (state.C[S_NO] + state.C[S_NH]
+         + parameters.i_N_S_I * state.C[S_I] 
+         + parameters.i_N_S_S * state.C[S_S] 
+         + parameters.i_N_X_I * state.C[X_I] 
+         + parameters.i_N_X_S * state.C[X_S] 
+         + parameters.i_N_BM * (state.C[X_H] + state.C[X_A])); 
+           
+  interface.OfflineTKN = (state.C[S_NH]
+         + parameters.i_N_S_I * state.C[S_I] 
+         + parameters.i_N_S_S * state.C[S_S] 
+         + parameters.i_N_X_I * state.C[X_I] 
+         + parameters.i_N_X_S * state.C[X_S] 
+       + parameters.i_N_BM * (state.C[X_H] + state.C[X_A]));
+      
+  
+  interface.OUR_ASU = IF (state.V == 0)
+              THEN 0
+          ELSE
+     - (state.ConversionTermPerComponent[S_O] / state.V)
+     + parameters.Stoichiometry[Aeration][S_O] * state.Kinetics[Aeration];
+
+  interface.NUR = IF (state.V == 0)
+              THEN 0
+              ELSE
+     - (state.ConversionTermPerComponent[S_NO] / state.V)
+     + parameters.Stoichiometry[Nitrification][S_NO] * state.Kinetics[Nitrification];
+   
+  interface.NPR = IF (state.V == 0)
+              THEN 0
+              ELSE
+     parameters.Stoichiometry[Nitrification][S_NO] * state.Kinetics[Nitrification];   
+
+  interface.AUR = IF (state.V == 0)
+            THEN 0
+            ELSE
+     - (state.ConversionTermPerComponent[S_NH] / state.V);    
+    
+    
+  interface.Kla_ASU = state.Kla_Actual;
+
+  interface.V_ASU = state.V;
+

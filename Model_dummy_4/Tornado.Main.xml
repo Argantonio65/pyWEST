@@ -1,0 +1,501 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Tornado>
+<Main Version="1.0">
+<Props>
+<Prop Name="TornadoVersion" Value="2016 Development"/>
+<Prop Name="Author" Value="DHI\fhcl"/>
+<Prop Name="Date" Value="Wed Apr 22 14:39:31 2015"/>
+<Prop Name="Desc" Value=""/>
+<Prop Name="FileName" Value="$(TORNADO_DATA_PATH)/etc/Tornado.Main.xml|.Tornado"/>
+<Prop Name="DisplayName" Value=""/>
+<Prop Name="Precision" Value="15"/>
+<Prop Name="UnitSystem" Value="Model-based"/>
+<Prop Name="LimitMRE" Value="0.0235"/>
+<Prop Name="LimitMaxRE" Value="0.7"/>
+<Prop Name="EnableH2OUnitHack" Value="true"/>
+<Prop Name="EnableWESTInputHeaders" Value="true"/>
+<Prop Name="EnableWESTOutputHeaders" Value="false"/>
+<Prop Name="EnableHashOutputHeaders" Value="true"/>
+<Prop Name="EnableMSLCalcVarCompatibility" Value="true"/>
+<Prop Name="AlgVarInitMode" Value="Default"/>
+<Prop Name="Verbose" Value="true"/>
+<Prop Name="EnableIndent" Value="false"/>
+<Prop Name="EnableNewLine" Value="true"/>
+<Prop Name="EnableInputProviderCheck" Value="false"/>
+<Prop Name="CalcVarPrefix" Value="Model_dummy_4"/>
+<Prop Name="TMOFNoEquiv" Value="false"/>
+<Prop Name="TMOFNoConstant" Value="false"/>
+<Prop Name="TMOFNoInitial" Value="false"/>
+<Prop Name="TMOFNoOutput" Value="false"/>
+</Props>
+<Plugins>
+<Plugin Name="DHI.Tornado.Solve.Integ.Alg"/>
+<Plugin Name="DHI.Tornado.Solve.Integ.CVODE"/>
+<Plugin Name="DHI.Tornado.Solve.Integ.RK4"/>
+<Plugin Name="DHI.Tornado.Solve.Integ.RK4ASC"/>
+<Plugin Name="DHI.Tornado.Solve.MC.LHS"/>
+<Plugin Name="DHI.Tornado.Solve.MC.PR"/>
+<Plugin Name="DHI.Tornado.Solve.Optim.NLOpt"/>
+<Plugin Name="DHI.Tornado.Solve.Optim.Praxis"/>
+<Plugin Name="DHI.Tornado.Solve.Optim.Simplex"/>
+<Plugin Name="DHI.Tornado.Solve.Root.Broyden"/>
+<Plugin Name="DHI.Tornado.Solve.Root.Hybrid"/>
+<Plugin Name="DHI.Tornado.Solve.Scen.Cross"/>
+<Plugin Name="DHI.Tornado.Solve.Scen.Fixed"/>
+<Plugin Name="DHI.Tornado.Solve.Scen.Grid"/>
+<Plugin Name="DHI.Tornado.Solve.Scen.Random"/>
+<Plugin Name="DHI.Tornado.Solve.Scen.Seq"/>
+<Plugin Name="DHI.Tornado.Solve.Sens.Plain"/>
+</Plugins>
+<Units>
+<Unit Name="$" Category="Currency" Desc="US Dollar" Factor="0.73" Offset="0" Metric="Eur" Imperial="USD"/>
+<Unit Name="%" Category="Percent" Desc="Percent" Factor="0.01" Offset="0" Metric="%" Imperial="%"/>
+<Unit Name="-" Category="Percent" Desc="" Factor="1" Offset="0" Metric="-" Imperial="-"/>
+<Unit Name="1/[(d^0.5)*(deg C)]" Category="b Ratkowsky" Desc="Empirical factor for temperature correction" Factor="1" Offset="0" Metric="1/[(d^0.5)*(deg C)]" Imperial="1/[(d^0.5)*(deg C)]"/>
+<Unit Name="1/cSt" Category="Dispersion" Desc="" Factor="1000000" Offset="0" Metric="d/m2" Imperial="1/cSt"/>
+<Unit Name="1/cm" Category="Divided by Length" Desc="1 per centimeter" Factor="100" Offset="0" Metric="1/m" Imperial="1/ft"/>
+<Unit Name="1/d" Category="Frequency" Desc="per day" Factor="1" Offset="0" Metric="1/d" Imperial="1/d"/>
+<Unit Name="1/degC" Category="c Ratkowsky" Desc="Empirical factor for temperature correction" Factor="1" Offset="0" Metric="1/degC" Imperial="1/degC"/>
+<Unit Name="1/dm" Category="Divided by Length" Desc="1 per decimeter" Factor="10" Offset="0" Metric="1/m" Imperial="1/ft"/>
+<Unit Name="1/ft" Category="Divided by Length" Desc="1 per foot" Factor="3" Offset="0" Metric="1/m" Imperial="1/ft"/>
+<Unit Name="1/h" Category="Frequency" Desc="per hour" Factor="24" Offset="0" Metric="1/h" Imperial="1/h"/>
+<Unit Name="1/m" Category="Divided by Length" Desc="1 per meter" Factor="1" Offset="0" Metric="1/m" Imperial="1/ft"/>
+<Unit Name="1/min" Category="Frequency" Desc="per minute" Factor="1440" Offset="0" Metric="1/min" Imperial="1/min"/>
+<Unit Name="1/mm" Category="Divided by Length" Desc="1 per milimeter" Factor="1000" Offset="0" Metric="1/m" Imperial="1/ft"/>
+<Unit Name="1/s" Category="Frequency" Desc="per second" Factor="86400" Offset="0" Metric="1/s" Imperial="1/s"/>
+<Unit Name="CNY" Category="Currency" Desc="Renminbi (Yuan)" Factor="7.7518" Offset="0" Metric="Eur" Imperial="USD"/>
+<Unit Name="E" Category="Currency" Desc="Euro" Factor="1" Offset="0" Metric="Eur" Imperial="USD"/>
+<Unit Name="Eur" Category="Currency" Desc="Euro" Factor="1" Offset="0" Metric="Eur" Imperial="USD"/>
+<Unit Name="HP" Category="Power" Desc="horsepower" Factor="746" Offset="0" Metric="HP" Imperial="HP"/>
+<Unit Name="HP.h" Category="Electric energy" Desc="horsepower hour" Factor="2685.6" Offset="0" Metric="kW.h" Imperial="HP.h"/>
+<Unit Name="Hz" Category="Frequency" Desc="Hertz" Factor="86400" Offset="0" Metric="Hz" Imperial="Hz"/>
+<Unit Name="IE/km2" Category="Population density" Desc="IE/km2" Factor="1" Offset="0" Metric="IE/km2" Imperial="IE/km2"/>
+<Unit Name="J" Category="Electric energy" Desc="Joule" Factor="1" Offset="0" Metric="J" Imperial="J"/>
+<Unit Name="J/(mol*K)" Category="Universal gas constant" Desc="Universal gas constant" Factor="1" Offset="0" Metric="J/(mol*K)" Imperial="J/(mol*K)"/>
+<Unit Name="J/mol/K" Category="Universal gas constant" Desc="Universal gas constant" Factor="1" Offset="0" Metric="J/mol/K" Imperial="J/mol/K"/>
+<Unit Name="JPY" Category="Currency" Desc="Japanese Yen" Factor="0.0094" Offset="0" Metric="Eur" Imperial="USD"/>
+<Unit Name="K" Category="Temperature" Desc="Kelvin" Factor="1" Offset="0" Metric="K" Imperial="degF"/>
+<Unit Name="L" Category="Volume" Desc="liter" Factor="0.001" Offset="0" Metric="L" Imperial="gal"/>
+<Unit Name="L/d" Category="Volume divided by time" Desc="liter per day" Factor="0.001" Offset="0" Metric="L/d" Imperial="gal/d"/>
+<Unit Name="L/h" Category="Volume divided by time" Desc="liter per hour" Factor="0.024" Offset="0" Metric="L/h" Imperial="gal/h"/>
+<Unit Name="L/min" Category="Volume divided by time" Desc="liter per minute" Factor="1.44" Offset="0" Metric="L/min" Imperial="gal/min"/>
+<Unit Name="L/s" Category="Volume divided by time" Desc="liter per second" Factor="86.4" Offset="0" Metric="L/s" Imperial="gal/s"/>
+<Unit Name="M" Category="Amount of substance concentration" Desc="mole per liter" Factor="1000" Offset="0" Metric="M" Imperial="M"/>
+<Unit Name="MGD" Category="Volume divided by time" Desc="megagallons per day" Factor="3785.412" Offset="0" Metric="m3/d" Imperial="MGD"/>
+<Unit Name="Mgal" Category="Volume" Desc="megagallon (US)" Factor="3785.412" Offset="0" Metric="m3" Imperial="Mgal"/>
+<Unit Name="N" Category="Force" Desc="Newton" Factor="1" Offset="0" Metric="N" Imperial="lbf"/>
+<Unit Name="N/m2" Category="Pressure" Desc="Newton per square meter" Factor="1" Offset="0" Metric="N/m2" Imperial="N/m2"/>
+<Unit Name="P" Category="Dynamic viscosity" Desc="poise" Factor="0.1" Offset="0" Metric="Pa.s" Imperial="P"/>
+<Unit Name="Pa" Category="Pressure" Desc="Pascal" Factor="1" Offset="0" Metric="Pa" Imperial="psi"/>
+<Unit Name="Pa*d" Category="Dynamic viscosity" Desc="Pascal day" Factor="86400" Offset="0" Metric="Pa.d" Imperial="cP"/>
+<Unit Name="Pa*s" Category="Dynamic viscosity" Desc="Pascal second" Factor="1" Offset="0" Metric="Pa*s" Imperial="cP"/>
+<Unit Name="Pa.d" Category="Dynamic viscosity" Desc="Pascal day" Factor="86400" Offset="0" Metric="Pa.d" Imperial="cP"/>
+<Unit Name="Pa.h" Category="Dynamic viscosity" Desc="Pascal hour" Factor="3600" Offset="0" Metric="Pa.h" Imperial="cP"/>
+<Unit Name="Pa.min" Category="Dynamic viscosity" Desc="Pascal minute" Factor="60" Offset="0" Metric="Pa.min" Imperial="cP"/>
+<Unit Name="Pa.s" Category="Dynamic viscosity" Desc="Pascal second" Factor="1" Offset="0" Metric="Pa.s" Imperial="cP"/>
+<Unit Name="St" Category="Kinematic viscosity" Desc="stokes" Factor="0.0001" Offset="0" Metric="m2/s" Imperial="St"/>
+<Unit Name="USD" Category="Currency" Desc="US Dollar" Factor="0.89" Offset="0" Metric="Eur" Imperial="USD"/>
+<Unit Name="W" Category="Power" Desc="watt" Factor="1" Offset="0" Metric="W" Imperial="W"/>
+<Unit Name="W.h" Category="Electric energy" Desc="watt hour" Factor="3600" Offset="0" Metric="W.h" Imperial="W.h"/>
+<Unit Name="W.s" Category="Electric energy" Desc="watt second" Factor="1" Offset="0" Metric="W.s" Imperial="W.s"/>
+<Unit Name="W/m2" Category="Density of Heat Flow Rate" Desc="W/m2" Factor="1" Offset="0" Metric="W/m2" Imperial="W/m2"/>
+<Unit Name="acre" Category="Area" Desc="acre" Factor="4046.873" Offset="0" Metric="m2" Imperial="acre"/>
+<Unit Name="are" Category="Area" Desc="are" Factor="100" Offset="0" Metric="m2" Imperial="are"/>
+<Unit Name="atm" Category="Pressure" Desc="atmosphere, standard" Factor="101325" Offset="0" Metric="atm" Imperial="psi"/>
+<Unit Name="atm.m3.Mol-1" Category="atm.m3.Mol-1" Desc="Henry's law coefficient" Factor="1" Offset="0" Metric="atm.m3.Mol-1" Imperial="atm.m3.Mol-1"/>
+<Unit Name="bar" Category="Pressure" Desc="bar" Factor="100000" Offset="0" Metric="bar" Imperial="psi"/>
+<Unit Name="bar/M/K" Category="Universal gas constant" Desc="Universal gas constant" Factor="100" Offset="0" Metric="bar/M/K" Imperial="bar/M/K"/>
+<Unit Name="cP" Category="Dynamic viscosity" Desc="centipoise" Factor="0.001" Offset="0" Metric="Pa.s" Imperial="cP"/>
+<Unit Name="cSt" Category="Kinematic viscosity" Desc="centistoke" Factor="0.0864" Offset="0" Metric="m2/s" Imperial="cSt"/>
+<Unit Name="cm" Category="Length" Desc="centimeter" Factor="0.01" Offset="0" Metric="cm" Imperial="in"/>
+<Unit Name="cm2" Category="Area" Desc="square centimeter" Factor="0.0001" Offset="0" Metric="cm2" Imperial="in2"/>
+<Unit Name="cm3" Category="Volume" Desc="cubic centimeter" Factor="1e-006" Offset="0" Metric="cm3" Imperial="in3"/>
+<Unit Name="d" Category="Time" Desc="day" Factor="86400" Offset="0" Metric="d" Imperial="d"/>
+<Unit Name="d-1" Category="Frequency" Desc="per day" Factor="1" Offset="0" Metric="1/d" Imperial="1/d"/>
+<Unit Name="d-1.m3.Mol-1" Category="d-1.m3.Mol-1" Desc="" Factor="1" Offset="0" Metric="d-1.m3.Mol-1" Imperial="d-1.m3.Mol-1"/>
+<Unit Name="d/m2" Category="Dispersion" Desc="day per square meter" Factor="1" Offset="0" Metric="d/m2" Imperial="1/cSt"/>
+<Unit Name="dUnit/dUnit" Category="Percent" Desc="" Factor="1" Offset="0" Metric="dUnit/dUnit" Imperial="dUnit/dUnit"/>
+<Unit Name="dUnit/dt" Category="Frequency" Desc="" Factor="1" Offset="0" Metric="dUnit/dt" Imperial="dUnit/dt"/>
+<Unit Name="degC" Category="Temperature" Desc="degrees Celsius" Factor="1" Offset="273.15" Metric="K" Imperial="degF"/>
+<Unit Name="degF" Category="Temperature" Desc="degrees Fahrenheit" Factor="0.55555556" Offset="255.37222" Metric="K" Imperial="degF"/>
+<Unit Name="dm" Category="Length" Desc="decimeter" Factor="0.1" Offset="0" Metric="dm" Imperial="ft"/>
+<Unit Name="dm2" Category="Area" Desc="square decimeter" Factor="0.01" Offset="0" Metric="dm2" Imperial="ft2"/>
+<Unit Name="dm3" Category="Volume" Desc="cubic decimeter" Factor="0.001" Offset="0" Metric="dm3" Imperial="ft3"/>
+<Unit Name="ft" Category="Length" Desc="foot" Factor="0.3048" Offset="0" Metric="m" Imperial="ft"/>
+<Unit Name="ft/d" Category="Velocity" Desc="foot per day" Factor="0.3048" Offset="0" Metric="m/d" Imperial="ft/d"/>
+<Unit Name="ft/d2" Category="Acceleration" Desc="foot per day squared" Factor="0.3048" Offset="0" Metric="m/d2" Imperial="ft/d2"/>
+<Unit Name="ft/h" Category="Velocity" Desc="foot per hour" Factor="7.3152" Offset="0" Metric="m/h" Imperial="ft/h"/>
+<Unit Name="ft/h2" Category="Acceleration" Desc="foot per hour squared" Factor="175.56" Offset="0" Metric="m/h2" Imperial="ft/h2"/>
+<Unit Name="ft/min" Category="Velocity" Desc="foot per minute" Factor="438.912" Offset="0" Metric="m/min" Imperial="ft/min"/>
+<Unit Name="ft/min2" Category="Acceleration" Desc="foot per minute squared" Factor="632030" Offset="0" Metric="m/min2" Imperial="ft/min2"/>
+<Unit Name="ft/s" Category="Velocity" Desc="foot per second" Factor="26334.72" Offset="0" Metric="m/s" Imperial="ft/s"/>
+<Unit Name="ft/s2" Category="Acceleration" Desc="foot per second squared" Factor="2275300000" Offset="0" Metric="m/s2" Imperial="ft/s2"/>
+<Unit Name="ft2" Category="Area" Desc="square foot" Factor="0.09290304" Offset="0" Metric="m2" Imperial="ft2"/>
+<Unit Name="ft2/d" Category="Kinematic viscosity" Desc="square foot per day" Factor="0.09290304" Offset="0" Metric="m2/h" Imperial="ft2/d"/>
+<Unit Name="ft2/h" Category="Kinematic viscosity" Desc="square foot per hour" Factor="2.229673" Offset="0" Metric="m2/h" Imperial="ft2/h"/>
+<Unit Name="ft2/min" Category="Kinematic viscosity" Desc="square foot per minute" Factor="133.7804" Offset="0" Metric="m2/min" Imperial="ft2/min"/>
+<Unit Name="ft2/s" Category="Kinematic viscosity" Desc="square foot per second" Factor="8026.823" Offset="0" Metric="m2/s" Imperial="ft2/s"/>
+<Unit Name="ft2/s2" Category="Stress" Desc="square foot per square second" Factor="0.09290304" Offset="0" Metric="m2/s2" Imperial="ft2/s2"/>
+<Unit Name="ft3" Category="Volume" Desc="cubic foot" Factor="0.02831685" Offset="0" Metric="m3" Imperial="ft3"/>
+<Unit Name="ft3/lb" Category="Volume divided by mass" Desc="cubic foot per pound" Factor="6.2427974e-005" Offset="0" Metric="m3/g" Imperial="ft3/lb"/>
+<Unit Name="g" Category="Mass" Desc="gram" Factor="1" Offset="0" Metric="g" Imperial="lb"/>
+<Unit Name="g*m/d" Category="Momentum" Desc="gram meter per day" Factor="1" Offset="0" Metric="g.m/d" Imperial="g.m/d"/>
+<Unit Name="g.m-3" Category="Mass divided by volume" Desc="gram per cubic meter" Factor="1" Offset="0" Metric="g/m3" Imperial="lb/gal"/>
+<Unit Name="g.m/d" Category="Momentum" Desc="gram meter per day" Factor="1" Offset="0" Metric="g.m/d" Imperial="lb.ft/d"/>
+<Unit Name="g.m/h" Category="Momentum" Desc="gram meter per hour" Factor="24" Offset="0" Metric="g.m/h" Imperial="lb.ft/h"/>
+<Unit Name="g.m/min" Category="Momentum" Desc="gram meter per minute" Factor="1440" Offset="0" Metric="g.m/min" Imperial="lb.ft/min"/>
+<Unit Name="g.m/s" Category="Momentum" Desc="gram meter per second" Factor="86400" Offset="0" Metric="g.m/s" Imperial="lb.ft/s"/>
+<Unit Name="g/(m*d)" Category="LengthFlux" Desc="mass per meter per day" Factor="1" Offset="0" Metric="g/(m*d)" Imperial="lb/(ft*d)"/>
+<Unit Name="g/(m2*d)" Category="Mass divided by area and time" Desc="pound per square meter day" Factor="1" Offset="0" Metric="g/(m2.d)" Imperial="lb/(ft2.d)"/>
+<Unit Name="g/(m2.d)" Category="Mass divided by area and time" Desc="gram per square meter day" Factor="1" Offset="0" Metric="g/(m2.d)" Imperial="lb/(ft2.d)"/>
+<Unit Name="g/(m2.h)" Category="Mass divided by area and time" Desc="gram per square meter hour" Factor="24" Offset="0" Metric="g/(m2.h)" Imperial="lb/(ft2.h)"/>
+<Unit Name="g/(m2.min)" Category="Mass divided by area and time" Desc="gram per square meter minute" Factor="1440" Offset="0" Metric="g/(m2.min)" Imperial="lb/(ft2.min)"/>
+<Unit Name="g/(m2.s)" Category="Mass divided by area and time" Desc="gram per square meter second" Factor="86400" Offset="0" Metric="g/(m2.s)" Imperial="lb/(ft2.s)"/>
+<Unit Name="g/(m3.d)" Category="Mass divided by volume and time" Desc="gram per cubic meter day" Factor="1" Offset="0" Metric="g/(m3.d)" Imperial="lb/(ft3.d)"/>
+<Unit Name="g/(m3.h)" Category="Mass divided by volume and time" Desc="gram per cubic meter hour" Factor="24" Offset="0" Metric="g/(m3.h)" Imperial="lb/(ft3.h)"/>
+<Unit Name="g/(m3.min)" Category="Mass divided by volume and time" Desc="gram per cubic meter minute" Factor="1440" Offset="0" Metric="g/(m3.min)" Imperial="lb/(ft3.min)"/>
+<Unit Name="g/(m3.s)" Category="Mass divided by volume and time" Desc="gram per cubic meter second" Factor="86400" Offset="0" Metric="g/(m3.s)" Imperial="lb/(ft3.s)"/>
+<Unit Name="g/L" Category="Mass divided by volume" Desc="gram per liter" Factor="1000" Offset="0" Metric="g/L" Imperial="lb/gal"/>
+<Unit Name="g/d" Category="Mass divided by time" Desc="gram per day" Factor="1" Offset="0" Metric="g/d" Imperial="lb/d"/>
+<Unit Name="g/gCOD" Category="Percent" Desc="" Factor="1" Offset="0" Metric="g/gCOD" Imperial="g/gCOD"/>
+<Unit Name="g/h" Category="Mass divided by time" Desc="gram per hour" Factor="24" Offset="0" Metric="g/h" Imperial="lb/h"/>
+<Unit Name="g/kWh" Category="Mass divided by electrical power" Desc="gram per kilowatthour" Factor="1" Offset="0" Metric="g/kWh" Imperial="lb/kWh"/>
+<Unit Name="g/m" Category="Mass divided by length" Desc="gram per meter" Factor="1" Offset="0" Metric="g/m" Imperial="lb/ft"/>
+<Unit Name="g/m2" Category="Surface density" Desc="Surface density" Factor="1" Offset="0" Metric="g/m2" Imperial="g/m2"/>
+<Unit Name="g/m2/d" Category="Surface loading rate" Desc="Mass per unit area and time" Factor="1" Offset="0" Metric="g/m2/d" Imperial="lb/ft2/d"/>
+<Unit Name="g/m3" Category="Mass divided by volume" Desc="gram per cubic meter" Factor="1" Offset="0" Metric="g/m3" Imperial="mg/L"/>
+<Unit Name="g/m3/d" Category="Volumetric loading rate" Desc="Mass per unit volume and time" Factor="1" Offset="0" Metric="g/m3/d" Imperial="lb/ft3/d"/>
+<Unit Name="g/min" Category="Mass divided by time" Desc="gram per minute" Factor="1440" Offset="0" Metric="g/min" Imperial="lb/min"/>
+<Unit Name="g/mol" Category="Molecular (Formula) weight" Desc="mass per unit mole" Factor="1" Offset="0" Metric="g/mol" Imperial="g/mol"/>
+<Unit Name="g/s" Category="Mass divided by time" Desc="gram per second" Factor="86400" Offset="0" Metric="g/s" Imperial="lb/s"/>
+<Unit Name="gCOD/(gCOD*d)" Category="Frequency" Desc="" Factor="1" Offset="0" Metric="gCOD/(gCOD*d)" Imperial="gCOD/(gCOD*d)"/>
+<Unit Name="gCOD/L" Category="Mass COD divided by volume" Desc="gram per liter" Factor="1000" Offset="0" Metric="gCOD/L" Imperial="lbCOD/gal"/>
+<Unit Name="gCOD/gCOD" Category="Percent" Desc="" Factor="1" Offset="0" Metric="gCOD/gCOD" Imperial="gCOD/gCOD"/>
+<Unit Name="gCOD/gN" Category="Percent" Desc="" Factor="1" Offset="0" Metric="gCOD/gN" Imperial="gCOD/gN"/>
+<Unit Name="gCOD/m3" Category="Mass COD divided by volume" Desc="gram COD per cubic meter" Factor="1" Offset="0" Metric="gCOD/m3" Imperial="mgCOD/L"/>
+<Unit Name="gN/gCOD" Category="Percent" Desc="" Factor="1" Offset="0" Metric="gN/gCOD" Imperial="gN/gCOD"/>
+<Unit Name="gN/m3" Category="Concentration" Desc="gram N per liter" Factor="1" Offset="0" Metric="gN/m3" Imperial="gN/m3"/>
+<Unit Name="gNH3-N/L" Category="Mass NH3-N divided by volume" Desc="gram per liter" Factor="1000" Offset="0" Metric="gNH3-N/L" Imperial="lbNH3-N/gal"/>
+<Unit Name="gNH3-N/m3" Category="Mass NH3-N divided by volume" Desc="gram NH3-N per cubic meter" Factor="1" Offset="0" Metric="gNH3-N/m3" Imperial="mgNH3-N/L"/>
+<Unit Name="gNO3-N/L" Category="Mass NO3-N divided by volume" Desc="gram per liter" Factor="1000" Offset="0" Metric="gNO3-N/L" Imperial="lbNO3-N/gal"/>
+<Unit Name="gNO3-N/m3" Category="Mass NO3-N divided by volume" Desc="gram NO3-N per cubic meter" Factor="1" Offset="0" Metric="gNO3-N/m3" Imperial="mgNO3-N/L"/>
+<Unit Name="gO2/L" Category="Mass O2 divided by volume" Desc="gram per liter" Factor="1000" Offset="0" Metric="gO2/L" Imperial="lbO2/gal"/>
+<Unit Name="gO2/m3" Category="Mass O2 divided by volume" Desc="gram O2 per cubic meter" Factor="1" Offset="0" Metric="gO2/m3" Imperial="mgO2/L"/>
+<Unit Name="gP/gCOD" Category="Percent" Desc="" Factor="1" Offset="0" Metric="gP/gCOD" Imperial="gP/gCOD"/>
+<Unit Name="gal" Category="Volume" Desc="gallon (US)" Factor="0.003785412" Offset="0" Metric="L" Imperial="gal"/>
+<Unit Name="gal/d" Category="Volume divided by time" Desc="gallons per day" Factor="0.003785412" Offset="0" Metric="L/d" Imperial="gal/d"/>
+<Unit Name="gal/h" Category="Volume divided by time" Desc="gallons per hour" Factor="0.09084989" Offset="0" Metric="L/h" Imperial="gal/h"/>
+<Unit Name="gal/min" Category="Volume divided by time" Desc="gallons per minute" Factor="5.450993" Offset="0" Metric="L/min" Imperial="gal/min"/>
+<Unit Name="gal/s" Category="Volume divided by time" Desc="gallons per second" Factor="327.0596" Offset="0" Metric="L/s" Imperial="gal/s"/>
+<Unit Name="h" Category="Time" Desc="hour" Factor="3600" Offset="0" Metric="h" Imperial="h"/>
+<Unit Name="hPa" Category="Pressure" Desc="hectopascal" Factor="100" Offset="0" Metric="hPa" Imperial="psi"/>
+<Unit Name="ha" Category="Area" Desc="hectare" Factor="10000" Offset="0" Metric="m2" Imperial="ha"/>
+<Unit Name="in" Category="Length" Desc="inch" Factor="0.0254" Offset="0" Metric="cm" Imperial="in"/>
+<Unit Name="in/d" Category="Velocity" Desc="inch per day" Factor="0.0254" Offset="0" Metric="m/d" Imperial="in/d"/>
+<Unit Name="in/d2" Category="Acceleration" Desc="inch per day squared" Factor="0.0254" Offset="0" Metric="m/d2" Imperial="in/d2"/>
+<Unit Name="in/h" Category="Velocity" Desc="inch per hour" Factor="0.6096" Offset="0" Metric="m/h" Imperial="in/h"/>
+<Unit Name="in/h2" Category="Acceleration" Desc="inch per hour squared" Factor="14.63" Offset="0" Metric="m/h2" Imperial="in/h2"/>
+<Unit Name="in/min" Category="Velocity" Desc="inch per minute" Factor="36.576" Offset="0" Metric="m/min" Imperial="in/min"/>
+<Unit Name="in/min2" Category="Acceleration" Desc="inch per minute squared" Factor="52669" Offset="0" Metric="m/min2" Imperial="in/min2"/>
+<Unit Name="in/s" Category="Velocity" Desc="inch per second" Factor="2194.56" Offset="0" Metric="m/s" Imperial="in/s"/>
+<Unit Name="in/s2" Category="Acceleration" Desc="inch per second squared" Factor="189610000" Offset="0" Metric="m/s2" Imperial="in/s2"/>
+<Unit Name="in2" Category="Area" Desc="square inch" Factor="0.00064516" Offset="0" Metric="cm2" Imperial="in2"/>
+<Unit Name="in3" Category="Volume" Desc="cubic inch" Factor="1.638706e-005" Offset="0" Metric="cm3" Imperial="in3"/>
+<Unit Name="kPa" Category="Pressure" Desc="kilopascal" Factor="1000" Offset="0" Metric="kPa" Imperial="psi"/>
+<Unit Name="kW" Category="Power" Desc="kilowatt" Factor="1000" Offset="0" Metric="kW" Imperial="kW"/>
+<Unit Name="kW.h" Category="Electric energy" Desc="kilowatt hour" Factor="3600000" Offset="0" Metric="kW.h" Imperial="kW.h"/>
+<Unit Name="kW/ft3" Category="Power per unit volume" Desc="Power per unit volume" Factor="0.02831685" Offset="0" Metric="kW/m3" Imperial="kW/ft3"/>
+<Unit Name="kW/m3" Category="Power per unit volume" Desc="Power per unit volume" Factor="1" Offset="0" Metric="kW/m3" Imperial="kW/ft3"/>
+<Unit Name="kWh" Category="Electric energy" Desc="kilowatt hour" Factor="3600000" Offset="0" Metric="kW.h" Imperial="kW.h"/>
+<Unit Name="kWh/MGD" Category="Power per unit volume" Desc="Power per unit volume" Factor="3785.412" Offset="0" Metric="kWh/m3/d" Imperial="kWh/MGD"/>
+<Unit Name="kWh/ft3" Category="Energy per unit volume" Desc="Energy per unit volume" Factor="0.02831685" Offset="0" Metric="kWh/m3" Imperial="kWh/ft3"/>
+<Unit Name="kWh/m3" Category="Energy per unit volume" Desc="Energy per unit volume" Factor="1" Offset="0" Metric="kWh/m3" Imperial="kWh/ft3"/>
+<Unit Name="kWh/m3/d" Category="Power per unit volume" Desc="Power per unit volume" Factor="1" Offset="0" Metric="kWh/m3/d" Imperial="kWh/MGD"/>
+<Unit Name="kg" Category="Mass" Desc="kilogram" Factor="1000" Offset="0" Metric="g" Imperial="lb"/>
+<Unit Name="kg/d" Category="Mass divided by time" Desc="kilogram per day" Factor="1000" Offset="0" Metric="kg/d" Imperial="lb/d"/>
+<Unit Name="kg/h" Category="Mass divided by time" Desc="kilogram per hour" Factor="24000" Offset="0" Metric="kg/h" Imperial="lb/h"/>
+<Unit Name="kg/ha/d" Category="Surface loading rate" Desc="Mass per unit area and time" Factor="0.1" Offset="0" Metric="kg/ha/d" Imperial="lb/ft2/d"/>
+<Unit Name="kg/kWh" Category="Mass divided by electrical power" Desc="kilogram per kilowatthour" Factor="1000" Offset="0" Metric="g/kWh" Imperial="lb/kWh"/>
+<Unit Name="kg/m" Category="Mass divided by length" Desc="kilogram per meter" Factor="1000" Offset="0" Metric="kg/m" Imperial="lb/ft"/>
+<Unit Name="kg/m3" Category="Mass divided by volume" Desc="kilogram per cubic meter" Factor="1000" Offset="0" Metric="kg/m3" Imperial="lb/gal"/>
+<Unit Name="kg/min" Category="Mass divided by time" Desc="kilogram per minute" Factor="1440000" Offset="0" Metric="kg/min" Imperial="lb/min"/>
+<Unit Name="kg/s" Category="Mass divided by time" Desc="kilogram per second" Factor="86400000" Offset="0" Metric="kg/s" Imperial="lb/s"/>
+<Unit Name="kgCOD/m3" Category="Mass COD divided by volume" Desc="kilogram per cubic meter" Factor="1000" Offset="0" Metric="kgCOD/m3" Imperial="lbCOD/gal"/>
+<Unit Name="kgNH3-N/m3" Category="Mass NH3-N divided by volume" Desc="kilogram per cubic meter" Factor="1000" Offset="0" Metric="kgNH3-N/m3" Imperial="lbNH3-N/gal"/>
+<Unit Name="kgNO3-N/m3" Category="Mass NO3-N divided by volume" Desc="kilogram per cubic meter" Factor="1000" Offset="0" Metric="kgNO3-N/m3" Imperial="lbNO3-N/gal"/>
+<Unit Name="kgO2/m3" Category="Mass O2 divided by volume" Desc="kilogram per cubic meter" Factor="1000" Offset="0" Metric="kgO2/m3" Imperial="lbO2/gal"/>
+<Unit Name="kgf" Category="Force" Desc="kilogram-force" Factor="9.80665" Offset="0" Metric="kgf" Imperial="lbf"/>
+<Unit Name="kgf/cm2" Category="Pressure" Desc="kilogram-force per square centimeter" Factor="98066.5" Offset="0" Metric="kgf/cm2" Imperial="psi"/>
+<Unit Name="kgf/m2" Category="Pressure" Desc="kilogram-force per square meter" Factor="9.80665" Offset="0" Metric="kgf/m2" Imperial="psi"/>
+<Unit Name="kgf/mm2" Category="Pressure" Desc="kilogram-force per square millimeter" Factor="9806650" Offset="0" Metric="kgf/mm2" Imperial="psi"/>
+<Unit Name="km" Category="Length" Desc="kilometer" Factor="1000" Offset="0" Metric="km" Imperial="mi"/>
+<Unit Name="km2" Category="Area" Desc="square kilometers" Factor="1000000" Offset="0" Metric="km2" Imperial="ft2"/>
+<Unit Name="l/kg" Category="Volume divided by mass" Desc="liter per kilogram" Factor="1e-006" Offset="0" Metric="m3/kg" Imperial="ft3/lb"/>
+<Unit Name="l/m2/d" Category="Velocity" Desc="liter per unit surface per day" Factor="1000" Offset="0" Metric="m/d" Imperial="ft/d"/>
+<Unit Name="lb" Category="Mass" Desc="pound" Factor="453.5924" Offset="0" Metric="g" Imperial="lb"/>
+<Unit Name="lb.ft/d" Category="Momentum" Desc="pound foot per day" Factor="138.255" Offset="0" Metric="g.m/d" Imperial="lb.ft/d"/>
+<Unit Name="lb.ft/h" Category="Momentum" Desc="pound foot per hour" Factor="3318.119" Offset="0" Metric="g.m/h" Imperial="lb.ft/h"/>
+<Unit Name="lb.ft/min" Category="Momentum" Desc="pound foot per minute" Factor="199087.2" Offset="0" Metric="g.m/min" Imperial="lb.ft/min"/>
+<Unit Name="lb.ft/s" Category="Momentum" Desc="pound foot per second" Factor="11945230" Offset="0" Metric="g.m/s" Imperial="lb.ft/s"/>
+<Unit Name="lb/(ft*d)" Category="LengthFlux" Desc="pound per foot per day" Factor="1488.164" Offset="0" Metric="g/(m*d)" Imperial="lb/(ft*d)"/>
+<Unit Name="lb/(ft2.d)" Category="Mass divided by area and time" Desc="pound per square foot day" Factor="4882.428" Offset="0" Metric="g/(m2.d)" Imperial="lb/(ft2.d)"/>
+<Unit Name="lb/(ft2.h)" Category="Mass divided by area and time" Desc="pound per square foot hour" Factor="117178.3" Offset="0" Metric="g/(m2.h)" Imperial="lb/(ft2.h)"/>
+<Unit Name="lb/(ft2.min)" Category="Mass divided by area and time" Desc="pound per square foot minute" Factor="7030696" Offset="0" Metric="g/(m2.min)" Imperial="lb/(ft2.min)"/>
+<Unit Name="lb/(ft2.s)" Category="Mass divided by area and time" Desc="pound per square foot second" Factor="421841800" Offset="0" Metric="g/(m2.s)" Imperial="lb/(ft2.s)"/>
+<Unit Name="lb/(ft3.d)" Category="Mass divided by volume and time" Desc="pound per cubic foot day" Factor="16018.46" Offset="0" Metric="g/(m3.d)" Imperial="lb/(ft3.d)"/>
+<Unit Name="lb/(ft3.h)" Category="Mass divided by volume and time" Desc="pound per cubic foot hour" Factor="384443" Offset="0" Metric="g/(m3.h)" Imperial="lb/(ft3.h)"/>
+<Unit Name="lb/(ft3.min)" Category="Mass divided by volume and time" Desc="pound per cubic foot minute" Factor="23066580" Offset="0" Metric="g/(m3.min)" Imperial="lb/(ft3.min)"/>
+<Unit Name="lb/(ft3.s)" Category="Mass divided by volume and time" Desc="pound per cubic foot second" Factor="1383995000" Offset="0" Metric="g/(m3.s)" Imperial="lb/(ft3.s)"/>
+<Unit Name="lb/(in2.d)" Category="Mass divided by area and time" Desc="pound per square inch day" Factor="703069.6" Offset="0" Metric="g/(m2.d)" Imperial="lb/(in2.d)"/>
+<Unit Name="lb/(in2.h)" Category="Mass divided by area and time" Desc="pound per square inch hour" Factor="16873670" Offset="0" Metric="g/(m2.h)" Imperial="lb/(in2.h)"/>
+<Unit Name="lb/(in2.min)" Category="Mass divided by area and time" Desc="pound per square inch minute" Factor="1012420300" Offset="0" Metric="g/(m2.min)" Imperial="lb/(in2.min)"/>
+<Unit Name="lb/(in2.s)" Category="Mass divided by area and time" Desc="pound per square inch second" Factor="60745220000" Offset="0" Metric="g/(m2.s)" Imperial="lb/(in2.s)"/>
+<Unit Name="lb/d" Category="Mass divided by time" Desc="pound per day" Factor="453.5924" Offset="0" Metric="kg/d" Imperial="lb/d"/>
+<Unit Name="lb/ft" Category="Mass divided by length" Desc="pound per foot" Factor="1488.164" Offset="0" Metric="g/m" Imperial="lb/ft"/>
+<Unit Name="lb/ft3" Category="Mass divided by volume" Desc="pound per cubic foot" Factor="16018.46" Offset="0" Metric="g/m3" Imperial="lb/ft3"/>
+<Unit Name="lb/gal" Category="Mass divided by volume" Desc="pound per gallon (US)" Factor="119826.4" Offset="0" Metric="g/L" Imperial="lb/gal"/>
+<Unit Name="lb/h" Category="Mass divided by time" Desc="pound per hour" Factor="10886.22" Offset="0" Metric="kg/h" Imperial="lb/h"/>
+<Unit Name="lb/in" Category="Mass divided by length" Desc="pound per inch" Factor="17857.97" Offset="0" Metric="g/m" Imperial="lb/in"/>
+<Unit Name="lb/kWh" Category="Mass divided by electrical power" Desc="pound per kilowatthour" Factor="453.5924" Offset="0" Metric="g/kWh" Imperial="lb/kWh"/>
+<Unit Name="lb/min" Category="Mass divided by time" Desc="pound per minute" Factor="653173.1" Offset="0" Metric="kg/min" Imperial="lb/min"/>
+<Unit Name="lb/s" Category="Mass divided by time" Desc="pound per second" Factor="39190380" Offset="0" Metric="kg/s" Imperial="lb/s"/>
+<Unit Name="lb/yd" Category="Mass divided by length" Desc="pound per yard" Factor="496.0546" Offset="0" Metric="g/m" Imperial="lb/yd"/>
+<Unit Name="lbCOD/gal" Category="Mass COD divided by volume" Desc="pound per gallon (US)" Factor="119826.4" Offset="0" Metric="gCOD/L" Imperial="lbCOD/gal"/>
+<Unit Name="lbNH3-N/gal" Category="Mass NH3-N divided by volume" Desc="pound per gallon (US)" Factor="119826.4" Offset="0" Metric="gNH3-N/L" Imperial="lbNH3-N/gal"/>
+<Unit Name="lbNO3-N/gal" Category="Mass NO3-N divided by volume" Desc="pound per gallon (US)" Factor="119826.4" Offset="0" Metric="gNO3-N/L" Imperial="lbNO3-N/gal"/>
+<Unit Name="lbO2/gal" Category="Mass O2 divided by volume" Desc="pound per gallon (US)" Factor="119826.4" Offset="0" Metric="gO2/L" Imperial="lbO2/gal"/>
+<Unit Name="lbf" Category="Force" Desc="pound-force" Factor="4.448222" Offset="0" Metric="N" Imperial="lbf"/>
+<Unit Name="lbf/ft2" Category="Pressure" Desc="pound-force per square foot" Factor="47.88026" Offset="0" Metric="Pa" Imperial="lbf/ft2"/>
+<Unit Name="m" Category="Length" Desc="meter" Factor="1" Offset="0" Metric="m" Imperial="ft"/>
+<Unit Name="m-3" Category="m-3" Desc="" Factor="1" Offset="0" Metric="m-3" Imperial="m-3"/>
+<Unit Name="m/d" Category="Velocity" Desc="meter per day" Factor="1" Offset="0" Metric="m/d" Imperial="ft/d"/>
+<Unit Name="m/d2" Category="Acceleration" Desc="meter per day squared" Factor="1" Offset="0" Metric="m/d2" Imperial="ft/d2"/>
+<Unit Name="m/g" Category="Specific length" Desc="meter per gram" Factor="1" Offset="0" Metric="m/g" Imperial="ft/lb"/>
+<Unit Name="m/h" Category="Velocity" Desc="meter per hour" Factor="24" Offset="0" Metric="m/h" Imperial="ft/h"/>
+<Unit Name="m/h2" Category="Acceleration" Desc="meter per hour squared" Factor="576" Offset="0" Metric="m/h2" Imperial="ft/h2"/>
+<Unit Name="m/min" Category="Velocity" Desc="meter per minute" Factor="1440" Offset="0" Metric="m/min" Imperial="ft/min"/>
+<Unit Name="m/min2" Category="Acceleration" Desc="meter per minute squared" Factor="2073600" Offset="0" Metric="m/min2" Imperial="ft/min2"/>
+<Unit Name="m/s" Category="Velocity" Desc="meter per second" Factor="86400" Offset="0" Metric="m/s" Imperial="ft/s"/>
+<Unit Name="m/s2" Category="Acceleration" Desc="meter per second squared" Factor="7464960000" Offset="0" Metric="m/s2" Imperial="ft/s2"/>
+<Unit Name="m2" Category="Area" Desc="square meter" Factor="1" Offset="0" Metric="m2" Imperial="ft2"/>
+<Unit Name="m2/d" Category="Kinematic viscosity" Desc="square meter per day" Factor="1" Offset="0" Metric="m2/d" Imperial="cSt"/>
+<Unit Name="m2/h" Category="Kinematic viscosity" Desc="square meter per hour" Factor="24" Offset="0" Metric="m2/h" Imperial="cSt"/>
+<Unit Name="m2/min" Category="Kinematic viscosity" Desc="square meter per minute" Factor="1440" Offset="0" Metric="m2/min" Imperial="cSt"/>
+<Unit Name="m2/s" Category="Kinematic viscosity" Desc="square meter per second" Factor="86400" Offset="0" Metric="m2/s" Imperial="cSt"/>
+<Unit Name="m2/s2" Category="Stress" Desc="square meter per square second" Factor="1" Offset="0" Metric="m2/s2" Imperial="ft2/s2"/>
+<Unit Name="m3" Category="Volume" Desc="cubic meter" Factor="1" Offset="0" Metric="m3" Imperial="ft3"/>
+<Unit Name="m3.d-1" Category="Volume divided by time" Desc="cubic meter per day" Factor="1" Offset="0" Metric="m3/d" Imperial="MGD"/>
+<Unit Name="m3/(gCOD*d)" Category="m3/(gCOD*d)" Desc="Ammonification rate" Factor="1" Offset="0" Metric="m3/(gCOD*d)" Imperial="m3/(gCOD*d)"/>
+<Unit Name="m3/d" Category="Volume divided by time" Desc="cubic meter per day" Factor="1" Offset="0" Metric="m3/d" Imperial="MGD"/>
+<Unit Name="m3/g" Category="Volume divided by mass" Desc="cubic meter per gram" Factor="1" Offset="0" Metric="m3/g" Imperial="ft3/lb"/>
+<Unit Name="m3/h" Category="Volume divided by time" Desc="cubic meters per hour" Factor="24" Offset="0" Metric="m3/h" Imperial="MGD"/>
+<Unit Name="m3/kg" Category="Volume divided by mass" Desc="cubic meter per kilogram" Factor="0.001" Offset="0" Metric="m3/kg" Imperial="ft3/lb"/>
+<Unit Name="m3/min" Category="Volume divided by time" Desc="cubic meters per minute" Factor="1440" Offset="0" Metric="m3/min" Imperial="MGD"/>
+<Unit Name="m3/s" Category="Volume divided by time" Desc="cubic meters per second" Factor="86400" Offset="0" Metric="m3/s" Imperial="MGD"/>
+<Unit Name="mbar" Category="Pressure" Desc="millibar" Factor="100" Offset="0" Metric="mbar" Imperial="psi"/>
+<Unit Name="mg/(L.d)" Category="Mass divided by volume and time" Desc="milligram per liter day" Factor="1" Offset="0" Metric="mg/(L.d)" Imperial="lb/(ft3.d)"/>
+<Unit Name="mg/(L.h)" Category="Mass divided by volume and time" Desc="milligram per liter hour" Factor="24" Offset="0" Metric="mg/(L.h)" Imperial="lb/(ft3.h)"/>
+<Unit Name="mg/(L.min)" Category="Mass divided by volume and time" Desc="milligram per liter minute" Factor="1440" Offset="0" Metric="mg/(L.min)" Imperial="lb/(ft3.min)"/>
+<Unit Name="mg/(L.s)" Category="Mass divided by volume and time" Desc="milligram per liter second" Factor="86400" Offset="0" Metric="mg/(L.s)" Imperial="lb/(ft3.s)"/>
+<Unit Name="mg/L" Category="Mass divided by volume" Desc="milligram per liter" Factor="1" Offset="0" Metric="mg/L" Imperial="mg/L"/>
+<Unit Name="mgCOD/L" Category="Mass COD divided by volume" Desc="milligram per liter" Factor="1" Offset="0" Metric="mgCOD/L" Imperial="mgCOD/L"/>
+<Unit Name="mgNH3-N/L" Category="Mass NH3-N divided by volume" Desc="milligram per liter" Factor="1" Offset="0" Metric="mgNH3-N/L" Imperial="mgNH3-N/L"/>
+<Unit Name="mgNO3-N/L" Category="Mass NO3-N divided by volume" Desc="milligram per liter" Factor="1" Offset="0" Metric="mgNO3-N/L" Imperial="mgNO3-N/L"/>
+<Unit Name="mgO2/L" Category="Mass O2 divided by volume" Desc="milligram per liter" Factor="1" Offset="0" Metric="mgO2/L" Imperial="mgO2/L"/>
+<Unit Name="mi" Category="Length" Desc="mile" Factor="1609.344" Offset="0" Metric="km" Imperial="mi"/>
+<Unit Name="min" Category="Time" Desc="minute" Factor="60" Offset="0" Metric="min" Imperial="min"/>
+<Unit Name="ml/g" Category="Volume divided by mass" Desc="millilitre per gram" Factor="1e-006" Offset="0" Metric="m3/g" Imperial="L/mg"/>
+<Unit Name="mm" Category="Length" Desc="millimeter" Factor="0.001" Offset="0" Metric="mm" Imperial="in"/>
+<Unit Name="mm/d" Category="Rain" Desc="Rain" Factor="1" Offset="0" Metric="mm/d" Imperial="mm/d"/>
+<Unit Name="mm3" Category="Volume" Desc="cubic millimeter" Factor="1e-009" Offset="0" Metric="mm3" Imperial="in3"/>
+<Unit Name="mmol" Category="Amount of substance" Desc="millimole" Factor="0.001" Offset="0" Metric="mmol" Imperial="mmol"/>
+<Unit Name="mmol/L" Category="Amount of substance concentration" Desc="millimole per liter" Factor="1" Offset="0" Metric="mmol/L" Imperial="mmol/L"/>
+<Unit Name="mmol/d" Category="Amount of substance rate" Desc="millimole per day" Factor="0.001" Offset="0" Metric="mmol/d" Imperial="mmol/d"/>
+<Unit Name="mmol/h" Category="Amount of substance rate" Desc="millimole per hour" Factor="0.024" Offset="0" Metric="mmol/h" Imperial="mmol/h"/>
+<Unit Name="mmol/m3" Category="Amount of substance concentration" Desc="millimole per cubic meter" Factor="0.001" Offset="0" Metric="mmol/L" Imperial="mmol/L"/>
+<Unit Name="mmol/min" Category="Amount of substance rate" Desc="millimole per minute" Factor="1.44" Offset="0" Metric="mmol/min" Imperial="mmol/min"/>
+<Unit Name="mmol/s" Category="Amount of substance rate" Desc="millimole per second" Factor="86.4" Offset="0" Metric="mmol/s" Imperial="mmol/s"/>
+<Unit Name="mol" Category="Amount of substance" Desc="mole" Factor="1" Offset="0" Metric="mol" Imperial="mol"/>
+<Unit Name="mol.d-1" Category="Amount of substance rate" Desc="mole per day" Factor="1" Offset="0" Metric="mol/d" Imperial="mol/d"/>
+<Unit Name="mol.m-3" Category="Amount of substance concentration" Desc="mole per cubic meter" Factor="1" Offset="0" Metric="mol/L" Imperial="mol/L"/>
+<Unit Name="mol/L" Category="Amount of substance concentration" Desc="mole per liter" Factor="1000" Offset="0" Metric="mol/L" Imperial="mol/L"/>
+<Unit Name="mol/d" Category="Amount of substance rate" Desc="mole per day" Factor="1" Offset="0" Metric="mol/d" Imperial="mol/d"/>
+<Unit Name="mol/gCOD" Category="Fraction of substance" Desc="mole per unit COD" Factor="1" Offset="0" Metric="mol/gCOD" Imperial="mol/gCOD"/>
+<Unit Name="mol/h" Category="Amount of substance rate" Desc="mole per hour" Factor="24" Offset="0" Metric="mol/h" Imperial="mol/h"/>
+<Unit Name="mol/m3" Category="Amount of substance concentration" Desc="mole per cubic meter" Factor="1" Offset="0" Metric="mol/L" Imperial="mol/L"/>
+<Unit Name="mol/min" Category="Amount of substance rate" Desc="mole per minute" Factor="1440" Offset="0" Metric="mol/min" Imperial="mol/min"/>
+<Unit Name="mol/s" Category="Amount of substance rate" Desc="mole per second" Factor="86400" Offset="0" Metric="mol/s" Imperial="mol/s"/>
+<Unit Name="oz" Category="Mass" Desc="ounce" Factor="28.34952" Offset="0" Metric="g" Imperial="oz"/>
+<Unit Name="oz.ft/d" Category="Momentum" Desc="ounce foot per day" Factor="8.640934" Offset="0" Metric="g.m/d" Imperial="g.m/d"/>
+<Unit Name="oz.ft/h" Category="Momentum" Desc="ounce foot per hour" Factor="207.3824" Offset="0" Metric="g.m/h" Imperial="g.m/h"/>
+<Unit Name="oz.ft/min" Category="Momentum" Desc="ounce foot per minute" Factor="12442.94" Offset="0" Metric="g.m/min" Imperial="g.m/min"/>
+<Unit Name="oz.ft/s" Category="Momentum" Desc="ounce foot per second" Factor="746576.7" Offset="0" Metric="g.m/s" Imperial="g.m/s"/>
+<Unit Name="oz/gal" Category="Mass divided by volume" Desc="ounce per gallon (US)" Factor="7489.152" Offset="0" Metric="g/L" Imperial="oz/gal"/>
+<Unit Name="ozCOD/gal" Category="Mass COD divided by volume" Desc="ounce per gallon (US)" Factor="7489.152" Offset="0" Metric="gCOD/L" Imperial="ozCOD/gal"/>
+<Unit Name="ozNH3-N/gal" Category="Mass NH3-N divided by volume" Desc="ounce per gallon (US)" Factor="7489.152" Offset="0" Metric="gNH3-N/L" Imperial="ozNH3-N/gal"/>
+<Unit Name="ozNO3-N/gal" Category="Mass NO3-N divided by volume" Desc="ounce per gallon (US)" Factor="7489.152" Offset="0" Metric="gNO3-N/L" Imperial="ozNO3-N/gal"/>
+<Unit Name="ozO2/gal" Category="Mass O2 divided by volume" Desc="ounce per gallon (US)" Factor="7489.152" Offset="0" Metric="gO2/L" Imperial="ozO2/gal"/>
+<Unit Name="ppb" Category="Percent" Desc="Parts per billion" Factor="1e-009" Offset="0" Metric="ppb" Imperial="ppb"/>
+<Unit Name="ppm" Category="Percent" Desc="Parts per million" Factor="1e-006" Offset="0" Metric="ppm" Imperial="ppm"/>
+<Unit Name="psi" Category="Pressure" Desc="pound-force per square inch" Factor="6894.757" Offset="0" Metric="Pa" Imperial="psi"/>
+<Unit Name="s" Category="Time" Desc="second" Factor="1" Offset="0" Metric="s" Imperial="s"/>
+<Unit Name="short ton" Category="Mass" Desc="short ton (US)" Factor="907184.7" Offset="0" Metric="ton" Imperial="short ton"/>
+<Unit Name="short ton/d" Category="Mass divided by time" Desc="short ton per day" Factor="907184.7" Offset="0" Metric="ton/d" Imperial="short ton/d"/>
+<Unit Name="short ton/h" Category="Mass divided by time" Desc="short ton per hour" Factor="21772430" Offset="0" Metric="ton/h" Imperial="short ton/h"/>
+<Unit Name="short ton/min" Category="Mass divided by time" Desc="short ton per minute" Factor="1306346000" Offset="0" Metric="ton/min" Imperial="short ton/min"/>
+<Unit Name="short ton/s" Category="Mass divided by time" Desc="short ton per second" Factor="78380760000" Offset="0" Metric="ton/s" Imperial="short ton/s"/>
+<Unit Name="ton" Category="Mass" Desc="ton" Factor="1000000" Offset="0" Metric="g" Imperial="lb"/>
+<Unit Name="ton/d" Category="Mass divided by time" Desc="ton per day" Factor="1000000" Offset="0" Metric="ton/d" Imperial="short ton/d"/>
+<Unit Name="ton/h" Category="Mass divided by time" Desc="ton per hour" Factor="24000000" Offset="0" Metric="ton/h" Imperial="short ton/h"/>
+<Unit Name="ton/min" Category="Mass divided by time" Desc="ton per minute" Factor="1440000000" Offset="0" Metric="ton/min" Imperial="short ton/min"/>
+<Unit Name="ton/s" Category="Mass divided by time" Desc="ton per second" Factor="86400000000" Offset="0" Metric="ton/s" Imperial="short ton/s"/>
+<Unit Name="yd" Category="Length" Desc="yard" Factor="0.9144" Offset="0" Metric="m" Imperial="yd"/>
+<Unit Name="yd2" Category="Area" Desc="square yard" Factor="0.8361274" Offset="0" Metric="m2" Imperial="yd2"/>
+<Unit Name="yd3" Category="Volume" Desc="cubic yard" Factor="0.7645549" Offset="0" Metric="m3" Imperial="yd3"/>
+<Unit Name="~ppb" Category="Mass divided by volume" Desc="Parts per billion" Factor="0.001" Offset="0" Metric="mg/L" Imperial="mg/L"/>
+<Unit Name="~ppm" Category="Mass divided by volume" Desc="Parts per million" Factor="1" Offset="0" Metric="mg/L" Imperial="mg/L"/>
+<Unit Name="&#176;C" Category="Temperature" Desc="degrees Celsius" Factor="1" Offset="273.15" Metric="K" Imperial="&#176;F"/>
+<Unit Name="&#176;F" Category="Temperature" Desc="degrees Fahrenheit" Factor="0.55555556" Offset="255.37222" Metric="K" Imperial="&#176;F"/>
+<Unit Name="W/m2/K" Category="Thermal transmittance" Desc="W/m2/K" Factor="1" Offset="0" Metric="W/m2/K" Imperial="W/ft2/K"/>
+<Unit Name="W/ft2/K" Category="Thermal transmittance" Desc="W/m2/K" Factor="10.7639" Offset="0" Metric="W/m2/K" Imperial="W/ft2/K"/>
+<Unit Name="m3/d2" Category="Rate of change in flow rate" Desc="cubic meter per day per day" Factor="1" Offset="0" Metric="m3/d2" Imperial="MGD/d"/>
+<Unit Name="MGD/d" Category="Rate of change in flow rate" Desc="megagallons per day per day" Factor="3785.412" Offset="0" Metric="m3/d2" Imperial="MGD/d"/>
+</Units>
+<Layout>
+<TerminalTypes>
+<TerminalType Name="Data">
+<Props>
+<Prop Name="Color" Value="Red"/>
+</Props>
+</TerminalType>
+<TerminalType Name="GasLine">
+<Props>
+<Prop Name="Color" Value="Green"/>
+</Props>
+</TerminalType>
+<TerminalType Name="Generic">
+<Props>
+<Prop Name="Color" Value="Black"/>
+</Props>
+</TerminalType>
+<TerminalType Name="SludgeLine">
+<Props>
+<Prop Name="Color" Value="Brown"/>
+</Props>
+</TerminalType>
+<TerminalType Name="WaterLine">
+<Props>
+<Prop Name="Color" Value="Blue"/>
+</Props>
+</TerminalType>
+</TerminalTypes>
+<AllowableConnections>
+<AllowableConnection Name="00000">
+<Props>
+<Prop Name="From" Value="Generic"/>
+<Prop Name="To" Value="Generic"/>
+<Prop Name="TerminalType" Value="Generic"/>
+</Props>
+</AllowableConnection>
+<AllowableConnection Name="00001">
+<Props>
+<Prop Name="From" Value="Generic"/>
+<Prop Name="To" Value="Data"/>
+<Prop Name="TerminalType" Value="Data"/>
+</Props>
+</AllowableConnection>
+<AllowableConnection Name="00002">
+<Props>
+<Prop Name="From" Value="Generic"/>
+<Prop Name="To" Value="WaterLine"/>
+<Prop Name="TerminalType" Value="WaterLine"/>
+</Props>
+</AllowableConnection>
+<AllowableConnection Name="00003">
+<Props>
+<Prop Name="From" Value="Generic"/>
+<Prop Name="To" Value="SludgeLine"/>
+<Prop Name="TerminalType" Value="SludgeLine"/>
+</Props>
+</AllowableConnection>
+<AllowableConnection Name="00004">
+<Props>
+<Prop Name="From" Value="Generic"/>
+<Prop Name="To" Value="GasLine"/>
+<Prop Name="TerminalType" Value="GasLine"/>
+</Props>
+</AllowableConnection>
+<AllowableConnection Name="00005">
+<Props>
+<Prop Name="From" Value="Data"/>
+<Prop Name="To" Value="Generic"/>
+<Prop Name="TerminalType" Value="Data"/>
+</Props>
+</AllowableConnection>
+<AllowableConnection Name="00006">
+<Props>
+<Prop Name="From" Value="Data"/>
+<Prop Name="To" Value="Data"/>
+<Prop Name="TerminalType" Value="Data"/>
+</Props>
+</AllowableConnection>
+<AllowableConnection Name="00007">
+<Props>
+<Prop Name="From" Value="WaterLine"/>
+<Prop Name="To" Value="Generic"/>
+<Prop Name="TerminalType" Value="WaterLine"/>
+</Props>
+</AllowableConnection>
+<AllowableConnection Name="00008">
+<Props>
+<Prop Name="From" Value="WaterLine"/>
+<Prop Name="To" Value="WaterLine"/>
+<Prop Name="TerminalType" Value="WaterLine"/>
+</Props>
+</AllowableConnection>
+<AllowableConnection Name="00009">
+<Props>
+<Prop Name="From" Value="WaterLine"/>
+<Prop Name="To" Value="SludgeLine"/>
+<Prop Name="TerminalType" Value="SludgeLine"/>
+</Props>
+</AllowableConnection>
+<AllowableConnection Name="00010">
+<Props>
+<Prop Name="From" Value="SludgeLine"/>
+<Prop Name="To" Value="Generic"/>
+<Prop Name="TerminalType" Value="SludgeLine"/>
+</Props>
+</AllowableConnection>
+<AllowableConnection Name="00011">
+<Props>
+<Prop Name="From" Value="SludgeLine"/>
+<Prop Name="To" Value="WaterLine"/>
+<Prop Name="TerminalType" Value="SludgeLine"/>
+</Props>
+</AllowableConnection>
+<AllowableConnection Name="00012">
+<Props>
+<Prop Name="From" Value="SludgeLine"/>
+<Prop Name="To" Value="SludgeLine"/>
+<Prop Name="TerminalType" Value="SludgeLine"/>
+</Props>
+</AllowableConnection>
+<AllowableConnection Name="00013">
+<Props>
+<Prop Name="From" Value="GasLine"/>
+<Prop Name="To" Value="Generic"/>
+<Prop Name="TerminalType" Value="GasLine"/>
+</Props>
+</AllowableConnection>
+<AllowableConnection Name="00014">
+<Props>
+<Prop Name="From" Value="GasLine"/>
+<Prop Name="To" Value="GasLine"/>
+<Prop Name="TerminalType" Value="GasLine"/>
+</Props>
+</AllowableConnection>
+</AllowableConnections>
+</Layout>
+</Main>
+</Tornado>

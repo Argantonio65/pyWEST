@@ -1,0 +1,90 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 5. september 2011 16:01:10$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_DEFINITIONSASM3TEMP
+#define WWTP_DEFINITIONSASM3TEMP
+
+#ifdef ASM3Temp
+TYPE Components
+"The biological components considered in the WWTP models"
+  = ENUM {H2O, 
+    S_I, 
+    S_S, 
+    S_O, 
+    S_NH, 
+    S_N2, 
+    S_NO, 
+    S_ALK, 
+    X_I, 
+    X_S, 
+    X_H, 
+    X_STO, 
+    X_A, 
+    X_TSS, 
+    };
+#endif // ASM3Temp
+
+#ifdef ASM3Temp
+TYPE Reactions
+"The reactions between biological components considered in the WWTP models"
+  = ENUM {Hydrolysis, 
+    AerStorageOfCOD, 
+    AnoxStorageOfCOD, 
+    AerGrowth, 
+    AnoxGrowth, 
+    AerEndogRespOfXH, 
+    AnoxEndogRespOfXH, 
+    AerRespOfPHA, 
+    AnoxRespOfPHA, 
+    Nitrification, 
+    AerEndogRespOfXA, 
+    AnoxEndogRespOfXA, 
+    Aeration, };
+#endif // ASM3Temp
+
+#ifdef ASM3Temp
+
+#define StandardCategoryModels
+ OBJ IndexOfSolvent 
+  "Index of the solvent (water) in the component vector" 
+  : Integer := 1;
+
+#define SolublesPresent
+ OBJ IndexOfFirstSolubleComponent
+  "Index of the first soluble component in the component vector"
+  : Integer := 2;
+
+ OBJ IndexOfLastSolubleComponent
+  "Index of the last soluble component in the component vector"
+  : Integer := 8;
+
+#define ParticulatesPresent  
+ OBJ IndexOfFirstParticulateComponent
+  "Index of the first particulate component in the component vector"
+  : Integer := 9;
+
+ OBJ IndexOfLastParticulateComponent
+  "Index of the last particulate component in the component vector"
+  : Integer := 14;
+
+#define UseTSSComponent 
+ OBJ IndexOfTSSComponent
+  "Index of TSS in the component vector"
+  : Integer := 14;
+
+#endif // ASM3Temp
+
+#endif //WWTP_DEFINITIONSASM3TEMP

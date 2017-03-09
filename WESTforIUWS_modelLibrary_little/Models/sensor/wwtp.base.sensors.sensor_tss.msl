@@ -1,0 +1,62 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 23. april 2012 08:05:15$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_BASE_SENSORS_SENSORTSS
+#define WWTP_BASE_SENSORS_SENSORTSS
+
+#if (defined ASM1Temp || defined ASM2dModTemp || defined ASM3Temp || defined ASM3P_EAWAG)
+CLASS Sensor_TSS
+  (* icon = "sensor_tss" ; is_default = "true" *)
+  "Suspended solids sensor"
+  EXTENDS Sensor WITH 
+  {:
+    comments <- "A model for a sensor measuring the particulate concentration";
+
+    interface <-
+    {
+      OBJ y_M (* terminal = "out_2"; is_favorite = "1" *) "Sensor measured output" :
+         Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    };
+    
+    parameters <-
+    {
+      OBJ F_TSS_COD "Fraction TSS/COD" : Ratio := {: value <- 0.75 ; group <- "Conversion factors":};
+    };
+
+    equations <-
+    {
+
+ 
+#if (defined ASM1Temp)
+       interface.y_M = IF (state.Q_In == 0)
+              THEN 0
+            ELSE (interface.Inflow[X_BH] + interface.Inflow[X_BA] +
+                      interface.Inflow[X_S] + interface.Inflow[X_I] +
+                      interface.Inflow[X_P]) 
+                     * parameters.F_TSS_COD / state.Q_In ; 
+#endif // ASM1Temp
+
+#if (defined ASM2dModTemp || defined ASM3Temp || defined ASM3P_EAWAG)
+       interface.y_M = IF (state.Q_In == 0)
+              THEN 0
+            ELSE interface.Inflow[X_TSS] / state.Q_In ; 
+#endif // ASM2dModTemp SM3Temp
+    };
+  :};
+#endif // (defined ASM1Temp || defined ASM2dModTemp || defined ASM3Temp || defined ASM3P_EAWAG)
+
+#endif // WWTP_BASE_SENSORS_SENSORTSS
+

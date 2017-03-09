@@ -1,0 +1,97 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 23. april 2012 08:05:15$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_BASE_SENSORS_SENSORTP
+#define WWTP_BASE_SENSORS_SENSORTP
+
+#if (defined ASM2dModTemp || defined ASM3P_EAWAG)
+
+CLASS Sensor_TP
+  (* icon = "sensor_tp" ; is_default = "true" *)
+  "Total phosphorus sensor"
+  EXTENDS Sensor WITH 
+  {:
+    comments <- "A model for a sensor measuring the total phosphorus concentration";
+
+    interface <-
+    {
+      OBJ y_M (* terminal = "out_2"; is_favorite = "1" *) "Sensor measured output" :
+         Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    };
+    
+    parameters <-
+    {
+#if (defined ASM2dModTemp)
+     OBJ i_P_S_I "Phosphorus content of inert soluble COD S_I"
+      : PhosphorusConversionFactor := {:value <- 0.00 ; group <- "Composition parameters" :};
+     OBJ i_P_S_F "Phosphorus content of soluble substrate S_F"
+      : PhosphorusConversionFactor := {:value <-0.01 ; group <- "Composition parameters" :};
+     OBJ i_P_X_I "Phosphorus content of inert particulate COD X_I"
+      : PhosphorusConversionFactor := {:value <- 0.01 ; group <- "Composition parameters" :};
+     OBJ i_P_X_S "Phosphorus content of particulate substrate X_S"
+      : PhosphorusConversionFactor := {:value <- 0.01 ; group <- "Composition parameters" :};
+     OBJ i_P_BM "Phosphorus content of biomass X_H, X_PAO, X_AUT"
+      : PhosphorusConversionFactor := {:value <- 0.02 ; group <- "Composition parameters" :};
+#endif // defined ASM2dModTemp
+
+#ifdef ASM3P_EAWAG
+  OBJ i_P_BM  "Phosphorus content of the biomass"
+  : ConversionFactor  := {: value <- 0.014 ; group <- "Composition parameters" :}; 
+  OBJ i_P_S_I "Phosphorus content of S_I"
+  : ConversionFactor  := {: value <- 0 ; group <- "Composition parameters" :}; 
+  OBJ i_P_S_S "Phosphorus content of S_S"
+  : ConversionFactor  := {: value <- 0 ; group <- "Composition parameters" :}; 
+  OBJ i_P_X_I "Phosphorus content of X_I"
+  : ConversionFactor  := {: value <- 0.01 ; group <- "Composition parameters" :}; 
+  OBJ i_P_X_S "Phosphorus content of X_S"
+  : ConversionFactor  := {: value <- 0.005 ; group <- "Composition parameters" :}; 
+#endif // ASM3P_EAWAG
+     };
+
+        equations <-
+    {
+#if (defined ASM2dModTemp)
+      {interface.y_M = IF (state.Q_In == 0)
+           THEN 0
+           ELSE 
+    (interface.Inflow[S_PO] + interface.Inflow[X_PP] + 
+     + 0.205 * interface.Inflow[X_MEP]
+       + parameters.i_P_S_I * interface.Inflow[S_I] 
+     + parameters.i_P_S_F * interface.Inflow[S_F] 
+     + parameters.i_P_X_I * interface.Inflow[X_I] 
+     + parameters.i_P_X_S * interface.Inflow[X_S] 
+     + parameters.i_P_BM * (interface.Inflow[X_H] + interface.Inflow[X_AUT] + interface.Inflow[X_PAO]) )
+    / state.Q_In ; };
+#endif // defined ASM2dModTemp
+
+#ifdef ASM3P_EAWAG
+      {interface.y_M = IF (state.Q_In == 0)
+           THEN 0
+           ELSE 
+    (interface.Inflow[S_PO] + interface.Inflow[X_PP] + 
+       + parameters.i_P_S_I * interface.Inflow[S_I] 
+     + parameters.i_P_S_S * interface.Inflow[S_S] 
+     + parameters.i_P_X_I * interface.Inflow[X_I] 
+     + parameters.i_P_X_S * interface.Inflow[X_S] 
+     + parameters.i_P_BM * (interface.Inflow[X_H] + interface.Inflow[X_A] + interface.Inflow[X_PAO]) )
+    / state.Q_In ; }; 
+#endif // ASM3P_EAWAG
+    };
+  :};
+#endif // ASM2dModTemp or ASM3P_EAWAG
+
+#endif // WWTP_BASE_SENSORS_SENSORTP
+

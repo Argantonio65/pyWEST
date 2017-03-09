@@ -1,0 +1,253 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 7. juni 2012 09:51:00$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_GENERAL
+#define WWTP_GENERAL
+
+// Contains declarations to describe
+// Waste Water Treatment Plants (WWTPs)
+//
+
+//===================================================================
+//==========================Begin of components & reactions def.=====
+//===================================================================
+
+ // The components definition.
+ // Here, the user specifies which components will be considered in the different influent formats.
+
+#if (defined ASM1Temp || defined ASM2dModTemp || defined ASM3Temp || defined ASM3P_EAWAG)
+#if (defined ASM1Temp || defined ASM3Temp)
+
+ TYPE BODCODComponents 
+ "The number of biological components considered in the input of a BODCOD transformer"
+  = ENUM {H2O, COD, BOD5, TSS, TKN};
+
+ TYPE BODComponents 
+ "The number of biological components considered in the input of a BOD transformer"
+  = ENUM {H2O, BOD_5, SS, KjN};
+ 
+#endif // ASM1Temp or ASM3Temp
+
+#if (defined ASM2dModTemp || defined ASM3P_EAWAG)
+
+ TYPE BODCODComponents 
+ "The number of biological components considered in the input of a BODCOD transformer"
+  = ENUM {H2O, COD, BOD5, TSS, TKN, TP};
+
+ TYPE BODComponents 
+ "The number of biological components considered in the input of a BOD transformer"
+  = ENUM {H2O, BOD_5, SS, KjN, ToP};
+
+#endif //ASM2dModTemp or ASM3P_EAWAG
+ OBJ NrOfBODCODComponents
+  "The number of biological components considered in the input of a BODCOD transformer"
+  : Integer := Cardinality(BODCODComponents);
+
+ OBJ NrOfBODComponents
+  "The number of biological components considered in the input of a BODCOD transformer"
+  : Integer := Cardinality(BODComponents); 
+
+ // some definitions to make the BOD COD transformer work
+ 
+ CLASS BODCODTerminal
+ "The parameters passed to a BOD COD transformer from the influent file"
+ = Concentration[NrOfBODCODComponents;];
+
+ CLASS InBODCODTerminal SPECIALISES BODCODTerminal; //used to indicate inflow
+ CLASS OutBODCODTerminal SPECIALISES BODCODTerminal; //used to indicate outflow
+
+ // some definitions to make the BOD transformer work
+ 
+ CLASS BODTerminal
+  "The parameters passed to a BOD transformer from the influent file"
+  = Concentration[NrOfBODComponents;];
+
+ CLASS InBODTerminal SPECIALISES BODTerminal; //used to indicate inflow
+ CLASS OutBODTerminal SPECIALISES BODTerminal; //used to indicate outflow  
+
+ OBJ In_BOD_COD_Terminal "Temporary iteration variable" : BODCODTerminal;
+  
+#endif // (defined ASM1Temp || defined ASM2dModTemp || defined ASM3Temp || defined  ASM3P_EAWAG)
+
+//================================================================
+//========================== end of defining comp ================
+//================================================================
+
+// Number of ... statements
+
+ OBJ NrOfComponents
+  "The number of biological components considered in the WWTP models"
+  : Integer := Cardinality(Components);
+
+ OBJ NrOfReactions
+  "The number of reactions between biological components considered in the WWTP models"
+  : Integer := Cardinality(Reactions);
+
+ // specific to the Takacs model
+
+ OBJ NrOfLayers "The number of layers in the secondary clarifier"
+  : Integer := NR_OF_LAYERS;
+
+ OBJ NrOfLayersButOne "The number of layers in the secondary clarifier minus one" 
+  : Integer := NR_OF_LAYERS_BUT_ONE;
+
+ OBJ NrOfLayersPlusOne "The number of layers in the secondary clarifier plus one" 
+  : Integer := NR_OF_LAYERS_PLUS_ONE;
+
+ // end Takacs
+ 
+// 3. february 2012 :: specific to the Burger model ::  
+  OBJ NrOfLayersBurger "Burger model: The number of layers in the secondary clarifier (N)" : Integer := NR_OF_LAYERS_BURGER;  
+  OBJ NrOfLayersPlusOneBurger "Burger model: The number of layers in the clarifier plus one (N+1)" : Integer := NR_OF_LAYERS_PLUS_ONE_BURGER;  
+  OBJ NrOfLayersPlusTwoBurger "Burger model: The number of layers in the clarifier plus two extra layers in the underflow (N+2)" : Integer := NR_OF_LAYERS_PLUS_TWO_BURGER; 
+  OBJ NrOfLayersPlusThreeBurger "Burger model: The number of layers in the secondary clarifier plus 3 (N+3)" : Integer := NR_OF_LAYERS_PLUS_THREE_BURGER;
+  OBJ NrOfLayersPlusFourBurger "Burger model: The number of layers in the clarifier plus the extra layers in effluent and underflow (N+4)" : Integer := NR_OF_LAYERS_PLUS_FOUR_BURGER;
+  OBJ NrOfConcentration "Burger model: The number of discretisations between min and max concentration" : Integer := 1000;
+// end Burger model
+
+ // The WWTPTerminal class is a template for the
+ // quantities which will be passed around the system.
+ // As with the Component type declaration, this declaration
+ // may be given at the very end by the user. The appropriate
+ // model will then be expanded.
+ // Note however that, as long as we're only dealing with
+ // biological components flowing around the system (as
+ // declared in TYPE Components), the WWTPTerminal CLASS
+ // below is sufficient !
+ // The following assumptions are made:
+ // 1. The SAME (WWTPTerminal) terminals are used everywhere in
+ //    a configuration.
+ // 2. All terminals of a model have the same cardinality.
+ //    This is enforced thanks to the way we define Components and
+ //     WWTPTerminal.
+ // 3. The number of components in WWTPTerminal is the same as the number of 
+ //    components (columns) in the stoichiometry matrix (which will be 
+ //    defined later on). Again, this is enforced thanks to the way we define 
+ //    Components and WWTPTerminal.
+ //    Note that components which are transported but do not react
+ //    (i.e., only hydraulics, no chemistry nor biology)
+ //    just have a column of zeroes in the stoichiometry matrix.
+ //    This is easy as by default, when a variable was not given a value,
+ //    the initial value is 0. Thus, if we don't assign anything to 
+ //    elements of the stoichiometry matrix, it is a matrix of zeroes,
+ //    which means no chemical/biological reactions take place.
+
+// Terminal for Fluxes
+
+ CLASS WWTPTerminal
+ "The variables which are passed between WWTP model building blocks"
+ = MassFlux[NrOfComponents;]; 
+
+ CLASS InWWTPTerminal SPECIALISES WWTPTerminal; //used to indicate inflow
+ CLASS OutWWTPTerminal SPECIALISES WWTPTerminal; //used to indicage outflow
+
+// Terminals for Concentrations
+
+ CLASS WWTPConcTerminal 
+  "The variables which are passed between WWTP model building blocks in concentrations"
+  = Concentration[NrOfComponents;]; 
+
+ CLASS InWWTPConcTerminal SPECIALISES WWTPConcTerminal; //used to indicate inflow concentrations
+ CLASS OutWWTPConcTerminal SPECIALISES WWTPConcTerminal; //used to indicate outflow concentrations
+
+ // These classnames will be used by SelectByType() to determine which terminals
+ // are inflow and which are outflow. This is necessary to automatically
+ // generate the volume conservation law for any number (of inflow)
+ // terminals.
+
+
+
+//=====================================================================
+//==================================GLOBAL VARIABLES===================
+//=====================================================================
+
+ // Currently, iteration variables are not implicitly
+ // declared as being of the type of the range nor are they
+ // "expanded" as local (to the loop) variables. 
+ // Rather, they have to be declared explicitly.
+
+ OBJ Comp_Index "Temporary iteration variable, index of the component" : Integer;
+ OBJ Reaction_Index "Temporary iteration variable, index of the reaction" : Integer;
+ OBJ In_Comp_Index "Temporary iteration variable, index of the incoming component" : Integer;
+ OBJ Out_Comp_Index "Temporary iteration variable, index of the outgoing component" : Integer;
+ OBJ Terminal "Temporary iteration variable" : WWTPTerminal;
+ OBJ In_Terminal "Temporary iteration variable" : WWTPTerminal;
+ OBJ Out_Terminal "Temporary iteration variable" : WWTPTerminal;
+
+ // specific to the Takacs model
+
+ OBJ Layer_Index "Temporary iteration variable, index of the layer" : Integer;
+ OBJ IndexOfFeedLayer "The index of the layer where the influent is feeded to the clarifier" 
+  : Integer := INDEX_OF_FEED_LAYER;
+
+ 
+ // end Takacs
+
+// 3. february 2012 :: specific to the Burger model ::  
+  OBJ IndexOfFeedLayerBurger "The index of the layer where the influent is feeded to the clarifier" : Integer := INDEX_OF_FEED_LAYER_BURGER;
+  OBJ Conc_Index "Temporary iteration variable, index of the concentration vector" : Integer;
+// end Burger model
+
+//
+// End of ALL GLOBAL variables
+//
+
+// vector CLASSES defined for general purposes
+// length == NrOfComponents
+// type of elements declared in the class-naming
+// e.g MassVector == vector containing masses
+
+CLASS MassVector = Mass[NrOfComponents;];
+CLASS MassFluxVector = MassFlux[NrOfComponents;];
+CLASS ConcentrationVector = Concentration[NrOfComponents;];
+CLASS SpecificVolumeVector = SpecificVolume[NrOfComponents;];
+CLASS VelocityVector = Velocity[NrOfComponents;];
+CLASS ArealFluxVector = ArealFlux[NrOfComponents;];
+CLASS LengthVector = Length[NrOfLayers;];
+CLASS VolumeVector = Volume[NrOfLayers;];
+CLASS L_and_B_ConcentrationVector = Concentration[5;];
+
+// vector CLASSES used in the Takacs model
+CLASS TakacsMassVector = Mass[NrOfLayers;];
+CLASS TakacsConcentrationVector = Concentration[NrOfLayers;];
+CLASS TakacsVelocityVector = Velocity[NrOfLayers;];
+CLASS TakacsArealFluxVector = ArealFlux[NrOfLayers;];
+CLASS LayerConcentrationMatrix = Concentration[NrOfComponents;][NrOfLayers;];
+
+// vector CLASSES used in the Biofilm models
+CLASS LayerMassMatrix = Mass[NrOfComponents;][NrOfLayers;];
+//
+// 3. february 2012 :: vector CLASSES used in the Burger model ::
+CLASS BurgerMassVector = Mass[NrOfLayersPlusFourBurger;];
+CLASS BurgerLengthVector = Length[NrOfLayersPlusFourBurger;];
+CLASS BurgerConcentrationVector = Concentration[NrOfLayersPlusFourBurger;];
+CLASS BurgerConcentrationVector2 = Concentration[NrOfConcentration;];
+CLASS BurgerVelocityVector = Velocity[NrOfLayersPlusFourBurger;];
+CLASS BurgerArealFluxVector = ArealFlux[NrOfLayersPlusFourBurger;];
+CLASS BurgerArealFluxVector2 = ArealFlux[NrOfConcentration;];
+CLASS BurgerLayerConcentrationMatrix = Concentration[NrOfComponents;][NrOfLayersPlusFourBurger;];
+CLASS BurgerDiffusivityVector = Diffusivity[NrOfLayersPlusFourBurger;];
+CLASS BurgerLengthFluxVector = LengthFlux[NrOfLayersPlusFourBurger;];
+//
+// 4. june 2012 :: vector CLASSES used in the Plosz model ::
+CLASS PloszConcentrationVector = Concentration[60;];
+CLASS PloszVelocityVector = Velocity[60;];
+CLASS PloszArealFluxVector = ArealFlux[60;];
+CLASS PloszDiffusivityVector = Diffusivity[60;];//Diffusivity[NrOfLayers;];
+// End of Vector Classes
+//
+
+#endif // WWTP_GENERAL

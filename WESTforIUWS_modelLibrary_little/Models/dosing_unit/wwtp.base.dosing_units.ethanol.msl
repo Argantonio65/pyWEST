@@ -1,0 +1,72 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 23. april 2012 08:05:13$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_BASE_CHEMICAL_DOSING_UNITS_ETHANOL
+#define WWTP_BASE_CHEMICAL_DOSING_UNITS_ETHANOL
+
+#if (defined StandardCategoryModels)
+ CLASS Ethanol
+ (* icon = "dosing_unit_ethanol" *)
+ "A simple model for dosage of ethanol"
+ EXTENDS AdditionOfFermentableCOD WITH
+ {:
+  comments <- "A model for the addition of ethanol as external carbon source";
+
+  interface <-
+  {
+  OBJ M_Ethanol (* terminal = "out_2" *) "Amount of ethanol dosed" : MassFlux
+  := {: causality <- "COUT" ; group <- "Measurement data" :};
+  OBJ Q_Ethanol (* terminal = "out_2" *) "Flow rate of ethanol dosed" : FlowRate
+  := {: causality <- "COUT" ; group <- "Measurement data" :};
+  };
+
+  parameters <-
+  {
+  OBJ i_N_S_F "Nitrogen content of soluble substrate S_F" : ConversionFactor
+      := {: value <- 0.03 ; group <- "Composition parameters" :};
+  OBJ i_P_S_F "Phosphorus content of soluble substrate S_F" : ConversionFactor
+      := {: value <- 0.01 ; group <- "Composition parameters" :}; 
+  };
+  
+  state <-
+  {
+  OBJ Help_SF (* hidden="1" *) "Resulting COD output as S_F, ie for ASM2" : 
+       MassFlux := {: group <- "Concentration" :};
+  };
+  
+  initial <-
+  {
+  parameters.COD = 96;
+  parameters.MW = 46;
+  };
+
+  equations <-
+  {
+#if (defined ASM2dModTemp)
+  state.Help_SF = - interface.Q_Dose * parameters.C_Dose * (parameters.COD / parameters.MW);
+  interface.Outflow[S_NH] = - parameters.i_N_S_F * state.Help_SF ;
+  interface.Outflow[S_PO] = - parameters.i_P_S_F * state.Help_SF ;
+#endif
+  //
+  interface.M_Ethanol = interface.Q_Dose * parameters.C_Dose ;
+  interface.Q_Ethanol = interface.Q_Dose ;
+  };
+
+:};
+#endif //(defined StandardCategoryModels)
+
+
+#endif // WWTP_BASE_CHEMICAL_DOSING_UNITS_ETHANOL

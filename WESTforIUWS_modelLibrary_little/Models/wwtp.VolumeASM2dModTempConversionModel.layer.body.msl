@@ -1,0 +1,49 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 5. september 2011 16:01:12$
+ *
+ ******************************************************************************/
+
+// body for variable & fixed VolumeASM2dModTempConversionModel
+// this model describes the ASM2dModTemp IAWQ model
+
+#ifdef ASM2dModTemp
+
+   interface <-
+   {
+//   #include "wwtp.VolumeASM2dModTempModel.interface.msl"
+   };
+
+   parameters <-
+   {
+//   #include"wwtp.VolumeASM2dModTempConversionModel.parameters.msl"
+   };
+
+   state <-
+   {
+   #include "wwtp.VolumeASM2dModTempConversionModel.layer.state.msl"
+   };
+
+   initial <-
+   {
+//   #include "wwtp.VolumeASM2dModTempConversionModel.stoichiometry.msl"
+   };
+
+   equations <-
+   {
+   #include"wwtp.VolumeASM2dModTempConversionModel.layer.kinetics.msl"
+//   #include"wwtp.VolumeASM2dModTempModel.sensors.msl"
+   };
+
+#endif // ASM2dModTemp
+

@@ -1,0 +1,273 @@
+#if (defined ASM2dModTemp)
+
+ CLASS removal_rates
+ (* class = "primary_clarifier" *)
+ "Model of settling with removal rates and fixed DO, for DAF, CEPT etc."				
+
+ EXTENDS WWTPAtomicModelWithoutVolume WITH
+ {:
+  interface <-
+   { 
+    OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+         InWWTPTerminal := {: causality <- "CIN" ; group <- "Influent" :};
+	  OBJ val (* terminal = "in_2" *) "Inflow" : 
+         Real := {: causality <- "CIN" ; group <- "Influent" :};
+    OBJ Outflow (* terminal = "out_1" *) "Overflow" : 
+         OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent" :};
+    OBJ Underflow (* terminal = "out_2" *) "Underflow" : 
+         OutWWTPTerminal := {: causality <- "COUT" ; group <- "Underflow" :};
+   };
+
+  parameters <- 
+   { 
+    OBJ threshold "value > threshold = removals a, value <= threshold = removals b" : 
+         Real := {: value <- 1 ; group <- "Settling" :};
+	  OBJ f_NH4a "Non-settleable fraction of NH4 above threshold" : 
+         Fraction := {: value <- 1 ; group <- "Settling" :};
+    OBJ f_PO4a "Non-settleable fraction of PO4 above threshold" : 
+         Fraction := {: value <- 0.12 ; group <- "Settling" :};
+	  OBJ f_sCODa "Non-settleable fraction of sCOD above threshold" : 
+         Fraction := {: value <- 0.75 ; group <- "Settling" :};
+	  OBJ f_TSSa "Non-settleable fraction of TSS above threshold" : 
+         Fraction := {: value <- 0.11 ; group <- "Settling" :};
+	  OBJ f_NH4b "Non-settleable fraction of NH4 below threshold" : 
+         Fraction := {: value <- 1 ; group <- "Settling" :};
+    OBJ f_PO4b "Non-settleable fraction of PO4 below threshold" : 
+         Fraction := {: value <- 0.94 ; group <- "Settling" :};
+	  OBJ f_sCODb "Non-settleable fraction of sCOD below threshold" : 
+         Fraction := {: value <- 0.9 ; group <- "Settling" :};
+	  OBJ f_TSSb "Non-settleable fraction of TSS below threshold" : 
+         Fraction := {: value <- 0.45 ; group <- "Settling" :};
+    OBJ Q_Under "Underflow rate" : FlowRate := {: value <- 0 ; group <- "Operational" :};
+	  OBJ DO_out "Effluent DO" : Concentration := {: value <- 0.1 ; group <- "Operational" :};
+   };
+
+  state <-
+   {
+    OBJ f_NH4 "Non-settleable fraction of NH4" : Fraction := {: group <- "Settling" :};
+    OBJ f_PO4 "Non-settleable fraction of PO4" : Fraction := {: group <- "Settling" :};
+	  OBJ f_sCOD "Non-settleable fraction of sCOD" : Fraction := {: group <- "Settling" :};
+	  OBJ f_TSS "Non-settleable fraction of TSS" : Fraction := {: group <- "Settling" :};
+    OBJ Q_Out "Effluent flow rate" : FlowRate := {: group <- "Operational" :};
+    OBJ Q_Under_Actual "Underflow rate" : FlowRate := {: group <- "Operational" :};
+    OBJ Help_X_In (* hidden = "1" *) "" : MassFlux;
+    OBJ Help_X_Out (* hidden = "1" *) "" : MassFlux;
+    OBJ Help_X_Under (* hidden = "1" *) "" : MassFlux;
+    OBJ f_Out (* hidden = "1" *) "Fraction of the influent flux going to the overflow" : Fraction ;
+    OBJ f_Under (* hidden = "1" *) "Fraction of the influent flux going to the underflow" : Fraction ;
+    OBJ X_In "Influent suspended solids concentration" : Concentration := {: group <- "Concentration" :};
+    OBJ X_Out "Effluent suspended solids concentration" : Concentration := {: group <- "Concentration" :};
+    OBJ X_Under "Underflow suspended solids concentration" : Concentration := {: group <- "Concentration" :};
+	  OBJ P_removed "P removed" : MassFlux := {: group <- "Operational" :};
+   };
+
+  equations <-
+   {
+     // The underflow rate is a parameter, so the effluent flow rate has to
+     // be calculated as a state variable
+  
+     // Soluble components (including water itself) are splitted into the two
+     // streams (effluent and underflow) according to the ratio between
+     // the flow rates.
+	 
+	 state.f_NH4 = IF (interface.val <= parameters.threshold)
+	 			   		 THEN parameters.f_NH4b
+				  			 ELSE parameters.f_NH4a;
+	 state.f_PO4 = IF (interface.val <= parameters.threshold)
+	 			  		  THEN parameters.f_PO4b
+				   			ELSE parameters.f_PO4a;
+	 state.f_sCOD = IF (interface.val <= parameters.threshold)
+	 			  			 THEN parameters.f_sCODb
+				  			  ELSE parameters.f_sCODa;
+	 state.f_TSS = IF (interface.val <= parameters.threshold)
+	 			  		  THEN parameters.f_TSSb
+				   			ELSE parameters.f_TSSa;
+
+   state.Q_Under_Actual = IF (state.Q_In <= parameters.Q_Under)
+				   		  			   THEN state.Q_In * 0.9
+				   		 			    ELSE parameters.Q_Under; 
+
+   state.Q_Out = state.Q_In - state.Q_Under_Actual;
+
+
+   state.f_Out = IF	(state.Q_In <= state.Q_Under_Actual)
+		      	 		THEN 0
+		      	 	  ELSE (state.Q_In - state.Q_Under_Actual) / state.Q_In ;
+   state.f_Under = IF (state.Q_In <= state.Q_Under_Actual)
+		          	 	THEN 1
+		        			 ELSE state.Q_Under_Actual/state.Q_In ;
+
+	  interface.Outflow[IndexOfSolvent] = - state.InFluxPerComponent[IndexOfSolvent] * state.f_Out ;
+	  interface.Outflow[S_I] = - state.InFluxPerComponent[S_I] * state.f_sCOD ;
+	  interface.Outflow[S_O] = - state.Q_Out * parameters.DO_out ;
+	  interface.Outflow[S_N2] = - state.InFluxPerComponent[S_N2] * state.f_Out ;
+	  interface.Outflow[S_F] = - state.InFluxPerComponent[S_F] * state.f_sCOD ;
+	  interface.Outflow[S_A] = - state.InFluxPerComponent[S_A] * state.f_sCOD ;
+	  interface.Outflow[S_Al] = - state.InFluxPerComponent[S_Al] * state.f_Out ;
+	  interface.Outflow[S_NO] = - state.InFluxPerComponent[S_NO] * state.f_Out ;
+	  interface.Outflow[S_NH] = - state.InFluxPerComponent[S_NH] * state.f_NH4 ;
+	  interface.Outflow[S_PO] = - state.InFluxPerComponent[S_PO] * state.f_PO4 ;
+	  interface.Outflow[S_ALK] = - state.InFluxPerComponent[S_ALK] * state.f_Out ;
+
+    interface.Underflow[IndexOfSolvent] = IF	(state.Q_In <= state.Q_Under_Actual)
+		  			 		   										  THEN - state.Q_In / 0.000001
+		  			 		  										   ELSE - state.Q_Under_Actual / 0.000001 ;
+
+    interface.Underflow[S_I] = - (state.InFluxPerComponent[S_I] + interface.Outflow[S_I]) ;
+	  interface.Underflow[S_O] = 0;
+	
+	  {FOREACH Comp_Index IN {S_N2 .. IndexOfLastSolubleComponent}:
+     interface.Underflow[Comp_Index] = 
+     - (state.InFluxPerComponent[Comp_Index] + interface.Outflow[Comp_Index]) ;};
+
+     // Particulate components are splitted according to the non settleable
+     // fraction f_ns.
+     // X_Out = f_ns * X_i has to be transformed to an equation using fluxes !!
+     // Outflow = Q_Out * X_Out = a flux 
+     //         = Q_Out * f_ns * X_i
+     //         = Q_Out * f_ns * Inflow / Q_In
+     //         = Inflow * Q_Out / Q_In * f_ns  ==> see equations below
+     // Underflow = Inflow - Outflow
+
+
+    {FOREACH Comp_Index IN {IndexOfFirstParticulateComponent .. IndexOfLastParticulateComponent}:
+      interface.Outflow[Comp_Index] =
+      - state.InFluxPerComponent[Comp_Index] * state.f_Out * state.f_TSS ;};   
+
+    {FOREACH Comp_Index IN {IndexOfFirstParticulateComponent .. IndexOfLastParticulateComponent}:
+     interface.Underflow[Comp_Index] = 
+	   - (state.InFluxPerComponent[Comp_Index] + interface.Outflow[Comp_Index]);};
+
+    state.X_In = 	IF (state.Q_In == 0)
+			   			  	THEN 0
+									 ELSE interface.Inflow[IndexOfTSSComponent] / state.Q_In;
+
+    state.X_Out =  IF (state.Q_In <= state.Q_Under_Actual)
+			 	  			  THEN 0
+			 	  			  ELSE (- interface.Outflow[IndexOfTSSComponent] / (state.Q_In - state.Q_Under_Actual) );
+
+    state.X_Under = IF (state.Q_In <= state.Q_Under_Actual) 
+			  	  				THEN IF (state.Q_In == 0)
+  		         	  		  THEN 0
+		   	   		  			 ELSE - interface.Underflow[IndexOfTSSComponent] / (state.Q_In)
+			  						ELSE IF (state.Q_Under_Actual == 0)
+  		         	 		   THEN 0
+		   	   		 			  ELSE - interface.Underflow[IndexOfTSSComponent] / (state.Q_Under_Actual);
+	  state.P_removed = interface.Inflow[S_PO] + interface.Outflow[S_PO];
+   };
+ :};
+
+ CLASS sand_filter
+ (* class = "primary_clarifier" *)
+ "Model of a simple sand filter"				
+
+ EXTENDS WWTPAtomicModelWithoutVolume WITH
+ {:
+  interface <-
+   { 
+    OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+         InWWTPTerminal := {: causality <- "CIN" ; group <- "Influent" :};
+    OBJ Outflow (* terminal = "out_1" *) "Overflow" : 
+         OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent" :};
+    OBJ Underflow (* terminal = "out_2" *) "Underflow" : 
+         OutWWTPTerminal := {: causality <- "COUT" ; group <- "Underflow" :};
+	  OBJ NO3_out (* terminal = "in_2"; manip = "1" *) "Effluent NO3" : 
+         Concentration := {: causality <- "CIN" ; group <- "Operational" :};
+	  OBJ PO4_out (* terminal = "in_2"; manip = "1" *) "Effluent PO4" : 
+         Concentration := {: causality <- "CIN" ; group <- "Operational" :};
+   };
+
+  parameters <- 
+   { 
+    OBJ Q_BW "Backwash flow rate" : FlowRate := {: value <- 0 ; group <- "Operational" :};
+   };
+
+  state <-
+   {
+	  OBJ N_removed "N removed" : MassFlux := {: group <- "Operational" :};
+	  OBJ P_removed "P removed" : MassFlux := {: group <- "Operational" :};
+	  OBJ Q_Out "Effluent flow rate" : FlowRate := {: group <- "Operational" :};
+    OBJ Q_Under_Actual "Underflow rate" : FlowRate := {: group <- "Operational" :};
+    OBJ Help_X_In (* hidden = "1" *) "" : MassFlux;
+    OBJ Help_X_Out (* hidden = "1" *) "" : MassFlux;
+    OBJ Help_X_Under (* hidden = "1" *) "" : MassFlux;
+    OBJ f_Out (* hidden = "1" *) "Fraction of the influent flux going to the overflow" : Fraction ;
+    OBJ f_Under (* hidden = "1" *) "Fraction of the influent flux going to the underflow" : Fraction ;
+    OBJ X_In "Influent suspended solids concentration" : Concentration := {: group <- "Concentration" :};
+    OBJ X_Out "Effluent suspended solids concentration" : Concentration := {: group <- "Concentration" :};
+    OBJ X_Under "Underflow suspended solids concentration" : Concentration := {: group <- "Concentration" :};
+   };
+
+  equations <-
+   {
+
+   state.Q_Under_Actual = IF (state.Q_In <= parameters.Q_BW)
+				   		  			   THEN state.Q_In * 0.9
+				   		 			    ELSE parameters.Q_BW; 
+
+   state.Q_Out = state.Q_In - state.Q_Under_Actual;
+
+   state.f_Out = IF	(state.Q_In <= state.Q_Under_Actual)
+		      	 		THEN 0
+		      	 	  ELSE (state.Q_In - state.Q_Under_Actual) / state.Q_In ;
+   state.f_Under = IF (state.Q_In <= state.Q_Under_Actual)
+		          	 	THEN 1
+		        			 ELSE state.Q_Under_Actual/state.Q_In ;
+
+	  interface.Outflow[IndexOfSolvent] = - state.InFluxPerComponent[IndexOfSolvent] * state.f_Out ;
+	  interface.Outflow[S_I] = - state.InFluxPerComponent[S_I] ;
+	  interface.Outflow[S_O] = - state.InFluxPerComponent[S_O] ;
+	  interface.Outflow[S_N2] = - state.InFluxPerComponent[S_N2];
+	  interface.Outflow[S_F] = - state.InFluxPerComponent[S_F];
+	  interface.Outflow[S_A] = - state.InFluxPerComponent[S_A];
+	  interface.Outflow[S_Al] = - state.InFluxPerComponent[S_Al];
+	  interface.Outflow[S_NO] = IF ((state.Q_Out * interface.NO3_out) > state.InFluxPerComponent[S_NO])
+	 													 THEN - state.InFluxPerComponent[S_NO]
+	 													 ELSE - state.Q_Out * interface.NO3_out;
+	  interface.Outflow[S_NH] = - state.InFluxPerComponent[S_NH];
+	  interface.Outflow[S_PO] = IF ((state.Q_Out * interface.PO4_out) > state.InFluxPerComponent[S_PO])
+	 													 THEN - state.InFluxPerComponent[S_PO]
+	 													 ELSE - state.Q_Out * interface.PO4_out;
+	  interface.Outflow[S_ALK] = - state.InFluxPerComponent[S_ALK];
+
+    interface.Underflow[IndexOfSolvent] = IF	(state.Q_In <= state.Q_Under_Actual)
+		  			 		   										  THEN - state.Q_In / 0.000001
+		  			 		  										   ELSE - state.Q_Under_Actual / 0.000001 ;
+
+    interface.Underflow[S_I] = - (state.InFluxPerComponent[S_I] + interface.Outflow[S_I]) ;
+	  interface.Underflow[S_O] = (state.InFluxPerComponent[S_O] + interface.Outflow[S_O]) ;
+	
+	  {FOREACH Comp_Index IN {S_N2 .. IndexOfLastSolubleComponent}:
+     interface.Underflow[Comp_Index] = 
+     - (state.InFluxPerComponent[Comp_Index] + interface.Outflow[Comp_Index]) ;};
+
+    {FOREACH Comp_Index IN {IndexOfFirstParticulateComponent .. IndexOfLastParticulateComponent}:
+      interface.Outflow[Comp_Index] =
+      - state.InFluxPerComponent[Comp_Index] * state.f_Out;};   
+
+    {FOREACH Comp_Index IN {IndexOfFirstParticulateComponent .. IndexOfLastParticulateComponent}:
+     interface.Underflow[Comp_Index] = 
+	   - (state.InFluxPerComponent[Comp_Index] + interface.Outflow[Comp_Index]);};
+
+    state.X_In = 	IF (state.Q_In == 0)
+			   			  	THEN 0
+									 ELSE interface.Inflow[IndexOfTSSComponent] / state.Q_In;
+
+    state.X_Out =  IF (state.Q_In <= state.Q_Under_Actual)
+			 	  			  THEN 0
+			 	  			  ELSE (- interface.Outflow[IndexOfTSSComponent] / (state.Q_In - state.Q_Under_Actual) );
+
+    state.X_Under = IF (state.Q_In <= state.Q_Under_Actual) 
+			  	  				THEN IF (state.Q_In == 0)
+  		         	  		  THEN 0
+		   	   		  			 ELSE - interface.Underflow[IndexOfTSSComponent] / (state.Q_In)
+			  						ELSE IF (state.Q_Under_Actual == 0)
+  		         	 		   THEN 0
+		   	   		 			  ELSE - interface.Underflow[IndexOfTSSComponent] / (state.Q_Under_Actual);
+	  
+	  state.P_removed = state.InFluxPerComponent[S_PO] + interface.Outflow[S_PO];
+	  state.N_removed = state.InFluxPerComponent[S_NO] + interface.Outflow[S_NO];
+   };
+ :};
+ 
+#endif 

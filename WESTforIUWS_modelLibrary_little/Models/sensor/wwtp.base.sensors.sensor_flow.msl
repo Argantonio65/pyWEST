@@ -1,0 +1,43 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 30. marts 2012 15:50:19$
+ *
+ ******************************************************************************/
+ 
+#ifndef WWTP_BASE_SENSORS_SENSORFLOW
+#define WWTP_BASE_SENSORS_SENSORFLOW
+
+#ifdef StandardCategoryModels
+CLASS Sensor_Flow
+  (* icon = "sensor_flow" ; is_default = "true" *)
+  "Flow sensor"
+  EXTENDS Sensor WITH 
+  {:
+    comments <- "A model for a sensor measuring the flow rate";
+
+    interface <-
+    {
+      OBJ y_M (* terminal = "out_2"; is_favorite = "1" *) "Sensor measured output" :
+         FlowRate := {: causality <- "COUT" ; group <- "Measurement data" :};
+    };
+
+    equations <-
+    {
+      {interface.y_M = state.Q_In ;};
+    };
+ :};
+
+#endif // StandardCategoryModels
+
+#endif // WWTP_BASE_SENSORS_SENSORFLOW
+

@@ -1,0 +1,45 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 5. september 2011 16:01:13$
+ *
+ ******************************************************************************/
+
+#ifdef ASM2dModTemp
+/*
+  OBJ S_O_Saturation "Oxygen saturation concentration" : Concentration := {: group <- "Kinetic" :}; 
+  OBJ k_h_Temp "k_h at the system temperature"  : Real := {: group <- "Kinetic" :}; 
+  OBJ K_X_Temp "K_X at the system temperature"  : Real := {: group <- "Kinetic" :}; 
+  OBJ mu_H_Temp "mu_H at the system temperature" : Real := {: group <- "Kinetic" :}; 
+  OBJ Q_fe_Temp "Q_fe at the system temperature" : Real := {: group <- "Kinetic" :}; 
+  OBJ b_H_Temp "b_H at the system temperature" : Real := {: group <- "Kinetic" :}; 
+  OBJ Q_PHA_Temp "Q_PHA at the system temperature" : Real := {: group <- "Kinetic" :}; 
+  OBJ Q_PP_Temp "Q_PP at the system temperature" : Real := {: group <- "Kinetic" :}; 
+  OBJ mu_PAO_Temp "mu_PAO at the system temperature" : Real := {: group <- "Kinetic" :}; 
+  OBJ b_PAO_Temp "b_PAO at the system temperature" : Real := {: group <- "Kinetic" :}; 
+  OBJ b_PP_Temp "b_PP at the system temperature" : Real := {: group <- "Kinetic" :}; 
+  OBJ b_PHA_Temp "b_PHA at the system temperature" : Real := {: group <- "Kinetic" :}; 
+  OBJ mu_AUT_Temp "mu_AUT at the system temperature" : Real := {: group <- "Kinetic" :}; 
+  OBJ b_AUT_Temp "b_AUT at the system temperature" : Real := {: group <- "Kinetic" :}; 
+*/
+  OBJ S_O_MonodTerm_Biofilm (*  hidden = "1" *) "Monod terms for oxygen" : MonodTerm[NrOfLayers;];
+  OBJ S_NO_MonodTerm_Biofilm  (*  hidden = "1" *) "Monod terms for S_NO" : MonodTerm[NrOfLayers;];
+  OBJ S_NH_MonodTerm_Biofilm  (*  hidden = "1" *) "Monod terms for ammonium" : MonodTerm[NrOfLayers;];
+  OBJ S_PO_MonodTerm_Biofilm  (*  hidden = "1" *) "Monod terms for S_PO" : MonodTerm[NrOfLayers;];
+  OBJ S_ALK_MonodTerm_Biofilm (*  hidden = "1" *) "Monod terms for alkalinity" : MonodTerm[NrOfLayers;];
+  OBJ S_A_MonodTerm_Biofilm (*  hidden = "1" *) "Monod terms for S_A" : MonodTerm[NrOfLayers;];
+  OBJ S_F_MonodTerm_Biofilm (*  hidden = "1" *) "Monod terms for S_F" : MonodTerm[NrOfLayers;];
+  OBJ X_PHA_MonodTerm_Biofilm (*  hidden = "1" *) "Monod terms for X_PHA" : MonodTerm[NrOfLayers;];
+  OBJ X_S_MonodTerm_Biofilm (*  hidden = "1" *) "Monod terms for X_S" : MonodTerm[NrOfLayers;];
+  OBJ S_O_InhibitionTerm_Biofilm  (*  hidden = "1" *) "The inhibition term for oxygen" : InhibitionTerm[NrOfLayers;];
+  OBJ S_NO_InhibitionTerm_Biofilm (*  hidden = "1" *) "The inhibition term for S_NO" : InhibitionTerm[NrOfLayers;];
+#endif // ASM2dModTemp

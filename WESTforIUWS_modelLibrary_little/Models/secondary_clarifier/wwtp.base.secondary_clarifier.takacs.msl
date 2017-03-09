@@ -1,0 +1,319 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 17. april 2012 11:18:01$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_BASE_SECONDARY_CLARIFIER_TAKACS
+#define WWTP_BASE_SECONDARY_CLARIFIER_TAKACS
+
+#ifdef StandardCategoryModels
+//=========================================================================
+//=============================Takacs model================================
+//=========================================================================
+
+ CLASS Takacs
+ (* icon = "secondary_clarifier"*)
+ "Layered clarifier model by Takacs"
+
+// This model was developed by Takacs et al. (1991).
+// The clarifier is divided in 10 horizontal layers
+// (a discretion of the underlying partial differential equations)
+// and the mass balance is calculated for each layer. 
+// The novelty of this model 
+// is the fact that an expression is proposed for the settling velocity v_S 
+// which is valid for both the thickening and the clarification zone. 
+// 
+// Literature : 
+// Takacs I., Patry G.G. & Nolasco D. (1991), 
+// A dynamic model of the thickening/clarification process,
+// Wat. Res., 25, 1263-1271.
+
+ SPECIALISES PhysicalDAEModelType :=
+ {:
+   comments <- "A model for a secondary settler by Takacs";
+   interface <-
+   { 
+    OBJ Inflow (* terminal = "in_1" *) "Inflow" : 
+         InWWTPTerminal := {: causality <- "CIN" ; group <- "Influent" :};
+    OBJ Overflow (* terminal = "out_1" *) "Overflow" : 
+         OutWWTPTerminal := {: causality <- "COUT" ; group <- "Effluent" :};
+    OBJ Underflow (* terminal = "out_2" *) "Underflow" : 
+         OutWWTPTerminal := {: causality <- "COUT" ; group <- "Underflow" :};
+    OBJ Q_Under (* terminal = "in_2"; manip = "1"; is_favorite = "1" *) "Underflow rate" : 
+    FlowRate := {: causality <- "CIN" ; value <- 200 ; group <- "Operational" :}; 
+    OBJ Sludge_Blanket_Height (* terminal = "out_3"; is_favorite = "1" *) "Height of the sludge blanket" : 
+        Length := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ TSS(* terminal = "out_3" *) "Total suspended solids concentration" : 
+        Concentration := {: causality <- "COUT" ; group <- "Measurement data" :};
+    OBJ V_Clarifier (* terminal = "out_3" *)"Volume measurement data" : 
+        Volume := {: causality <- "COUT" ; group <- "Measurement data" :};
+   OBJ PumpingEnergy (* terminal = "out_3" *)"Pumping energy" : ElectricalEnergy := {: causality <- "COUT"; group <- "Energy" :};
+   };
+
+   parameters <- 
+   {     
+  //  OBJ WWTPSpecificVolume (* hidden = "1" *) "Vector containing specific volume for all the components" : SpecificVolumeVector;
+    OBJ A (* is_favorite = "1" *) "Surface area of the clarifier" : Area := {: value <- 1500 ; group <- "Dimension" :};
+    OBJ H (* is_favorite = "1" *) "Height of the clarifier" : Length := {: value <- 4 ; group <- "Dimension" :};
+    OBJ v0 "Maximum theoretical settling velocity" : Velocity := {: value <- 474 ; group <- "Settling" :};
+    OBJ v00 "Maximum practical settling velocity" : Velocity := {: value <- 250 ; group <- "Settling" :}; 
+    OBJ r_P "Settling parameter (low concentration)" : SpecificVolume := {: value <- 0.00286 ; group <- "Settling" :};
+    OBJ r_H "Settling parameter (hindered settling)" : SpecificVolume := {: value <- 0.000576 ; group <- "Settling" :}; 
+    OBJ f_ns "Non-settleable fraction of suspended solids" : Fraction := {: value <- 0.00228 ; group <- "Settling" :};
+    OBJ X_Lim "Minimal concentration in sludge blanket" : Concentration := {: value <- 900 ; group <- "Settling" :};
+    OBJ X_T "Threshold suspended solids concentration" : Concentration := {: value <- 3000 ; group <- "Settling" :};
+    OBJ F_TSS_COD "Fraction TSS/COD" : Fraction := {: value <- 0.75 ; group <- "Conversion factors" :};
+// PUMPING ENERGY
+    OBJ F_Energy_FlowRate "Conversion factor Energy needed/Pump flow rate" : Ratio := {: value <- 0.04 ; group <- "Energy":};
+   };
+
+   state <-
+   {
+    OBJ Q_In (* is_favorite = "1" *) "Influent flow rate" : FlowRate := {: group <- "Operational" :};
+    OBJ Q_Out (* is_favorite = "1" *) "Effluent flow rate" : FlowRate := {: group <- "Operational" :};
+    OBJ Q_Under_Actual (* is_favorite = "1" *) "Actual underflow rate" : FlowRate := {: group <- "Operational" :};
+    OBJ IndexOfSludgeBlanket (* hidden = "1" *) "Index of top layer of sludge blanket" : Integer ;
+    OBJ H_S "Height of sludge blanket" : Length := {: group <- "Settling" :}; 
+    OBJ X_Min "Non-settleable sludge concentration" : Concentration := {: group <- "Settling" :}; 
+    OBJ X_In (* is_favorite = "1" *) "Influent suspended solids concentration" : Concentration := {: group <- "Concentration" :};
+    OBJ X_Out (* is_favorite = "1" *) "Effluent suspended solids concentration" : Concentration := {: group <- "Concentration" :};  
+    OBJ X_Under (* is_favorite = "1" *) "Underflow suspended solids concentration" : Concentration := {: group <- "Concentration" :};  
+    OBJ X_Layer "Vector containing concentration of particulates for all the layers" : TakacsConcentrationVector := {: group <- "Concentration" :};
+    OBJ v_Up (* hidden = "1" *) "Upward bulk velocity" : Velocity ; 
+    OBJ v_Dn (* hidden = "1" *) "Downward bulk velocity" : Velocity ;
+    OBJ v0_P (* hidden = "1" *) "Correction term for non-settleables" : Velocity ;
+    OBJ v0_H (* hidden = "1" *) "Correction term for non-settleables" : Velocity ; 
+    OBJ v_S (* hidden = "1" *) "Static settling velocity" : TakacsVelocityVector;
+    OBJ v_S_Help (* hidden = "1" *) "Static settling velocity help variable": TakacsVelocityVector;
+    OBJ J_Up (* hidden = "1" *) "Upward sludge flux" : TakacsArealFluxVector;
+    OBJ J_Dn (* hidden = "1" *) "Downward sludge flux" : TakacsArealFluxVector;
+    OBJ J_G (* hidden = "1" *) "Static sludge flux" : TakacsArealFluxVector;
+    OBJ J_G_Help (* hidden = "1" *) "Static sludge flux": TakacsArealFluxVector;
+    OBJ InFluxPerComponent (* hidden = "1" *) "Vector containing incoming fluxes for all the components" : MassFluxVector;
+    OBJ SolidFlux_In (* hidden = "1" *) "Sum of massfluxes of particulates" : MassFlux ;
+    OBJ SolidConcentration (* hidden = "1" *) "Sum of concentrations of particulates" : Concentration ;
+    OBJ V_Layer (* hidden = "1" *)  "Volume of the layer" : Volume ;  
+    OBJ H_Layer (* hidden = "1" *) "Height of layer" : Length ;
+    OBJ SolidFlux_Out (* hidden = "1" *) "Fraction of influx that goes to the effluent" : MassFlux ;
+    OBJ SolidFlux_Under (* hidden = "1" *) "Fraction of influx that goes to the underflow" : MassFlux ;
+// PUMPING ENERGY
+    OBJ Integ_PE (* hidden = "1" *)"Integral Pumping energy" : ElectricalEnergy ;
+   };
+
+   initial <-
+   {
+  //  parameters.WWTPSpecificVolume[IndexOfSolvent] := 1e-6;
+    state.V_Layer = parameters.A * (parameters.H / NrOfLayers); 
+    state.H_Layer = parameters.H / NrOfLayers;
+   };
+
+  independent <- 
+  { 
+    OBJ t "Time" : Time := {: group <- "Time" :}; 
+   };
+   
+  equations <-
+   {
+    state.Q_Under_Actual = IF (state.Q_In <= interface.Q_Under)
+         THEN state.Q_In
+         ELSE interface.Q_Under;
+
+    state.v_Dn = state.Q_Under_Actual / parameters.A; 
+
+    { FOREACH Comp_Index IN {IndexOfSolvent .. NrOfComponents}:
+       state.InFluxPerComponent[Comp_Index] =
+       SUMOVER In_Terminal IN {SelectByType(interface,InWWTPTerminal)}:
+        In_Terminal[Comp_Index]; 
+    };
+
+    { state.Q_In = 
+       (0.000001
+                * state.InFluxPerComponent[IndexOfSolvent]);
+    };
+
+    state.Q_Out = state.Q_In - state.Q_Under_Actual; 
+
+#ifdef CalculateTSSComponent
+    { state.SolidFlux_In =
+       SUMOVER Comp_Index IN {IndexOfFirstTSSComponent .. IndexOfLastTSSComponent}:
+       state.InFluxPerComponent[Comp_Index] * parameters.F_TSS_COD ;
+    };
+#endif // CalculateTSSComponent
+
+#ifdef UseTSSComponent
+    state.SolidFlux_In =  state.InFluxPerComponent[IndexOfTSSComponent];
+#endif // UseTSSComponent
+
+    {state.X_In = IF (state.Q_In == 0)
+      THEN 0
+      ELSE state.SolidFlux_In / state.Q_In;
+     };
+
+    {
+     state.SolidConcentration = ( SUMOVER Layer_Index IN {1 .. NrOfLayers}:
+                                         state.X_Layer[Layer_Index]) / NrOfLayers;
+    };
+
+    state.X_Min = IF (state.Q_In == 0)
+      THEN parameters.f_ns * state.SolidConcentration
+      ELSE parameters.f_ns * state.SolidFlux_In / state.Q_In ;
+
+    state.v0_P = parameters.v0 * exp(parameters.r_P * state.X_Min);
+
+    state.v0_H = parameters.v0 * exp(parameters.r_H * state.X_Min); 
+
+    state.v_Up = state.Q_Out / parameters.A; 
+
+    { FOREACH Layer_Index IN {1 .. NrOfLayers}:
+       state.v_S_Help[Layer_Index] =
+        IF (state.X_Layer[Layer_Index] < state.X_Min) 
+        THEN 0 
+        ELSE (state.v0_H * exp( - parameters.r_H * state.X_Layer[Layer_Index]) 
+              - state.v0_P * exp( - parameters.r_P * state.X_Layer[Layer_Index]));
+    };
+
+    { FOREACH Layer_Index IN {1 .. NrOfLayers}:
+       state.v_S[Layer_Index] =
+        (IF (state.v_S_Help[Layer_Index] > parameters.v00)
+         THEN parameters.v00
+         ELSE state.v_S_Help[Layer_Index]);
+    }; 
+        
+    { FOREACH Layer_Index IN {1 .. NrOfLayers}:
+       state.J_G_Help[Layer_Index] =
+        state.v_S[Layer_Index] * state.X_Layer[Layer_Index];
+    };
+
+    { FOREACH Layer_Index IN {2 .. IndexOfFeedLayer}:
+       state.J_Up[Layer_Index] =
+        state.v_Up * state.X_Layer[Layer_Index];
+    };
+
+    { FOREACH Layer_Index IN {IndexOfFeedLayer .. NrOfLayersButOne}:
+       state.J_Dn[Layer_Index] =
+        state.v_Dn * state.X_Layer[Layer_Index];
+    };
+
+    { FOREACH Layer_Index IN {2 .. IndexOfFeedLayer}:
+       state.J_G[Layer_Index-1] =
+        IF (state.X_Layer[Layer_Index] < parameters.X_T)
+        THEN state.J_G_Help[Layer_Index-1]
+        ELSE
+         IF (state.J_G_Help[Layer_Index-1] > state.J_G_Help[Layer_Index])
+         THEN state.J_G_Help[Layer_Index]
+         ELSE state.J_G_Help[Layer_Index-1];
+    };
+
+    { FOREACH Layer_Index IN {IndexOfFeedLayer .. NrOfLayersButOne}:
+       state.J_G[Layer_Index] =
+        IF (state.J_G_Help[Layer_Index] > state.J_G_Help[Layer_Index+1])
+        THEN state.J_G_Help[Layer_Index+1]
+        ELSE state.J_G_Help[Layer_Index] ;
+    };
+
+    { DERIV(state.X_Layer[1],[independent.t]) =
+       (1 / state.H_Layer) * (state.J_Up[2] - state.J_G[1]) -
+       (state.Q_Out / state.V_Layer) * state.X_Layer[1];
+    };
+
+    { FOREACH Layer_Index IN {2 .. NrOfLayersButOne}:
+       DERIV(state.X_Layer[Layer_Index],[independent.t]) =
+        IF (Layer_Index == IndexOfFeedLayer)
+        THEN (1 / state.H_Layer) *
+             (- state.J_Up[Layer_Index] - state.J_Dn[Layer_Index]
+              + state.J_G[Layer_Index-1] - state.J_G[Layer_Index]) +
+             (1 / state.V_Layer) * state.SolidFlux_In 
+        ELSE (1 / state.H_Layer) *
+             (state.J_Up[Layer_Index+1] - state.J_Up[Layer_Index]
+              + state.J_Dn[Layer_Index-1] - state.J_Dn[Layer_Index]
+              + state.J_G[Layer_Index-1] - state.J_G[Layer_Index]);
+    };
+
+    { DERIV(state.X_Layer[NrOfLayers],[independent.t]) =
+       (1 / state.H_Layer) *
+       (state.J_Dn[NrOfLayersButOne] + state.J_G[NrOfLayersButOne]) -
+       (interface.Q_Under / state.V_Layer) * state.X_Layer[NrOfLayers];
+    };
+
+    state.X_Out = IF (state.Q_Out == 0)
+      THEN 0
+      ELSE state.X_Layer[1];
+
+    state.X_Under = IF (state.Q_Under_Actual == 0)
+        THEN 0
+        ELSE state.X_Layer[NrOfLayers];
+
+// Calculation of the height of the sludge blanket
+
+    state.IndexOfSludgeBlanket =
+     MSLUFindThreshold(ref(state.X_Layer[1]),NrOfLayers,parameters.X_Lim);
+
+    state.H_S = (NrOfLayers - state.IndexOfSludgeBlanket + 1) *
+                state.H_Layer;
+
+// Calculation of the fluxes of all components in the effluent
+ 
+    state.SolidFlux_Out = state.X_Out * state.Q_Out;
+
+    { FOREACH Comp_Index IN {IndexOfSolvent .. IndexOfLastSolubleComponent}:
+      interface.Overflow[Comp_Index] =
+    IF (state.Q_In == 0)
+        THEN 0
+    ELSE - state.InFluxPerComponent[Comp_Index] * (state.Q_Out / state.Q_In);
+    };
+
+    { FOREACH Comp_Index IN {IndexOfFirstParticulateComponent .. IndexOfLastParticulateComponent}:
+      interface.Overflow[Comp_Index] =
+    IF (state.SolidFlux_In == 0)
+    THEN 0
+    ELSE - (state.InFluxPerComponent[Comp_Index] / state.SolidFlux_In) * state.SolidFlux_Out ;
+    };
+
+// Calculation of the fluxes of all components in the underflow
+
+    state.SolidFlux_Under = state.X_Under * state.Q_Under_Actual;
+
+    interface.Underflow[IndexOfSolvent] = - state.Q_Under_Actual / 0.000001 ;
+
+    { FOREACH Comp_Index IN {IndexOfFirstSolubleComponent .. IndexOfLastSolubleComponent}:
+      interface.Underflow[Comp_Index] = - state.InFluxPerComponent[Comp_Index] - interface.Overflow[Comp_Index] ;
+    };
+
+    { FOREACH Comp_Index IN {IndexOfFirstParticulateComponent .. IndexOfLastParticulateComponent}:
+      interface.Underflow[Comp_Index] = IF (state.Q_In == 0)
+    																		THEN 0
+	 																		 ELSE IF (state.SolidFlux_In == 0)
+																						 THEN 0
+   																					ELSE - (state.InFluxPerComponent[Comp_Index] / state.SolidFlux_In) * state.SolidFlux_Under ;
+    };
+// Here the assumption is made that if state.Q_In differs from zero that also state.SolidFlux_In differs from zero (i.e. The water always contains particulate COD)
+
+// PUMPING ENERGY
+  DERIV(state.Integ_PE,[independent.t])=  state.Q_Under_Actual;
+  interface.PumpingEnergy = parameters.F_Energy_FlowRate * state.Integ_PE ;
+
+// calculation of TakacsDataTerminal
+
+    interface.Sludge_Blanket_Height = state.H_S;
+
+    interface.TSS = state.SolidConcentration;
+
+    interface.V_Clarifier = parameters.A * parameters.H;  
+   };
+
+ :};
+#endif // StandardCategoryModels
+
+#endif // WWTP_BASE_SECONDARY_CLARIFIER_TAKACS
+

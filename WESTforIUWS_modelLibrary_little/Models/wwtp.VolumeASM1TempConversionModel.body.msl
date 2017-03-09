@@ -1,0 +1,44 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 1$
+ * $Date: 5. september 2011 16:01:11$
+ *
+ ******************************************************************************/
+
+#ifdef ASM1Temp
+   interface <-
+   {
+  #include"wwtp.VolumeASM1TempModel.interface.msl"
+   };
+
+   parameters <-
+   {
+#include"wwtp.VolumeASM1TempConversionModel.parameters.msl"
+   };
+
+   state <-
+   {
+#include "wwtp.VolumeASM1TempConversionModel.state.msl"
+   };
+
+   initial <-
+   {
+#include "wwtp.VolumeASM1TempConversionModel.stoichiometry.msl"
+   };
+
+   equations <-
+   {
+  #include"wwtp.VolumeASM1TempConversionModel.kinetics.msl"
+  #include"wwtp.VolumeASM1TempModel.sensors.msl"
+   };
+#endif // ASM1Temp
+

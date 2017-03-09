@@ -1,0 +1,39 @@
+// -----------------------------------------------------------------------
+//  HEMMIS - University of Gent, BIOMATH
+//  Implementation: Tolessa Deksissa
+//  Description: MSL-USER/RIVER/Base data flow 
+// ----------------------------------------------------------------------- 
+
+// Description: RIVER/VolumeConsersionModel body
+// body for variable & fixed VolumeConversionModel
+
+  interface <-
+    {
+     OBJ T (* terminal = "in_3" *) "Air temperature" : CelsiusTemperature := {: causality <- "CIN" ; group <- "Input" :};
+	   OBJ I0 (* terminal = "in_3" *) "Radiation at water surface" : DensityOfHeatFlowRate := {: causality <- "CIN" ; group <- "Input" :};     
+     OBJ DO (* terminal = "out_2" *) "DO" : Concentration := {: causality <- "COUT" ; group <- "Measured variable" :};
+     OBJ NH4 (* terminal = "out_2" *) "NH4" : Concentration := {: causality <- "COUT" ; group <- "Measured variable" :};
+     OBJ Q (* terminal = "out_2" *) "Q" : FlowRate := {: causality <- "COUT" ; group <- "Measured variable" :};
+     OBJ kLa (* terminal = "in_3"; manip = "1"; *) "kLa from external aeration (1/d)" : Real := {: causality <- "CIN" :};
+	  };
+
+   parameters <-
+   {
+   };
+
+   state <-
+   {
+   };
+   
+   initial <-
+  {
+  };
+
+   equations <-
+   {
+   };
+    
+
+
+// ***********************************************************************
+

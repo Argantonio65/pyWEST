@@ -1,0 +1,573 @@
+/*******************************************************************************
+ *
+ * Tornado - Advanced Kernel for Modeling and Virtual Experimentation
+ * (c) Copyright 2004-2011 DHI
+ *
+ * This file is provided under the terms of a license and may not be
+ * distributed and/or modified except where allowed by that license.
+ *
+ * This file is provided as is with no warranty of any kind, including the
+ * warranty of design, merchantability and fitness for a particular purpose.
+ *
+ * $Revision: 2$
+ * $Date: 27. juli 2012 11:47:45$
+ *
+ ******************************************************************************/
+
+#ifndef WWTP_ADMdefinitions
+#define WWTP_ADMdefinitions
+
+//
+// declarations of the classes used in ADM1
+
+//  for parameters
+
+
+ CLASS CarbonContentOfAminoAcids
+   "carbon content of amino acids"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "mol/gCOD";
+    :};
+
+CLASS CarbonContentOfAcetate
+   "carbon content of acetate"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "mol/gCOD";
+    :};
+
+CLASS CarbonContentOfBiomass
+   "carbon content of biomass"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "mol/gCOD";
+    :};
+
+CLASS CarbonContentOfButyrate
+   "carbon content of butyrate"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "mol/gCOD";
+    :};
+
+CLASS CarbonContentOfMethane
+   "carbon content of methane"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "mol/gCOD";
+    :};
+
+CLASS CarbonContentOfLCFattyAcids
+   "carbon content of long chain fatty acids"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "mol/gCOD";
+    :};
+
+CLASS CarbonContentOfPropionate
+   "carbon content of propionate"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "mol/gCOD";
+    :};
+
+CLASS CarbonContentOfSolubleInertCOD
+   "carbon content of soluble inert COD"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "mol/gCOD";
+    :};
+
+CLASS CarbonContentOfValerate
+   "carbon content of valerate"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "mol/gCOD";
+    :};
+
+CLASS CarbonContentOfComplexParticulateCOD
+   "carbon content of complex particulate COD"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "mol/gCOD";
+    :};
+
+CLASS CarbonContentOfParticulateInertCOD
+   "carbon content of particulate inert COD"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "mol/gCOD";
+    :};
+CLASS CarbonContentOfLipids
+   "carbon content of particulate inert COD"
+    SPECIALISES PhysicalQuantityType :=
+       {:
+        unit     <- "mol/gCOD";
+        :};
+
+CLASS CarbonContentOfSugars
+   "carbon content of particulate inert COD"
+    SPECIALISES PhysicalQuantityType :=
+       {:
+        unit     <- "mol/gCOD";
+        :};
+
+// Nitrogen contents
+
+CLASS NitrogenContentOfAminoAcids
+   "Nitrogen content of amino acids (mole-N.g COD-1)"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "mol/gCOD";
+    :};
+
+CLASS NitrogenContentOfBiomass
+   "Nitrogen content of  biomass (mole-N.g COD-1)"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "mol/gCOD";
+    :};
+
+CLASS NitrogenContentOfSolubleInertCOD
+   "nitrogen content of Soluble inert (mole-N.g COD-1)"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "mol/gCOD";
+    :};
+CLASS NitrogenContentOfParticulateDegradableCOD
+   "nitrogen content of particulate degradable COD (mole-N.g COD-1)"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "mol/gCOD";
+    :};
+
+CLASS NitrogenContentOfParticulateInertCOD
+   "nitrogen content of particulate inert COD (mole-N.g COD-1)"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "mol/gCOD";
+    :};
+
+// pka values at 298k and corresponding Acidity
+
+CLASS pKa
+   "A class for pKa"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    quantity  <- "pKa";
+    interval  <- {: lowerBound <- 0; upperBound <- 14 :};
+   :};
+
+CLASS Acidity
+   "A class for Acidity"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    quantity  <- "Acidity";
+    unit     <- "M";
+   :};
+
+// hydrogen inhibitory concentration
+
+CLASS HydrogenInhibitoryConcentrationForFADegradingOrganisms
+   "hydrogen inhibitory concentration for FA degrading organisms"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "kgCOD/m3";
+   :};
+   
+CLASS HydrogenInhibitoryConcentrationForC4DegradingOrganisms
+   "hydrogen inhibitory concentration for C4 degrading organisms"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "kgCOD/m3";
+   :};
+
+CLASS InhibitoryHydrogenConcentrationForPropionateDegradingOrganisms
+   "inhibitory hydrogen concentration for propionate degrading organisms"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "kgCOD/m3";
+   :};
+CLASS InhibitoryFreeAmmoniaConcentrationForAcetateDegradingOrganisms
+   "inhibitory free ammonia concentration for acetate degrading organisms"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "M";
+   :};
+
+//  Acid Base Reactions
+
+CLASS KineticConstantForCO2andHCO3AcidBaseReaction
+   "kinetic constant for CO2-HCO3 acid-base reaction"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "d-1";
+   :};
+
+//  decay and disintegration
+
+CLASS DecayRateForAminoAcidDegradingOrganisms
+   "decay rate for amino acid degrading organisms"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "d-1";
+   :};
+
+CLASS DecayRateForAcetateDegradingOrganisms
+   "decay rate for acetate degrading organisms"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "d-1";
+   :};
+
+CLASS DecayRateForButyrateAndValerateDegradingOrganisms
+   "decay rate for butyrate and valerate degrading organisms"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "d-1";
+   :};
+
+CLASS DecayRateForLongChainFattyAcidDegradingOrganisms
+   "decay rate for long chain fatty acid degrading organisms"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "d-1";
+   :};
+CLASS DecayRateForHydrogenDegradingOrganisms
+   "decay rate for hydrogen degrading organisms"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "d-1";
+   :};
+CLASS DecayRateForPropionateDegradingOrganisms
+   "decay rate for propionate degrading organisms"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "d-1";
+   :};
+
+CLASS DecayRateForMonosaccharideDegradingOrganisms
+   "decay rate for monosaccharide degrading organisms"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "d-1";
+   :};
+
+CLASS ComplexParticulateDisintegrationFirstOrderConstant
+   "complex particulate disintegration first order rate constant"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "d-1";
+   :};
+
+//  hydrolysis rates
+
+CLASS CarbohydrateHydrolysisFirstOrderConstant
+   "carbohydrate hydrolysis first order rate constant"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "d-1";
+   :};
+
+CLASS LipidHydrolysisFirstOrderConstant
+   "lipid hydrolysis first order rate constant"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "d-1";
+   :};
+
+CLASS ProteinHydrolysisFirstOrderConstant
+   "protein hydrolysis first order rate constant"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "d-1";
+   :};
+
+//  gas transfere rate
+
+CLASS GasLiquidTransferCoefficientForReactor
+   "gas liquid transfer coefficient for reactor"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "d-1";
+   :};
+//  Physical/Chemical reaction rate
+
+CLASS PhysChemRate 
+   "Phiscal or chemical reaction rate"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "KMole.d-1";
+   :};
+//  uptake rates
+
+CLASS MaximumUptakeRateAminoAcidDegradingOrganisms
+   "maximum uptake rate amino acid degrading organisms"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "d-1";
+   :};
+
+CLASS MaximumUptakeRateForAcetateDegradingOrganisms
+   "maximum uptake rate for acetate degrading organisms"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "d-1";
+   :};
+
+CLASS MaximumUptakeRateForC4DegradingOrganisms
+   "maximum uptake rate for c4 degrading organisms"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "d-1";
+   :};
+CLASS MaximumUptakeRateForLongChainFattyAcidDegradingOrganisms
+   "maximum uptake rate for long chain fatty acid degrading organisms"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "d-1";
+   :};
+
+CLASS MaximumUptakeRateFForHydrogenDegradingOrganisms
+   "maximum uptake rate for hydrogen degrading organisms"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "d-1";
+   :};
+
+CLASS MaximumUptakeRateForPropionateDegradingOrganisms
+   "maximum uptake rate for propionate degrading organisms"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "d-1";
+   :};
+
+CLASS MaximumUptakeRateForMonosaccharideDegradingOrganisms
+   "maximum uptake rate for monosaccharide degrading organisms"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "d-1";
+   :};
+
+CLASS HalfSaturationConstantForAminoAcidDegradation
+   "half saturation constant for amino acid degradation"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "kgCOD/m3";
+   :};
+CLASS HalfSaturationConstantForAcetateDegradation
+   "half saturation constant for acetate degradation"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "kgCOD/m3";
+   :};
+
+CLASS HalfSaturationConstantForButyrateAndValerateDegradation
+   "half saturation constant for butyrate and valerate degradation"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "kgCOD/m3";
+   :};
+
+CLASS HalfSaturationConstantForLongChainFattyAcidsDegradation
+   "half saturation constant for long chain fatty acids degradation"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "kgCOD/m3";
+   :};
+CLASS HalfSaturationConstantForUptakeOfHydrogen
+   "half saturation constant for uptake of hydrogen"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "kgCOD/m3";
+   :};
+CLASS InorganicNitrogenConcentrationAtWhichGrowthCeases
+   "inorganic nitrogen concentration at which growth ceases"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "M";
+   :};
+CLASS HalfSaturationConstantForPropionateDegradation
+   "half saturation constant for propionate degradation"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "kgCOD/m3";
+   :};
+
+CLASS HalfSaturationConstantForMonosaccharideDegradation
+   "half saturation constant for monosaccharide degradation"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "kgCOD/m3";
+   :};
+
+// pressure and general constants
+
+CLASS BarPressure
+   "pressure "
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "bar";
+   :};
+
+CLASS GasLawConstant
+   "Gas law constant"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "bar.M-1.K-1";
+   :};
+
+CLASS SolidsRetentionTimeInAdditionToHydraulicRetentionTime
+   "solids retention time in addition to hydraulic retention time"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "K";
+   :};
+
+ // for interface and state variables
+
+CLASS KgDensity
+   "Water Density"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "kg/m3";
+   :};
+
+CLASS KgCODConcentration
+   "Concentration of COD components"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "kgCOD/m";
+   :};
+
+CLASS InhibitionFactor
+   "Inhibition Factor"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    unit     <- "_";
+   :};
+
+   CLASS ADMMass "A class for (kg, kmol) mass in the scope of ADM1"
+   SPECIALISES PhysicalQuantityType := 
+   {:
+    quantity  <- "Mass";
+    unit      <- "kg";
+    interval  <- {: lowerBound <- 0; upperBound <- PLUS_INF; :};
+   :};
+
+   CLASS ADMConcentration "A class for (kg, kmol) concentration in the scope of ADM1"
+   SPECIALISES PhysicalQuantityType :=
+   {:
+    nature <- "ACROSS";
+    quantity <- "Concentration";
+    unit <- "kg/m3";
+    interval <- {: lowerBound <- 0; upperBound <- PLUS_INF :};
+   :};
+   
+ //===================================================================
+//==========================Begin of components & reactions def.=====
+//===================================================================
+
+ 
+TYPE ADM1Components
+  "The biological components considered in the ADM1 model"
+  = ENUM { H2O_An, S_INN, S_IC, S_ch4, S_h2, S_aa, S_ac, S_bu, S_fa, S_Inert, S_pro, S_su, S_va, X_aa, X_ac, X_c, X_c4, X_ch, X_fa, X_h2, X_Inert, X_li, X_pr, X_pro, X_su, S_an, S_cat};
+
+TYPE ADM1IonComponents
+  "The ion components considered in the ADM1 model"
+  = ENUM { S_ac_ion, S_bu_ion, S_pro_ion, S_va_ion, S_hco3_ion, S_nh3};
+
+TYPE ADM1GasVesselComponents
+  "The gaseous components considered in the ADM1 model in the gas phase"
+  = ENUM { S_ch4_gas, S_co2_gas, S_h2_gas};
+  
+TYPE ADM1GasComponentsInliquid
+    "The gaseous components considered in the ADM1 model dissolved in the liquid phase"
+  = ENUM { S_ch4_liq, S_IC_liq, S_h2_liq};
+
+ // Here, the user specifies which reactions between 
+ // components will be considered
+ // As with Components this is
+ // done as an enumerated type so it becomes possible
+ // to refer to elements in the Stoichiometry and in the
+ // Kinetics matrices by name rather than by number.
+ 
+ TYPE ADM1Reactions
+  "The anaerobic reactions between biological components considered in the ADM1 model"
+  = ENUM {decay_aa, decay_ac, decay_c4, decay_fa, decay_h2, decay_pro, decay_su,
+  	dis, hyd_ch, hyd_li, hyd_pr,
+	uptake_aa, uptake_ac, uptake_bu, uptake_fa, uptake_h2, uptake_pro, uptake_su, uptake_va, };
+
+TYPE ADM1IonReactions
+  "The equilibrium reactions between biological components considered in the ADM1 model"
+  = ENUM {dissociation_va, dissociation_bu, dissociation_pro, dissociation_ac, hco3_co2, ammonia_production, };
+
+TYPE ADM1GasTransfer
+  "The anaerobic gas transfer considered in the ADM1 model"
+  = ENUM {transfer_ch4, transfer_co2, transfer_h2, };
+
+//================================================================
+//==========================end of defining comp & react==========
+//================================================================
+
+// vector CLASSES defined for general purposes
+// length == NrOfComponents
+// type of elements declared in the class-naming
+// e.g MassVector == vector containing masses
+
+// vector CLASSES used in the ADM1 model
+
+ OBJ NrOfADM1GasComponents "The number of anaerobic components considered in the gas"
+  : Integer := Cardinality(ADM1GasVesselComponents);
+
+OBJ NrOfADM1GasComponentsInliquid "The number of gaseous anaerobic components dissolved in the liquid"
+  : Integer := Cardinality(ADM1GasComponentsInliquid);
+
+ OBJ NrOfADM1Components "The number of anaerobic components considered in the ADM1 model"
+  : Integer := Cardinality(ADM1Components);
+
+OBJ NrOfADM1IonComponents "The number of anaerobic ion components considered in the ADM1 model"
+  : Integer := Cardinality(ADM1IonComponents);
+  
+ 
+ OBJ NrOfADM1Reactions "The number of anaerobic reactions considered in the ADM1 model"
+  : Integer := Cardinality(ADM1Reactions);
+
+OBJ NrOfADM1IonReactions "The number of anaerobic ion reactions considered in the ADM1 model"
+  : Integer := Cardinality(ADM1IonReactions);
+
+OBJ NrOfADM1GasTransfer "The number of anaerobic gas transfers considered in the ADM1 model"
+  : Integer := Cardinality(ADM1GasTransfer);
+
+CLASS ADM1GasOutFromTheADVessel "The variables which are passed between WWTP model building blocks here in concentrations"
+  = PhysicalQuantityType[NrOfADM1GasComponents;];
+
+CLASS ADM1MassVector "The mass of components in the reactor"
+  = ADMMass[NrOfADM1Components;];		 //PhysicalQuantityType[NrOfADM1Components;]; 
+
+CLASS ADM1GasMassVector "The mass of gasses in the reactor"
+  = ADMMass[NrOfADM1GasComponents;];		 //PhysicalQuantityType[NrOfADM1GasComponents;];
+  
+CLASS ADM1ConcVector "The variables which are passed between WWTP model building blocks here in General concentrations"
+  = ADMConcentration[NrOfADM1Components;];		 //PhysicalQuantityType[NrOfADM1Components;];
+
+CLASS ADM1IonConcVector "The variables which are passed between WWTP model building blocks here in General concentrations"
+  = ADMConcentration[NrOfADM1IonComponents;];		 //PhysicalQuantityType[NrOfADM1IonComponents;];
+
+CLASS ADM1GasConcVector "The variables which are passed between WWTP model building blocks here in General concentrations"
+  = ADMConcentration[NrOfADM1GasComponents;];		 //PhysicalQuantityType[NrOfADM1GasComponents;];
+
+CLASS ADM1ConcTerminal "The variables which are passed between WWTP model building blocks here in General concentrations"
+  = Concentration[NrOfADM1Components;];		 //PhysicalQuantityType[NrOfADM1Components;]; 
+
+
+CLASS InADM1ConcTerminal SPECIALISES ADM1ConcTerminal; //used to indicate inflow concentrations
+CLASS OutADM1ConcTerminal SPECIALISES ADM1ConcTerminal; //used to indicate outflow concentrations
+CLASS ADM1MassFluxVector = PhysicalQuantityType[NrOfADM1Components;];
+CLASS ADM1GasMassFluxVector = PhysicalQuantityType[NrOfADM1GasComponents;];
+CLASS ADM1IonConcentrationVector = PhysicalQuantityType[NrOfADM1IonComponents;];
+
+// End of Vector Classes
+
+#endif // WWTP_ADMdefinitions
