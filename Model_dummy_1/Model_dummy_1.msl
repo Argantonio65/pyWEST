@@ -17,6 +17,7 @@ CLASS Model_dummy_1 (* icon = ""; file = ""; *)  SPECIALISES CoupledModelType :=
 
   parameters <-
   {
+    OBJ SOD (* *) "Sediment Oxygen Demand (g/m2/day)" : Real := {: value <- 5; interval <- {: lowerBound <- -INF; upperBound <- +INF; :}; group <- "Inputs"; :};
   };
 
   sub_models <-
@@ -32,6 +33,11 @@ CLASS Model_dummy_1 (* icon = ""; file = ""; *)  SPECIALISES CoupledModelType :=
 
   coupling <-
   {
+    sub_models.River_4.parameters.SOD.value := parameters.SOD.value,
+    sub_models.River_1.parameters.SOD.value := parameters.SOD.value,
+    sub_models.River_5.parameters.SOD.value := parameters.SOD.value,
+    sub_models.River_2.parameters.SOD.value := parameters.SOD.value,
+    sub_models.River_3.parameters.SOD.value := parameters.SOD.value,
 
     connect(interface.Temperature_water, sub_models.River_4.interface.T),
     connect(sub_models.River_1.interface.Outflow, sub_models.River_2.interface.Inflow1),

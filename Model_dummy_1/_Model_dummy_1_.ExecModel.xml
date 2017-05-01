@@ -4,7 +4,7 @@
 <Props>
 <Prop Name="TornadoVersion" Value="2016 "/>
 <Prop Name="Author" Value="TUD278183\localadmin"/>
-<Prop Name="Date" Value="Tue Mar 07 22:08:52 2017"/>
+<Prop Name="Date" Value="Mon May 01 14:42:37 2017"/>
 <Prop Name="FileName" Value="./_Model_dummy_1_.ExecModel.xml"/>
 </Props>
 <Node Type="CLASS">
@@ -24,10 +24,41 @@
 </Node>
 <Node Type="EQUATIONS">
 <Children>
+<Node Type="EQUATION">
+<Children>
+<Node Type="BOOLEAN" Data="false"/>
+<Node Type="ID" Data="River_4.SOD"/>
+<Node Type="ID" Data="SOD"/>
 </Children>
 </Node>
-<Node Type="EMPTY">
+<Node Type="EQUATION">
 <Children>
+<Node Type="BOOLEAN" Data="false"/>
+<Node Type="ID" Data="River_1.SOD"/>
+<Node Type="ID" Data="SOD"/>
+</Children>
+</Node>
+<Node Type="EQUATION">
+<Children>
+<Node Type="BOOLEAN" Data="false"/>
+<Node Type="ID" Data="River_5.SOD"/>
+<Node Type="ID" Data="SOD"/>
+</Children>
+</Node>
+<Node Type="EQUATION">
+<Children>
+<Node Type="BOOLEAN" Data="false"/>
+<Node Type="ID" Data="River_2.SOD"/>
+<Node Type="ID" Data="SOD"/>
+</Children>
+</Node>
+<Node Type="EQUATION">
+<Children>
+<Node Type="BOOLEAN" Data="false"/>
+<Node Type="ID" Data="River_3.SOD"/>
+<Node Type="ID" Data="SOD"/>
+</Children>
+</Node>
 </Children>
 </Node>
 <Node Type="EMPTY">

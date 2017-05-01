@@ -79,7 +79,7 @@ ModelInstance = ModelInstances(['Model_dummy_1'], modelPath = repPath)
 #%%                          
 # Parameters
 Timelist = {'StartTime':float((pd.to_datetime(Initial) - pd.to_datetime(Dateseries[:11])).days),'StopTime':float((pd.to_datetime(Final) - pd.to_datetime(Dateseries[:11])).days)}
-Parameterlist = {'n':0.07, 'KBODs':0.55, 'KLmin':0.1, 'KO2':1.6} 
+Parameterlist = {'n':0.07, 'KBODs':0.55, 'KLmin':0.1, 'KO2':1.6, 'SOD':1} 
 
 
 #%% Model Run

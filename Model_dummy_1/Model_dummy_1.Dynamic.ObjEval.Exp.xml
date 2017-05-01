@@ -4,9 +4,9 @@
 <Props>
 <Prop Name="TornadoVersion" Value="2016 "/>
 <Prop Name="Author" Value="TUD278183\localadmin"/>
-<Prop Name="Date" Value="Wed Mar 08 17:12:10 2017"/>
+<Prop Name="Date" Value="Mon May 01 14:44:30 2017"/>
 <Prop Name="Desc" Value=""/>
-<Prop Name="FileName" Value="C:\Users\localadmin.TUD278183\Desktop\pyWEST\Model_dummy_1\Model_dummy_1.Dynamic.ObjEval.Exp.xml|.Tornado"/>
+<Prop Name="FileName" Value="C:\Users\localadmin.TUD278183\Desktop\GitProjects\pyWEST\Model_dummy_1\Model_dummy_1.Dynamic.ObjEval.Exp.xml|.Tornado"/>
 <Prop Name="DisplayName" Value=""/>
 <Prop Name="UnitSystem" Value="Model-based"/>
 </Props>
@@ -18,7 +18,7 @@
 <Prop Name="Author" Value=""/>
 <Prop Name="Date" Value=""/>
 <Prop Name="Desc" Value=""/>
-<Prop Name="FileName" Value="C:\Users\localadmin.TUD278183\Desktop\pyWEST\Model_dummy_1\Model_dummy_1.Dynamic.ObjEval.Exp.xml|.Tornado.Exp.ObjEval.Obj"/>
+<Prop Name="FileName" Value="C:\Users\localadmin.TUD278183\Desktop\GitProjects\pyWEST\Model_dummy_1\Model_dummy_1.Dynamic.ObjEval.Exp.xml|.Tornado.Exp.ObjEval.Obj"/>
 <Prop Name="DisplayName" Value=""/>
 <Prop Name="UnitSystem" Value="Model-based"/>
 </Props>
@@ -26,8 +26,8 @@
 <Model Name="_Model_dummy_1_" Cached="false" CheckBounds="false" StopWhenBoundsViolation="false" StopWhenSteadyState="false" SteadyStateTol="1e-006">
 <Quantities>
 <Quantity Name=".t" DisplayUnit="d"/>
-<Quantity Name=".Rural_baseflow" Value="0.000421016"/>
-<Quantity Name=".Temperature_water" Value="18.7"/>
+<Quantity Name=".Rural_baseflow" Value="0.000572076"/>
+<Quantity Name=".Temperature_water" Value="19.6660614093136"/>
 <Quantity Name=".River_2.n" Value="0.04"/>
 <Quantity Name=".River_2.Vol_min" Value="0.5"/>
 <Quantity Name=".River_2.KBODs" Value="0.4"/>
@@ -36,14 +36,14 @@
 <Quantity Name=".River_2.VKL" Value="2"/>
 <Quantity Name=".River_2.MB" Value="10"/>
 <Quantity Name=".River_2.T_par" Value="50000"/>
-<Quantity Name=".River_2.Inflow1(rH2O)" Value="43310684155.9823"/>
-<Quantity Name=".River_2.Inflow1(rO2)" Value="332601.285711914"/>
-<Quantity Name=".River_2.Inflow1(rBOD1)" Value="125715.664792593"/>
-<Quantity Name=".River_2.Inflow1(rBOD2)" Value="42248.0904054654"/>
-<Quantity Name=".River_2.Inflow1(rNH4)" Value="2133.47119604247"/>
-<Quantity Name=".River_2.Inflow1(rBOD1p)" Value="318.679274570351"/>
-<Quantity Name=".River_2.Inflow1(rBOD2p)" Value="81.6521957883788"/>
-<Quantity Name=".River_2.T" Value="18.7"/>
+<Quantity Name=".River_2.Inflow1(rH2O)" Value="55957348021.8023"/>
+<Quantity Name=".River_2.Inflow1(rO2)" Value="421365.514875558"/>
+<Quantity Name=".River_2.Inflow1(rBOD1)" Value="162772.66421631"/>
+<Quantity Name=".River_2.Inflow1(rBOD2)" Value="54672.4466289854"/>
+<Quantity Name=".River_2.Inflow1(rNH4)" Value="2758.74289079529"/>
+<Quantity Name=".River_2.Inflow1(rBOD1p)" Value="434.845742273513"/>
+<Quantity Name=".River_2.Inflow1(rBOD2p)" Value="132.35223315666"/>
+<Quantity Name=".River_2.T" Value="19.6660614093136"/>
 <Quantity Name=".River_2.Q" DisplayUnit="m3/s"/>
 <Quantity Name=".River_2.vel_water" DisplayUnit="m/s"/>
 <Quantity Name=".River_2.M(rH2O)" Value="7546867851.94252"/>
@@ -62,14 +62,14 @@
 <Quantity Name=".River_3.VKL" Value="2"/>
 <Quantity Name=".River_3.MB" Value="10"/>
 <Quantity Name=".River_3.T_par" Value="50000"/>
-<Quantity Name=".River_3.Inflow1(rH2O)" Value="44463999130.0314"/>
-<Quantity Name=".River_3.Inflow1(rO2)" Value="334815.937800885"/>
-<Quantity Name=".River_3.Inflow1(rBOD1)" Value="124998.717056345"/>
-<Quantity Name=".River_3.Inflow1(rBOD2)" Value="42340.7245061821"/>
-<Quantity Name=".River_3.Inflow1(rNH4)" Value="2158.85606788746"/>
-<Quantity Name=".River_3.Inflow1(rBOD1p)" Value="244.076093544633"/>
-<Quantity Name=".River_3.Inflow1(rBOD2p)" Value="16.2071462659838"/>
-<Quantity Name=".River_3.T" Value="18.7"/>
+<Quantity Name=".River_3.Inflow1(rH2O)" Value="54120349589.3445"/>
+<Quantity Name=".River_3.Inflow1(rO2)" Value="393953.662811359"/>
+<Quantity Name=".River_3.Inflow1(rBOD1)" Value="152468.248120273"/>
+<Quantity Name=".River_3.Inflow1(rBOD2)" Value="51617.7017606236"/>
+<Quantity Name=".River_3.Inflow1(rNH4)" Value="2629.47578841314"/>
+<Quantity Name=".River_3.Inflow1(rBOD1p)" Value="321.894932115831"/>
+<Quantity Name=".River_3.Inflow1(rBOD2p)" Value="29.5149061029743"/>
+<Quantity Name=".River_3.T" Value="19.6660614093136"/>
 <Quantity Name=".River_3.Q" DisplayUnit="m3/s"/>
 <Quantity Name=".River_3.vel_water" DisplayUnit="m/s"/>
 <Quantity Name=".River_3.M(rH2O)" Value="7597732830.48932"/>
@@ -88,14 +88,14 @@
 <Quantity Name=".River_4.VKL" Value="2"/>
 <Quantity Name=".River_4.MB" Value="10"/>
 <Quantity Name=".River_4.T_par" Value="50000"/>
-<Quantity Name=".River_4.Inflow1(rH2O)" Value="45513249241.3879"/>
-<Quantity Name=".River_4.Inflow1(rO2)" Value="339381.033617168"/>
-<Quantity Name=".River_4.Inflow1(rBOD1)" Value="124017.94704156"/>
-<Quantity Name=".River_4.Inflow1(rBOD2)" Value="42333.7405686973"/>
-<Quantity Name=".River_4.Inflow1(rNH4)" Value="2178.89514669944"/>
-<Quantity Name=".River_4.Inflow1(rBOD1p)" Value="188.206965019126"/>
-<Quantity Name=".River_4.Inflow1(rBOD2p)" Value="3.30633703784639"/>
-<Quantity Name=".River_4.T" Value="18.7"/>
+<Quantity Name=".River_4.Inflow1(rH2O)" Value="52346343873.1375"/>
+<Quantity Name=".River_4.Inflow1(rO2)" Value="374347.804054183"/>
+<Quantity Name=".River_4.Inflow1(rBOD1)" Value="142685.28128802"/>
+<Quantity Name=".River_4.Inflow1(rBOD2)" Value="48701.0642517725"/>
+<Quantity Name=".River_4.Inflow1(rNH4)" Value="2505.35684033058"/>
+<Quantity Name=".River_4.Inflow1(rBOD1p)" Value="235.267503324226"/>
+<Quantity Name=".River_4.Inflow1(rBOD2p)" Value="6.33093988420176"/>
+<Quantity Name=".River_4.T" Value="19.6660614093136"/>
 <Quantity Name=".River_4.Q" DisplayUnit="m3/s"/>
 <Quantity Name=".River_4.vel_water" DisplayUnit="m/s"/>
 <Quantity Name=".River_4.M(rH2O)" Value="7639070683.26776"/>
@@ -114,14 +114,14 @@
 <Quantity Name=".River_5.VKL" Value="2"/>
 <Quantity Name=".River_5.MB" Value="10"/>
 <Quantity Name=".River_5.T_par" Value="50000"/>
-<Quantity Name=".River_5.Inflow1(rH2O)" Value="46260358216.2135"/>
-<Quantity Name=".River_5.Inflow1(rO2)" Value="343358.865698722"/>
-<Quantity Name=".River_5.Inflow1(rBOD1)" Value="122216.803643332"/>
-<Quantity Name=".River_5.Inflow1(rBOD2)" Value="42038.7908522548"/>
-<Quantity Name=".River_5.Inflow1(rNH4)" Value="2183.98135294031"/>
-<Quantity Name=".River_5.Inflow1(rBOD1p)" Value="144.480296686476"/>
-<Quantity Name=".River_5.Inflow1(rBOD2p)" Value="0.687215199382374"/>
-<Quantity Name=".River_5.T" Value="18.7"/>
+<Quantity Name=".River_5.Inflow1(rH2O)" Value="51188133549.0288"/>
+<Quantity Name=".River_5.Inflow1(rO2)" Value="362965.172795407"/>
+<Quantity Name=".River_5.Inflow1(rBOD1)" Value="135023.016607196"/>
+<Quantity Name=".River_5.Inflow1(rBOD2)" Value="46461.7519501925"/>
+<Quantity Name=".River_5.Inflow1(rNH4)" Value="2413.67479821716"/>
+<Quantity Name=".River_5.Inflow1(rBOD1p)" Value="173.581665460902"/>
+<Quantity Name=".River_5.Inflow1(rBOD2p)" Value="1.32166808584877"/>
+<Quantity Name=".River_5.T" Value="19.6660614093136"/>
 <Quantity Name=".River_5.Q" DisplayUnit="m3/s"/>
 <Quantity Name=".River_5.vel_water" DisplayUnit="m/s"/>
 <Quantity Name=".River_5.M(rH2O)" Value="7649582594.69574"/>
@@ -144,15 +144,15 @@
 <Quantity Name=".River_1.VKL" Value="2"/>
 <Quantity Name=".River_1.MB" Value="10"/>
 <Quantity Name=".River_1.T_par" Value="50000"/>
-<Quantity Name=".River_1.Inflow1(rH2O)" Value="42101600000"/>
-<Quantity Name=".River_1.Inflow1(rO2)" Value="336812.8"/>
-<Quantity Name=".River_1.Inflow1(rBOD1)" Value="126304.8"/>
-<Quantity Name=".River_1.Inflow1(rBOD2)" Value="42101.6"/>
-<Quantity Name=".River_1.Inflow1(rNH4)" Value="2105.08"/>
-<Quantity Name=".River_1.Inflow1(rBOD1p)" Value="421.016"/>
-<Quantity Name=".River_1.Inflow1(rBOD2p)" Value="421.016"/>
-<Quantity Name=".River_1.Inflow1(rBODs)" Value="421.016"/>
-<Quantity Name=".River_1.T" Value="18.7"/>
+<Quantity Name=".River_1.Inflow1(rH2O)" Value="57207600000"/>
+<Quantity Name=".River_1.Inflow1(rO2)" Value="457660.8"/>
+<Quantity Name=".River_1.Inflow1(rBOD1)" Value="171622.8"/>
+<Quantity Name=".River_1.Inflow1(rBOD2)" Value="57207.6"/>
+<Quantity Name=".River_1.Inflow1(rNH4)" Value="2860.38"/>
+<Quantity Name=".River_1.Inflow1(rBOD1p)" Value="572.076"/>
+<Quantity Name=".River_1.Inflow1(rBOD2p)" Value="572.076"/>
+<Quantity Name=".River_1.Inflow1(rBODs)" Value="572.076"/>
+<Quantity Name=".River_1.T" Value="19.6660614093136"/>
 <Quantity Name=".River_1.Q" DisplayUnit="m3/s"/>
 <Quantity Name=".River_1.vel_water" DisplayUnit="m/s"/>
 <Quantity Name=".River_1.M(rH2O)" Value="7508913890.8851"/>
@@ -165,7 +165,7 @@
 <Quantity Name=".River_1.M(rBODs)" Value="1513.65911334671"/>
 <Quantity Name=".Rural_inflow.surface" Value="100000000" DisplayUnit="ha"/>
 <Quantity Name=".Rural_inflow.O2_in" Value="8"/>
-<Quantity Name=".Rural_inflow.rainfall" Value="0.000421016"/>
+<Quantity Name=".Rural_inflow.rainfall" Value="0.000572076"/>
 </Quantities>
 </Model>
 <Inputs Enabled="true">

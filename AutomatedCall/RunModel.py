@@ -24,7 +24,7 @@ import sys
 import csv
 from datetime import datetime
 import os
-
+import random
 
 TornadoLocationArg = [i for i in sys.argv if 'Tornado_path:' in i][0]
 ExperimentLocationArg = [i for i in sys.argv if 'Experiment_path:' in i][0]
@@ -42,8 +42,10 @@ def SetMessage(Type, Message):
 	else:
 		print "? |", Message
 
-def SetTime(Time):
-	print "Time =", Time
+def SetTime(Time): # Will print the progress 0.05% of the iterations (it shows, but not too much!) 
+    if random.random()<0.0005:
+        print "Time =", round(Time,1)
+
  
 #Change parameter Values
 def ChangeGlobalParameter(ExpSS, Parameter, Value, show='FALSE', Reference=None):
@@ -68,23 +70,35 @@ def ChangeGlobalParameter(ExpSS, Parameter, Value, show='FALSE', Reference=None)
     """
     if Reference is None:
         SubModelNames = ExpSS.ModelEnumerateModels("")
-        for submodel in SubModelNames:
-            Parametros = ExpSS.ModelEnumerateParams("." + submodel)
-            if Parameter in Parametros:
-                ExpSS.ModelSetInitialValue("." + submodel + "." + Parameter, Value)
-                if show=='TRUE':
-                    print "Setting " + "." + submodel + "." + Parameter + " to = " + str(Value)
+        Parametros = ExpSS.ModelEnumerateParams("")
+        if Parameter in Parametros:
+            ExpSS.ModelSetInitialValue("." + Parameter, Value)
+            print 'Setting Top-level Parameter ' + Parameter + " to = " + str(Value)
+        else:
+            for submodel in SubModelNames:
+                Parametros = ExpSS.ModelEnumerateParams("." + submodel)
+                if Parameter in Parametros:
+                    ExpSS.ModelSetInitialValue("." + submodel + "." + Parameter, Value)
+                    if show=='TRUE':
+                        print "Setting " + "." + submodel + "." + Parameter + " to = " + str(Value)
+
     elif Reference == 'Multiplier':
         SubModelNames = ExpSS.ModelEnumerateModels("")
-        for submodel in SubModelNames:
-            Parametros = ExpSS.ModelEnumerateParams("." + submodel)
-            if Parameter in Parametros:
-                LocalValue = ExpSS.ExpGetInitialValue("." + submodel + "." + Parameter)
-                ExpSS.ModelSetInitialValue("." + submodel + "." + Parameter, LocalValue*Value)
-                if show=='TRUE':
-                    print "Setting " + "." + submodel + "." + Parameter + " to = " + str(LocalValue*Value) + ' multiplied by ' + str(Value)
-    elif 'Manipulated' in Reference:
+        Parametros = ExpSS.ModelEnumerateParams("")
+        if Parameter in Parametros:
+            LocalValue = ExpSS.ExpGetInitialValue("." + Parameter)
+            ExpSS.ModelSetInitialValue("." + Parameter, LocalValue*Value)
+            print 'Setting Top-level Parameter ' + Parameter + " to = " + str(LocalValue*Value) + ' multiplied by ' + str(Value)
+        else:
+            for submodel in SubModelNames:
+                Parametros = ExpSS.ModelEnumerateParams("." + submodel)
+                if Parameter in Parametros:
+                    LocalValue = ExpSS.ExpGetInitialValue("." + submodel + "." + Parameter)
+                    ExpSS.ModelSetInitialValue("." + submodel + "." + Parameter, LocalValue*Value)
+                    if show=='TRUE':
+                        print "Setting " + "." + submodel + "." + Parameter + " to = " + str(LocalValue*Value) + ' multiplied by ' + str(Value)
 
+    elif 'Manipulated' in Reference:
         if '_' in Reference:
             SubmodelPlacer = Reference[Reference.index('_')+1:]
             SubModelNames = ExpSS.ModelEnumerateModels("")
@@ -193,8 +207,8 @@ try:
     Tornado.EventSetMessage += SetMessage
 
     Exp = Tornado.ExpLoad(ExperimentLocation)
+    
     Exp.EventSetTime += SetTime
-
     
     ExpSimul = Exp.ExpGetSimul()
 			
