@@ -5,17 +5,21 @@ Created on Wed Feb 22 15:49:18 2017
 Process setting a new automatic inference process:
     1- Create a n model folder replicates eg. \Model_1 \Model_2 ... \Modeln
     2- Copy an instance of Tornado.Main inside each model folder. Change inside this file Prop Name="CalcVarPrefix" Value="Model1"
-    3- Create a folder called \inference  where Parallel_modelRunningWrapper.py and ModelRun.py are located
-    4- Inside Parallel_modelRunninWrapper.py change the model experiment name to the one chosen in the WEST model.
+    3- Create a folder called \inference  where Parallel_WESTRunningPyWrapper.py and ModelRun.py are located
+    4- Inside Parallel_WESTRunningPyWrapper.py change the model experiment name to the one chosen in the WEST model.
     5- Instanciate n models and run them
-    
-Sensitivity analysis scheme
+
+Forward uncertainty propagation scheme (parallel)
     
     
 @author: A. Moreno Rodenas, TUDelft
 """
 
-#General Libraries
+#%% set modelrepository path
+repPath = 'C:\Users\localadmin.TUD278183\Desktop\GitProjects\pyWest'
+
+
+#%%General Libraries
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -24,8 +28,8 @@ plt.style.use('ggplot')
 
 import sys
 import timeit
-sys.path.insert(0, 'C:\Users\localadmin.TUD278183\Desktop\pyWest\AutomatedCall')
-from Parallel_WESTRunningWrapper import ModelInstances
+sys.path.insert(0, repPath + '\AutomatedCall')
+from Parallel_WESTRunningPyWrapper import ModelInstances
 
 
 #%% DEFINE SA TIME
@@ -36,10 +40,10 @@ Final = TimeWindow[12:]
 
 
 #%% Load parameter sampling scheme
-SamplingLayout = pd.read_csv('C:\\Users\\localadmin.TUD278183\\Desktop\\pyWEST\\500SamplesUP.txt', index_col = [0])
+SamplingLayout = pd.read_csv('C:\\Users\\localadmin.TUD278183\\Desktop\\GitProjects\\pyWEST\\500SamplesUP.txt', index_col = [0])
 
 #%% CREATE Model instance with n replicates
-ModelInstance = ModelInstances(['Model_dummy_1', 'Model_dummy_2', 'Model_dummy_3', 'Model_dummy_4'], modelPath = "C:\Users\localadmin.TUD278183\Desktop\pyWEST")
+ModelInstance = ModelInstances(['Model_dummy_1', 'Model_dummy_2', 'Model_dummy_3', 'Model_dummy_4'], modelPath = repPath)
 
 
 #%% n Core SA Parallel
