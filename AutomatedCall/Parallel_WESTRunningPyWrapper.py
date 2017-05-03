@@ -177,16 +177,7 @@ class ModelInstances:
                writer.writerow([key, value])
 
 
-    def model_activateParallel(self, Parameterlist, Timelist, ModelName):
-        
-        PathsArg = {'Tornado_path': self.Paths + r"\\" + ModelName + "\Tornado.Main.xml",
-                        'Experiment_path': self.Paths + r"\\" + ModelName + r"\Model_dummy_1.Dynamic.ObjEval.Exp.xml"}  # Warning change the name of the model instance.Exp.xml.
-                
-        ExecuteModel(ModelName, Parameterlist, Timelist, PathsArg, self.Paths)
-        self.storeModelOutput(ModelName, Parameterlist, Timelist, PathsArg)
 
-        self.release(self.InstanceNames.index(ModelName)) # Point to the index associated to that model and release it
-   
     def model_run(self, Parameterlist, Timelist):
         
         ModelName = self.get_nextAvailable()

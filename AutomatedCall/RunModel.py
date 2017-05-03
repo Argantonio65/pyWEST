@@ -210,7 +210,7 @@ try:
     
     Exp.EventSetTime += SetTime
     
-    ExpSimul = Exp.ExpGetSimul()
+    #ExpSimul = Exp.ExpGetSimul()
 			
 
     
