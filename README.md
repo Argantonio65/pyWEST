@@ -43,7 +43,7 @@ Python scripts for water quality simulators in WEST (MIKE DHI).
   ```python
   ModelInstance.model_run(Parameterlist, Timelist)
   ```
-  Note: each call to model_run will initiate a call to the next available Model instance. This will open a call in the background. The execution of the program will be halted until all runs are finished.
+  Note: each call to model_run will use the next available Model instance in an availability basis. This will open a call in the background. The execution of the program will be halted until all simulations are finished.
 - Read outputs:
   ```python
   output = ReadOutput('Model_dummy_1.Dynamic_water_quality.Simul.1.out.txt', ModelInstance.InstanceNames[0], TimeWindowStart = '01-01-2012 00:00:00', variable = '.River_5.DO')
