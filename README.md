@@ -32,13 +32,13 @@ Python scripts for water quality simulators in WEST (MIKE DHI).
   Timelist = {'StartTime':0,'StopTime':15}
   Parameterlist = {'n':0.07, 'KBODs':0.55, 'KLmin':0.1, 'KO2':1.6, 'SOD':1} 
   ```
-      A Parameterlist is formed by a dictionary of parameter values.
-      A call in the form:
-        - 'param':value will set all parameter names (even if it has been declared as a Top-level parameter) to the value specified.
-        - 'param@submodel':value will set the parameter 'param' only in the block model 'submodel'. This allows for local specifications.
-        - 'param@Manipulated':value sets a manipulated variable value which doesn't carry any declared input. There is the option                   'param@Manipulated#submodel':value to make the change only at submodel level.
-        - 'param@Multiplier':value works by ofsetting its current saved value by a multiplyier value.
-    
+  A Parameterlist is formed by a dictionary of parameter values.
+  A call in the form:
+    - 'param':value will set all parameter names (even if it has been declared as a Top-level parameter) to the value specified.
+    - 'param@submodel':value will set the parameter 'param' only in the block model 'submodel'. This allows for local specifications.
+    - 'param@Manipulated':value sets a manipulated variable value which doesn't carry any declared input. There is the option                   'param@Manipulated#submodel':value to make the change only at submodel level.
+    - 'param@Multiplier':value works by ofsetting its current saved value by a multiplyier value.
+
 - Run Model:
   ```python
   ModelInstance.model_run(Parameterlist, Timelist)
