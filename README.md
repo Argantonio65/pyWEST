@@ -20,7 +20,7 @@ Python scripts for water quality simulators in WEST (MIKE DHI).
 - Create n model replicate folders in the main directory. Name the replicates eg. \Model_1 \Model_2 ... \Modeln
 - Copy an instance of Tornado.Main.xml inside each model folder. Change inside this file: Prop Name="CalcVarPrefix" Value="Model1"
 
-## Operation Automated Call
+## Operation Automated_Call.py
 
 - Instanciate n models with:
   ```python
@@ -48,3 +48,17 @@ Python scripts for water quality simulators in WEST (MIKE DHI).
   ```python
   output = ReadOutput('Model_dummy_1.Dynamic_water_quality.Simul.1.out.txt', ModelInstance.InstanceNames[0], TimeWindowStart = '01-01-2012 00:00:00', variable = '.River_5.DO')
   ```
+  
+  **Note:** Simulations produced by calling .model_run(Parameterlist, Timelist) store all output files in a new folder \SimulationOutput\ModelName\ In the process it saves: All output files from the WEST experiment which has .out. in their names. A txt file containing all iternal parameter values in the model <Internal_parameters.out.txt> and a file containing all changed parameter values from the Parameterlist in <External_parameters.txt>.
+## Operation Uncertainty_propagation.py
+
+This script automatizes a parameter sampling scheme provided by:
+
+  ```python
+ SamplingLayout = pd.read_csv('\pyWEST\500SamplesUP.txt', index_col = [0])
+  ```
+An example for the format is found at pyWEST\500SamplesUP.txt
+
+The script performs a simulation for each row in the layout. It will call in parallel as many simulations as model instances provided. Limited by the available slots in the license file (academic license x4).
+
+The function Read_SA_outputVariable loads the selected variable from the output folder.
