@@ -43,13 +43,14 @@ Python scripts for water quality simulators in WEST (MIKE DHI).
   ```python
   ModelInstance.model_run(Parameterlist, Timelist)
   ```
-  Note: each call to model_run will use the next available Model instance in an availability basis. This will open a call in the background. The execution of the program will be halted until all simulations are finished.
+  **Note:** each call to model_run will use the next available Model instance in an availability basis. This will open a call in the background. The execution of the program will be halted until all simulations are finished.
 - Read outputs:
   ```python
   output = ReadOutput('Model_dummy_1.Dynamic_water_quality.Simul.1.out.txt', ModelInstance.InstanceNames[0], TimeWindowStart = '01-01-2012 00:00:00', variable = '.River_5.DO')
   ```
   
-  **Note:** Simulations produced by calling .model_run(Parameterlist, Timelist) store all output files in a new folder \SimulationOutput\ModelName\ In the process it saves: All output files from the WEST experiment which has .out. in their names. A txt file containing all iternal parameter values in the model <Internal_parameters.out.txt> and a file containing all changed parameter values from the Parameterlist in <External_parameters.txt>.
+  **Note:** Simulations produced by calling .model_run(Parameterlist, Timelist) store all output files in a new folder \SimulationOutput\ModelName\Sim_i\. Each Sim_i contains: All output files from the WEST experiment which has .out. in their names. A txt file containing all iternal parameter values in the model <Internal_parameters.out.txt> and a file containing all changed parameter values from the Parameterlist in <External_parameters.txt>.
+  
 ## Operation Uncertainty_propagation.py
 
 This script automatizes a parameter sampling scheme provided by:
