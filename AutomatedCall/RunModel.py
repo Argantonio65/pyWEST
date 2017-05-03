@@ -99,8 +99,8 @@ def ChangeGlobalParameter(ExpSS, Parameter, Value, show='FALSE', Reference=None)
                         print "Setting " + "." + submodel + "." + Parameter + " to = " + str(LocalValue*Value) + ' multiplied by ' + str(Value)
 
     elif 'Manipulated' in Reference:
-        if '_' in Reference:
-            SubmodelPlacer = Reference[Reference.index('_')+1:]
+        if '#' in Reference:
+            SubmodelPlacer = Reference[Reference.index('#')+1:]
             SubModelNames = ExpSS.ModelEnumerateModels("")
             for submodel in SubModelNames:
                 Inputs = ExpSS.ModelEnumerateInputVars("." + submodel)            
