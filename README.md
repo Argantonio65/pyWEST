@@ -70,4 +70,4 @@ The function Read_SA_outputVariable loads the selected variable from the output 
 Included two jupyter notebooks containing:
 
 - **Bayesian_Inference_Example.ipynb** : Examples and tutorial to perform bayesian parameter inference to a West model.
-- **Calibration_Example.ipynb** : A tutorial for performen model calibration with scipy.minimize
+- **Calibration_Example.ipynb** : A tutorial for perform model calibration with scipy.minimize
