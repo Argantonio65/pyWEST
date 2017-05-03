@@ -19,6 +19,19 @@ Python scripts for water quality simulators in WEST (MIKE DHI).
 - Download Parallel_WESTRunningPyWrapper.py and RunModel.py and set them in a project folder under \AutomatedCall\
 - Create n model replicate folders in the main directory. Name the replicates eg. \Model_1 \Model_2 ... \Modeln
 - Copy an instance of Tornado.Main.xml inside each model folder. Change inside this file: Prop Name="CalcVarPrefix" Value="Model1"
+- Set Model experiment name .xml at Parallel_WESTRunningPyWrapper.py line 183. 
+
+## Description
+
+- **RunModel.py** Is an IronPython script which interfaces with Tornado.net in order to call a WEST experiment. 
+- **Parallel_WESTRunningPyWrapper.py** Python class which calls RunModel.py in parallel. Management of model resources.
+        - Atributes:
+            self.InstanceNames = List the Model names
+            self.OccupationList = boolean list, 1 for occupied node, 0 for free
+            self.NumberofInstances = Number of total Model sessions (should not be higher than the number of local licenses or computer cores)
+            self.Paths = Project directory Path
+            self.threads_active = Number of threads initiated
+
 
 ## Operation Automated_Call.py
 
