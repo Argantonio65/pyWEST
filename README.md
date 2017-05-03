@@ -63,3 +63,11 @@ An example for the format is found at pyWEST\500SamplesUP.txt
 The script performs a simulation for each row in the layout. It will call in parallel as many simulations as model instances provided. Limited by the available slots in the license file (academic license x4).
 
 The function Read_SA_outputVariable loads the selected variable from the output folder.
+
+
+## Extra:
+### Notebooks
+In notebooks it is included two jupyter notebook containing:
+
+- **Bayesian_Inference_Example.ipynb** : Examples and tutorial to perform bayesian parameter inference to a West model.
+- **Calibration_Example.ipynb** : A tutorial for performen model calibration with scipy.minimize
