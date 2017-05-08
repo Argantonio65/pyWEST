@@ -99,8 +99,8 @@ def ChangeGlobalParameter(ExpSS, Parameter, Value, show='FALSE', Reference=None)
                         print "Setting " + "." + submodel + "." + Parameter + " to = " + str(LocalValue*Value) + ' multiplied by ' + str(Value)
 
     elif 'Manipulated' in Reference:
-        if '#' in Reference:
-            SubmodelPlacer = Reference[Reference.index('#')+1:]
+        if '_' in Reference:
+            SubmodelPlacer = Reference[Reference.index('_')+1:]
             SubModelNames = ExpSS.ModelEnumerateModels("")
             for submodel in SubModelNames:
                 Inputs = ExpSS.ModelEnumerateInputVars("." + submodel)            
@@ -210,7 +210,7 @@ try:
     
     Exp.EventSetTime += SetTime
     
-    #ExpSimul = Exp.ExpGetSimul()
+    ExpSimul = Exp.ExpGetSimul()
 			
 
     
