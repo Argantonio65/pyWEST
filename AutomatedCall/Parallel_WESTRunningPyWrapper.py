@@ -59,7 +59,7 @@ class ModelInstances:
     '''
     global ExecuteModel
     
-    def ExecuteModel(ModelName, Parameterlist, Timelist, PathsArg, RunnerPath):
+    def ExecuteModel(ModelName, Parameterlist, Timelist, PathsArg, RunnerPath, ThreadingPool, ParamDatabase):
         """
         Generates the parameter and time arguments and runs the ironpython script for Parameterchange.
         Will generate an intermediate file RUNWEST.bat in the cwd used for the model setup.
@@ -86,22 +86,15 @@ class ModelInstances:
         for n in PathsArg.keys():
             new= ' '+"'" + n +':' + str(PathsArg[n])+"'"
             ParsePathsArg+=new
-                  
-        WESTCALL = 'ipy ' + RunnerPath + r'\AutomatedCall\RunModel.py' + ParseParams + ParseTime + ParsePathsArg   #NOTE: THE ipy module must be located in a folder called Inference on the same location as the model instance.
-            
-        # Change if other version of WEST is used (in this case 2016)
-        WESTENVIRONMENT = [r'SET INCLUDE=%INCLUDE%;C:\Program Files (x86)\DHI\2016\WEST\include',
-                            r'SET LIB=%LIB%;C:\Program Files (x86)\DHI\2016\WEST\lib\win32-msvc',
-                            r'SET PATH=C:\Program Files (x86)\DHI\2016\bin;C:\Program Files (x86)\DHI\2016\WEST\third_party\bcc5.5\Bin;%PATH%',
-                            r'SET TORNADO_CC_PLATFORM=win32-bcc5.5',
-                            r'SET TORNADO_CC_PATH=C:\Program Files (x86)\DHI\2016\WEST\third_party\bcc5.5',
-                            r'SET TORNADO_DATA_PATH=C:\Users\Public\Documents\DHI\WEST',
-                            r'SET TORNADO_ROOT_PATH=C:\Program Files (x86)\DHI\2016\WEST',
-                            r'SET OPENMODELICAHOME=C:\Program Files (x86)\DHI\2016\WEST\third_party\omc']
-    
+        
+        if ThreadingPool>0:
+            ParamDatabase = json.dumps(ParamDatabase)
+            WESTCALL = 'ipy ' + RunnerPath + r'\AutomatedCall\QThreadedRunModel.py' + ParseParams + ParseTime + ParsePathsArg + ' Threading:' + str(ThreadingPool) + ' ParamDatabase:' + ParamDatabase #NOTE: THE ipy module must be located in a folder called Inference on the same location as the model instance.
+        else:
+            WESTCALL = 'ipy ' + RunnerPath + r'\AutomatedCall\QThreadedRunModel.py' + ParseParams + ParseTime + ParsePathsArg   #NOTE: THE ipy module must be located in a folder called Inference on the same location as the model instance.
+
+
         f = open(r'{}_RUNWEST.bat'.format(ModelName), 'w')
-        for n in WESTENVIRONMENT:
-            f.write(n + '\n')
         f.write(WESTCALL)
         f.close()
         
@@ -177,24 +170,24 @@ class ModelInstances:
                writer.writerow([key, value])
 
 
-    def model_activateParallel(self, Parameterlist, Timelist, ModelName):
+    def model_activateParallel(self, Parameterlist, Timelist, ModelName, ThreadingPool, ParamDatabase):
         
         PathsArg = {'Tornado_path': self.Paths + r"\\" + ModelName + "\Tornado.Main.xml",
                         'Experiment_path': self.Paths + r"\\" + ModelName + r"\Model_dummy_1.Dynamic.ObjEval.Exp.xml"}  # Warning change the name of the model instance.Exp.xml.
                 
-        ExecuteModel(ModelName, Parameterlist, Timelist, PathsArg, self.Paths)
+        ExecuteModel(ModelName, Parameterlist, Timelist, PathsArg, self.Paths, ThreadingPool, ParamDatabase)
         self.storeModelOutput(ModelName, Parameterlist, Timelist, PathsArg)
 
         self.release(self.InstanceNames.index(ModelName)) # Point to the index associated to that model and release it
    
-    def model_run(self, Parameterlist, Timelist):
+    def model_run(self, Parameterlist, Timelist, ThreadingPool = 0, ParamDatabase = 'None'):
         
         ModelName = self.get_nextAvailable()
         
         #self.model_activateParallel(Parameterlist, Timelist, ModelName)
 
         if ModelName is not None:
-            t = threading.Thread(target=self.model_activateParallel, args = (Parameterlist, Timelist, ModelName, ) )
+            t = threading.Thread(target=self.model_activateParallel, args = (Parameterlist, Timelist, ModelName, ThreadingPool, ParamDatabase, ) )
             self.threads_active.append(t)
             t.start()
 
@@ -206,7 +199,7 @@ class ModelInstances:
                 time.sleep(.01)
             else:
                 ModelName = self.get_nextAvailable()
-                t = threading.Thread(target=self.model_activateParallel, args = (Parameterlist, Timelist, ModelName, ) )
+                t = threading.Thread(target=self.model_activateParallel, args = (Parameterlist, Timelist, ModelName, ThreadingPool, ParamDatabase, ) )
                 self.threads_active.append(t)
                 t.start()
 

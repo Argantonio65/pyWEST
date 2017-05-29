@@ -18,13 +18,26 @@ Created on Thu May 26 15:24:28 2016 $author: Antonio Moreno, Delft
 """
 import clr
 import System
-clr.AddReferenceToFileAndPath("C:/Program Files (x86)/DHI/2016/bin/DHI.Tornado.NET.dll")
-import TornadoNET
+
 import sys
 import csv
 from datetime import datetime
 import os
 import random
+
+#%% SET ENVIRONMENT
+os.environ['INCLUDE'] = r"%INCLUDE%;C:\Program Files (x86)\DHI\2016\WEST\include"
+os.environ['LIB'] = r"%LIB%;C:\Program Files (x86)\DHI\2016\WEST\lib\win32-msvc"
+os.environ['PATH'] = r"C:\Program Files (x86)\DHI\2016\bin;C:\Program Files (x86)\DHI\2016\WEST\third_party\bcc5.5\Bin;%PATH%"
+os.environ['TORNADO_CC_PATH'] = r"C:\Program Files (x86)\DHI\2016\WEST\third_party\bcc5.5"
+os.environ['TORNADO_DATA_PATH'] = r"C:\Users\Public\Documents\DHI\WEST"
+os.environ['TORNADO_ROOT_PATH'] = r"C:\Program Files (x86)\DHI\2016\WEST"
+os.environ['OPENMODELICAHOME'] = r"C:\Program Files (x86)\DHI\2016\WEST\third_party\omc"
+
+clr.AddReferenceToFileAndPath("C:/Program Files (x86)/DHI/2016/bin/DHI.Tornado.NET.dll")
+import TornadoNET
+
+
 
 TornadoLocationArg = [i for i in sys.argv if 'Tornado_path:' in i][0]
 ExperimentLocationArg = [i for i in sys.argv if 'Experiment_path:' in i][0]
