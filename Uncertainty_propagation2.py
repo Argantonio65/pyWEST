@@ -55,7 +55,7 @@ Parameterlist = {'n':0.07, 'KBODs':0.55, 'KLmin':0.1, 'KO2':1.6, 'SOD':1}
 #%% Model Run
 
 start_timer = timeit.default_timer()   
-ModelInstance.model_run(Parameterlist, Timelist, ThreadingPool = 8, ParamDatabase = json.dumps(SamplingLayout.to_dict('list')))
+ModelInstance.model_run(Parameterlist, Timelist, ThreadingPool = 8, ParamDatabase = os.path.join(repPath, '500SamplesUP.txt'))
 
 
 print 'Simulation time : {} seconds'.format(timeit.default_timer() - start_timer)

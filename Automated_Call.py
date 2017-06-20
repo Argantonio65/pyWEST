@@ -33,7 +33,7 @@ from Parallel_WESTRunningPyWrapper import ModelInstances
 
 #%% DEFINE SIMULATION TIME
 Dateseries = '01-jan-2012_31-Dec-2012'
-TimeWindow =  '01-May-2012_30-Aug-2012'
+TimeWindow =  '01-Jan-2012_30-Aug-2012'
 Initial = TimeWindow[:11]
 Final = TimeWindow[12:]
 
@@ -85,11 +85,12 @@ Parameterlist = {'n':0.07, 'KBODs':0.55, 'KLmin':0.1, 'KO2':1.6, 'SOD':1}
 #%% Model Run
 
 start_timer = timeit.default_timer()   
-ModelInstance.model_run(Parameterlist, Timelist, ThreadingPool = 1)
+ModelInstance.model_run(Parameterlist, Timelist)
 
 
 print 'Simulation time : {} seconds'.format(timeit.default_timer() - start_timer)
 
+'''
 #%% Output Load
 output = ReadOutput('Model_dummy_1.Dynamic_water_quality.Simul.1.out.txt', ModelInstance.InstanceNames[0], TimeWindowStart = Initial, variable = '.River_5.DO')
                
@@ -97,7 +98,7 @@ output = ReadOutput('Model_dummy_1.Dynamic_water_quality.Simul.1.out.txt', Model
 plt.figure(figsize = (15,5))
 plt.plot(output)
 
-
+'''
 
 
 

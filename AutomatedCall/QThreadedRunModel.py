@@ -219,16 +219,10 @@ def copyInternalParametersoutput(ExpSS, idnum = ""):
 import threading
 import Queue
 import json
-
+import csv
 WEST_lock = threading.Lock()
 
-
 ThreadingArg = [i for i in sys.argv if 'Threading:' in i]
-num_worker_threads = int(ThreadingArg[0][ThreadingArg[0].index(':')+1:])
-
-# LOAD Parameters database
-ParamDatabase = [i for i in sys.argv if 'ParamDatabase:' in i]
-ParamDatabase = json.loads(ParamDatabase[0][ParamDatabase[0].index(':')+1:])
 
 
 try:
@@ -237,9 +231,34 @@ try:
     Tornado.Initialize(TornadoLocation, True)
     Tornado.EventSetMessage += SetMessage
 
+
     if ThreadingArg:  #RUN THREADED SIMULATION
         #%% Generate Queue for threads
         #ParameterDatabase = json.loads()
+        num_worker_threads = int(ThreadingArg[0][ThreadingArg[0].index(':')+1:])
+
+        # LOAD Parameters database
+        ParamDatabase = [i for i in sys.argv if 'ParamDatabase:' in i]
+
+
+        if 'ParamDatabase:None' not in ParamDatabase:
+            #READ pandas to csv output as dictionary of parameter values
+            # open the file in universal line ending mode 
+            with open(ParamDatabase[0][ParamDatabase[0].index(':')+1:], 'rU') as infile:
+              # read the file as a dictionary for each row ({header : value})
+              reader = csv.DictReader(infile)
+              data = {}
+              for row in reader:
+                for header, value in row.items():
+                  try:
+                    data[header].append(value)
+                  except KeyError:
+                    data[header] = [value]
+            data.pop('', None)
+            ParamDatabase = data
+        else:
+            raw_input("Error: Threading mode active but not ParamDatabase supplied \n Please press a key to exit.")
+
 
         def Threadedcall(par):
             global ParamDatabase
