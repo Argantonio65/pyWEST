@@ -23,6 +23,7 @@ import csv
 from datetime import datetime
 import os
 import random
+import shutil
 
 
 #%% SET ENVIRONMENT
@@ -79,6 +80,7 @@ def ChangeGlobalParameter(ExpSS, Parameter, Value, show='FALSE', Reference=None)
         	If 'Multiplier' the value acts as a multiplier factor for the current parameter value.
         	If 'Manipulated' allows to change values of inputs which are not defined by timeseries. With a constant value.
         	If 'Manipulated_Reference' will change a manipulated value at the reference submodel.
+        	If 'Input' will change the input scheme ut requires Input_SamplesDirectory which should be named as ./SamplesDirectory/InputName_id (txt), withing the sampling database the Parameter will be named InputName@Input_Directory with values ids
         :show: [TRUE,FALSE]. If TRUE the changed parameters will appear in the command line. Desactivated by default.
         
     :Example:
@@ -133,7 +135,15 @@ def ChangeGlobalParameter(ExpSS, Parameter, Value, show='FALSE', Reference=None)
                 if Parameter in Inputs:
                     ExpSS.ModelSetInitialValue("." + submodel + "." + Parameter, Value)
                     if show=='TRUE':
-                        print "Setting " + "." + submodel + "." + Parameter + " to = " + str(Value) 
+                        print "Setting " + "." + submodel + "." + Parameter + " to = " + str(Value)
+    elif 'Input' in Reference:
+        # Declare change of input file.   Inputs should be added as:     InputName@Input_DirectoryOfInputSamples
+        # Inputs in the directory should be labelled as Inputname_id (and all should be as txt)
+        InputDirectory = os.path.join(Reference[Reference.index('_')+1:], Parameter + '_' + str(int(Value)) + '.txt')
+        destinypath = os.path.join(ExperimentLocation[:ExperimentLocation.rfind('\\')], Parameter + '.txt')
+        if show=='TRUE':
+	        print 'setting new input at: ' + InputDirectory
+        shutil.copyfile(InputDirectory, destinypath)
 
     else:
         SubModelNames = ExpSS.ModelEnumerateModels("")

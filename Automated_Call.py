@@ -73,7 +73,7 @@ def NS(s,o):
     
 
 #%% MODEL instance
-ModelInstance = ModelInstances(['Model_dummy_1'], modelPath = repPath)
+ModelInstance = ModelInstances(['Model_dummy_1'], modelPath = repPath, modelInternalName = 'Model_dummy_1.Dynamic.ObjEval.Exp')
 
 
 #%%                          
