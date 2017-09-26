@@ -17,9 +17,6 @@ Python scripts for water quality simulators in WEST (MIKE DHI).
     numpy, pandas, os, time, timeit, json, shutil and sys
 
 - Download Parallel_WESTRunningPyWrapper.py and RunModel.py and set them in a project folder under \AutomatedCall\
-- Create n model replicate folders in the main directory. Name the replicates eg. \Model_1 \Model_2 ... \Modeln
-- Copy an instance of Tornado.Main.xml inside each model folder. Change inside this file: Prop Name="CalcVarPrefix" Value="Model1"
-- Set Model experiment name .xml at Parallel_WESTRunningPyWrapper.py line 183. 
 
 ## Description
 
