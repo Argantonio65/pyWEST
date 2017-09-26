@@ -44,7 +44,7 @@ Final = TimeWindow[12:]
 SamplingLayout = pd.read_csv('C:\\Users\\localadmin.TUD278183\\Desktop\\GitProjects\\pyWEST\\500SamplesUP.txt', index_col = [0])
 
 #%% CREATE Model instance with n replicates
-ModelInstance = ModelInstances(['Model_dummy_1'], modelPath = repPath)
+ModelInstance = ModelInstances(['Model_dummy_1'], modelPath = repPath, modelInternalName = 'Model_dummy_1.Dynamic.ObjEval.Exp')
 
 #%%                          
 # Parameters
@@ -55,7 +55,7 @@ Parameterlist = {'n':0.07, 'KBODs':0.55, 'KLmin':0.1, 'KO2':1.6, 'SOD':1}
 #%% Model Run
 
 start_timer = timeit.default_timer()   
-ModelInstance.model_run(Parameterlist, Timelist, ThreadingPool = 8, ParamDatabase = os.path.join(repPath, '500SamplesUP.txt'))
+ModelInstance.model_run(Parameterlist, Timelist, ThreadingPool = 4, ParamDatabase = os.path.join(repPath, '500SamplesUPReduced.txt'))
 
 
 print 'Simulation time : {} seconds'.format(timeit.default_timer() - start_timer)

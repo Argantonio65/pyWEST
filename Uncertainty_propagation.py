@@ -43,7 +43,7 @@ Final = TimeWindow[12:]
 SamplingLayout = pd.read_csv('C:\\Users\\localadmin.TUD278183\\Desktop\\GitProjects\\pyWEST\\500SamplesUP.txt', index_col = [0])
 
 #%% CREATE Model instance with n replicates
-ModelInstance = ModelInstances(['Model_dummy_1', 'Model_dummy_2', 'Model_dummy_3', 'Model_dummy_4'], modelPath = repPath)
+ModelInstance = ModelInstances(['Model_dummy_1', 'Model_dummy_2', 'Model_dummy_3', 'Model_dummy_4'], modelPath = repPath, modelInternalName = 'Model_dummy_1.Dynamic.ObjEval.Exp')
 
 
 #%% n Core SA Parallel

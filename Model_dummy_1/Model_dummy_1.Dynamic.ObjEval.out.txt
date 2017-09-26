@@ -1,2 +1,0 @@
-#RunNo	Error	ObjValue
-#
