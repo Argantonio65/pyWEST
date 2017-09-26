@@ -17,9 +17,6 @@ Python scripts for water quality simulators in WEST (MIKE DHI).
     numpy, pandas, os, time, timeit, json, shutil and sys
 
 - Download Parallel_WESTRunningPyWrapper.py and RunModel.py and set them in a project folder under \AutomatedCall\
-- Create n model replicate folders in the main directory. Name the replicates eg. \Model_1 \Model_2 ... \Modeln
-- Copy an instance of Tornado.Main.xml inside each model folder. Change inside this file: Prop Name="CalcVarPrefix" Value="Model1"
-- Set Model experiment name .xml at Parallel_WESTRunningPyWrapper.py line 183. 
 
 ## Description
 
@@ -38,7 +35,11 @@ Python scripts for water quality simulators in WEST (MIKE DHI).
 
 - Instanciate n models with:
   ```python
-  ModelInstance = ModelInstances(['Model_1', 'Model_2', 'Model_n'], modelPath = "<ProjectFolder>")
+  ModelInstance = ModelInstances(['Model_1', 'Model_2', 'Model_n'], modelPath = "<ProjectFolder>", modelInternalName = 'Model_dummy_1.Dynamic.ObjEval.Exp')
+  ```
+  You can also run one model in parallel at different processors:
+  ```python
+  ModelInstances(['Model_dummy_1'], modelPath = "<ProjectFolder>", modelInternalName = 'Model_dummy_1.Dynamic.ObjEval.Exp')
   ```
 - Set Parameter values:
   e.g
@@ -52,6 +53,8 @@ Python scripts for water quality simulators in WEST (MIKE DHI).
     -  ```'param@submodel' ```:value will set the parameter 'param' only in the block model 'submodel'. This allows for local specifications.
     - ```'param@Manipulated':value``` sets a manipulated variable value which doesn't carry any declared input. There is the option                   ```'param@Manipulated#submodel':value``` to make the change only at submodel level.
     - ```'param@Multiplier'```:value works by ofsetting its current saved value by a multiplyier value.
+    - ```'param@Multiplier'```:value works by ofsetting its current saved value by a multiplyier value.
+    - ```'inputname@Intput'```: Declare change of input file. Inputs should be added as: InputName@Input_DirectoryOfInputSamples Inputs in the directory should be labelled as Inputname_id (and all should be as txt)
 
 - Run Model:
   ```python
@@ -65,7 +68,7 @@ Python scripts for water quality simulators in WEST (MIKE DHI).
   
   **Note:** Simulations produced by calling .model_run(Parameterlist, Timelist) store all output files in a new folder \SimulationOutput\ModelName\Sim_i\. Each Sim_i contains: All output files from the WEST experiment which has .out. in their names. A txt file containing all iternal parameter values in the model <Internal_parameters.out.txt> and a file containing all changed parameter values from the Parameterlist in <External_parameters.txt>.
   
-## Operation Uncertainty_propagation.py
+## Operation Uncertainty_propagation2.py
 
 This script automatizes a parameter sampling scheme provided by:
 
@@ -74,8 +77,11 @@ This script automatizes a parameter sampling scheme provided by:
   ```
 An example for the format is found at pyWEST\500SamplesUP.txt
 
-The script performs a simulation for each row in the layout. It will call in parallel as many simulations as model instances provided. Limited by the available slots in the license file (academic license x4).
+The script performs a simulation for each row in the layout. It will call in parallel as many simulations as resources allocated through the parameter TreadingPool at:
 
+  ```python
+ModelInstance.model_run(Parameterlist, Timelist, ThreadingPool = 4, ParamDatabase = os.path.join(repPath, '500SamplesUPReduced.txt'))
+  ```
 The function Read_SA_outputVariable loads the selected variable from the output folder.
 
 
